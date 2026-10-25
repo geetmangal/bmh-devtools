@@ -12,30 +12,15 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="{{ site_name }}">
 <meta name="twitter:card" content="summary">
-<script type="application/ld+json">{{ schema_json | safe }}</script>
-<script src="https://cdn.tailwindcss.com/3.4.17"></script>
-<style>
-  body { background: #0b1220; color: #e5e7eb; }
-  .card { background: #111a2e; border: 1px solid #1f2a44; border-radius: 0.75rem; }
-  .btn { background: #f97316; color: #fff; font-weight: 600; border-radius: 0.5rem; padding: 0.6rem 1.1rem; }
-  .btn:hover { background: #ea580c; }
-  .btn:disabled { opacity: .5; cursor: wait; }
-  input, select, textarea { background: #0b1220; border: 1px solid #334155; color: #f1f5f9; border-radius: 0.5rem; padding: 0.55rem 0.75rem; width: 100%; }
-  input:focus, select:focus, textarea:focus { outline: 2px solid #f97316; outline-offset: 1px; }
-  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-  .st-ok { color: #4ade80; } .st-warn { color: #fbbf24; } .st-bad { color: #f87171; } .st-mute { color: #94a3b8; }
-  pre.snippet { background: #0b1220; border: 1px solid #334155; border-radius: .5rem; padding: .75rem; overflow-x: auto; font-size: .8rem; white-space: pre-wrap; word-break: break-all; }
-  table { width: 100%; border-collapse: collapse; } th, td { padding: .45rem .5rem; text-align: left; border-bottom: 1px solid #1f2a44; font-size: .875rem; vertical-align: top; }
-  details summary { cursor: pointer; font-weight: 600; }
-  a { color: #fdba74; } a:hover { text-decoration: underline; }
-</style>
+<script type="application/ld+json" nonce="{{ csp_nonce }}">{{ schema_json | safe }}</script>
+<link rel="stylesheet" href="{{ static_url('css/tools.css') }}">
 </head>
 <body class="min-h-screen flex flex-col">
 <header class="border-b border-slate-800">
   <nav class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
     <a href="{{ prefix }}/" class="font-bold text-white no-underline text-base">BookMyHost <span class="text-orange-400">Dev Tools</span></a>
     {% for t in tools %}<a href="{{ prefix }}/{{ t.slug }}" class="text-slate-300">{{ t.name }}</a>{% endfor %}
-    <a href="/api/v1/docs" class="text-slate-400 ml-auto">API docs</a>
+    <a href="{{ api }}/docs" class="text-slate-400 ml-auto">API docs</a>
   </nav>
 </header>
 <main class="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
@@ -57,16 +42,17 @@
   <h2 class="text-lg font-bold mb-1">Embed / link to this tool</h2>
   <p class="text-sm text-slate-400 mb-2">Found this useful? Paste the snippet into your docs, blog or wiki to link to the {{ tool.name }}.</p>
   <pre class="snippet mono" id="embed-snippet">&lt;a href="{{ canonical }}" title="{{ tool.name }} by BookMyHost"&gt;{{ tool.name }}&lt;/a&gt; - free tool by &lt;a href="https://bookmyhost.com"&gt;BookMyHost&lt;/a&gt;</pre>
-  <button class="btn mt-2 text-sm" type="button" onclick="navigator.clipboard.writeText(document.getElementById('embed-snippet').innerText);this.textContent='Copied';">Copy snippet</button>
+  <button class="btn mt-2 text-sm" type="button" data-copy-target="embed-snippet">Copy snippet</button>
 </section>
 {% endif %}
 </main>
 <footer class="border-t border-slate-800 mt-10">
   <div class="max-w-5xl mx-auto px-4 py-6 text-sm text-slate-400 flex flex-wrap gap-4 justify-between">
     <span>Built by the <a href="https://bookmyhost.com" rel="author">BookMyHost</a> engineering team. Indian cloud servers and VPS by Blazing Bullet Pvt Ltd.</span>
-    <span><a href="{{ prefix }}/">All tools</a> &middot; <a href="/api/v1/docs">API</a> &middot; MIT licensed</span>
+    <span><a href="{{ prefix }}/">All tools</a> &middot; <a href="{{ api }}/docs">API</a> &middot; <a href="https://bookmyhost.com/">Cloud servers</a> &middot; MIT licensed</span>
   </div>
 </footer>
+<script src="{{ static_url('js/common.js') }}" nonce="{{ csp_nonce }}" defer></script>
 {% block scripts %}{% endblock %}
 </body>
 </html>

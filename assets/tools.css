@@ -1,0 +1,28 @@
+/* Source for app/static/css/tools.css (built at image build time by the Tailwind standalone CLI, minified). */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body { background: #0b1220; color: #e5e7eb; }
+  input, select, textarea { background: #0b1220; border: 1px solid #334155; color: #f1f5f9; border-radius: 0.5rem; padding: 0.55rem 0.75rem; width: 100%; }
+  input:focus, select:focus, textarea:focus { outline: 2px solid #f97316; outline-offset: 1px; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: .45rem .5rem; text-align: left; border-bottom: 1px solid #1f2a44; font-size: .875rem; vertical-align: top; }
+  details summary { cursor: pointer; font-weight: 600; }
+  a { color: #fdba74; }
+  a:hover { text-decoration: underline; }
+}
+
+@layer components {
+  .card { background: #111a2e; border: 1px solid #1f2a44; border-radius: 0.75rem; }
+  .btn { background: #f97316; color: #fff; font-weight: 600; border-radius: 0.5rem; padding: 0.6rem 1.1rem; }
+  .btn:hover { background: #ea580c; }
+  .btn:disabled { opacity: .5; cursor: wait; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+  .st-ok { color: #4ade80; }
+  .st-warn { color: #fbbf24; }
+  .st-bad { color: #f87171; }
+  .st-mute { color: #94a3b8; }
+  pre.snippet { background: #0b1220; border: 1px solid #334155; border-radius: .5rem; padding: .75rem; overflow-x: auto; font-size: .8rem; white-space: pre-wrap; word-break: break-all; }
+}

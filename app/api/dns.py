@@ -15,11 +15,12 @@ import dns.resolver
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from app.core.config import DNS_TIMEOUT
-from app.core.ratelimit import rate_limit
-from app.core.validate import ValidationError, normalise_hostname, validate_ptr_target
+from app.core.config import DNS_TIMEOUT, MAX_CONCURRENT_DNS
+from app.core.ratelimit import Gate, rate_limit
+from app.core.validate import ValidationError, is_public_ip, normalise_hostname, validate_ptr_target
 
 router = APIRouter(prefix="/dns", tags=["dns"])
+_gate = Gate(MAX_CONCURRENT_DNS, "DNS")
 
 RecordType = Literal["A", "AAAA", "CNAME", "MX", "NS", "TXT", "SOA", "PTR"]
 
@@ -106,6 +107,8 @@ async def _authoritative(qname: str, rtype: str) -> dict:
                 ns_ip = (await res.resolve(ns, "A"))[0].to_text()
             except Exception:
                 continue
+            if not is_public_ip(ns_ip):  # SSRF: a zone can delegate to an internal address
+                continue
             r = await _query(f"authoritative: {ns}", "", ns_ip, qname, rtype)
             r.update({"zone": zone, "nameservers": ns_names})
             return r
@@ -120,8 +123,9 @@ async def propagation(req: PropagationRequest) -> dict:
         qname = validate_ptr_target(req.name) if req.type == "PTR" else normalise_hostname(req.name)
     except ValidationError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
-    tasks = [_query(l, c, ip, qname, req.type) for l, c, ip in RESOLVERS]
-    results, auth = await asyncio.gather(asyncio.gather(*tasks), _authoritative(qname, req.type))
+    async with _gate.slot():
+        tasks = [_query(l, c, ip, qname, req.type) for l, c, ip in RESOLVERS]
+        results, auth = await asyncio.gather(asyncio.gather(*tasks), _authoritative(qname, req.type))
     auth_set = set(auth.get("answers") or [])
     ok = [r for r in results if r["status"] == "ok"]
     if auth_set:

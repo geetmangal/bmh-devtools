@@ -3,19 +3,27 @@ services:
     build: .
     image: bmh-devtools:latest
     container_name: bmh-devtools
-    restart: unless-stopped
+    restart: always
     ports:
-      - "127.0.0.1:8765:8765"
+      - "127.0.0.1:8765:8765"   # loopback only; nginx proxies /tools/
     environment:
       BMH_TOOLS_BASE_URL: https://bookmyhost.com
       BMH_TOOLS_PREFIX: /tools
       BMH_TOOLS_RATE_PER_MIN: "30"
+      # SSRF block list on top of all private/reserved ranges: gateway, this host, CloudStack VR.
+      BMH_TOOLS_BLOCK_NETS: "160.22.109.1/32,160.22.109.2/32,160.22.109.9/32"
     read_only: true
     tmpfs:
-      - /tmp
+      - /tmp:size=16m
     security_opt:
       - no-new-privileges:true
     cap_drop:
       - ALL
     mem_limit: 256m
+    memswap_limit: 256m
+    pids_limit: 128
     cpus: 1.0
+    logging:
+      driver: journald
+      options:
+        tag: bmh-devtools

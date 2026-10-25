@@ -12,7 +12,7 @@
 </div>
 <section class="mt-10 card p-5 text-sm text-slate-300">
   <h2 class="text-lg font-bold mb-2 text-white">JSON API</h2>
-  <p>Every tool is also an endpoint under <code class="mono">/api/v1/</code> with OpenAPI docs at <a href="/api/v1/docs">/api/v1/docs</a>. Limit: 30 requests per minute per IP.</p>
-  <pre class="snippet mono mt-3">curl -s -X POST {{ base_url }}/api/v1/subnet/calc -H 'Content-Type: application/json' -d '{"cidr":"10.0.0.0/22"}'</pre>
+  <p>Every tool is also an endpoint under <code class="mono">{{ api }}/</code> with OpenAPI docs at <a href="{{ api }}/docs">{{ api }}/docs</a>. Limit: {{ rate_per_min }} requests per minute per IP.</p>
+  <pre class="snippet mono mt-3">curl -s -X POST {{ base_url }}{{ api }}/subnet/calc -H 'Content-Type: application/json' -d '{"cidr":"10.0.0.0/22"}'</pre>
 </section>
 {% endblock %}

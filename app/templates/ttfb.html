@@ -3,7 +3,7 @@
 <h1 class="text-3xl font-bold mb-2">TTFB &amp; SSL Checker</h1>
 <p class="text-slate-300 max-w-3xl mb-5">Measure how fast a website responds, phase by phase: DNS lookup, TCP connect, TLS handshake, time to first byte (TTFB) and download, with redirects followed up to 5 hops and 3 samples for a stable TTFB. The SSL section inspects the certificate chain, expiry, SAN list, TLS version, cipher, HSTS and HTTP/2 support. Measured from a BookMyHost server in India.</p>
 
-<form id="tt-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end" method="post" action="/api/v1/http/check">
+<form id="tt-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end" method="post" action="{{ api }}/http/check">
   <label class="block text-sm">URL<input id="tt-url" name="url" type="text" placeholder="https://example.com" required autocomplete="off" class="mt-1" spellcheck="false"></label>
   <button class="btn" type="submit" id="tt-submit">Check</button>
 </form>
@@ -22,4 +22,4 @@
   <p class="mt-2">Hosting the site close to its visitors removes most of the TCP and TLS cost. For Indian audiences, a server in India such as a <a href="https://bookmyhost.com">BookMyHost cloud VPS</a> typically cuts 150 to 250 ms per round trip compared with a European or US origin.</p>
 </section>
 {% endblock %}
-{% block scripts %}<script src="{{ prefix }}/static/js/ttfb.js" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ static_url('js/ttfb.js') }}" nonce="{{ csp_nonce }}" defer></script>{% endblock %}

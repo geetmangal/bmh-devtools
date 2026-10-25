@@ -13,14 +13,15 @@ from cryptography.hazmat.primitives import hashes
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from app.core.config import HTTP_TIMEOUT, MAX_REDIRECTS, MAX_RESPONSE_BYTES
-from app.core.ratelimit import rate_limit
+from app.core.config import HTTP_TIMEOUT, MAX_CONCURRENT_HTTP, MAX_REDIRECTS, MAX_RESPONSE_BYTES
+from app.core.ratelimit import Gate, rate_limit
 from app.core.validate import ValidationError, is_ip_literal, is_public_ip, validate_url
 
 router = APIRouter(prefix="/http", tags=["http"])
 
 USER_AGENT = "BookMyHost-DevTools/1.0 (+https://bookmyhost.com/tools/ttfb-ssl-checker)"
 SAMPLES = 3
+_gate = Gate(MAX_CONCURRENT_HTTP, "HTTP")
 
 
 class CheckRequest(BaseModel):
@@ -32,8 +33,13 @@ class CheckError(Exception):
 
 
 async def _resolve(host: str) -> tuple[str, float]:
-    """Resolve host -> public IP. Returns (ip, dns_ms). Rejects private targets (SSRF guard)."""
+    """Resolve host -> public IP. Returns (ip, dns_ms). Rejects private targets (SSRF guard):
+    if ANY address the name resolves to is non-public or blocked, the whole check is refused.
+    Callers connect to the returned IP literal (never re-resolve the name), so a DNS rebinding
+    answer cannot swap in an internal address between this check and the connect."""
     if is_ip_literal(host):
+        if not is_public_ip(host):
+            raise CheckError(f"{host} is not a public address; refusing to connect")
         return host, 0.0
     loop = asyncio.get_running_loop()
     t0 = time.perf_counter()
@@ -87,10 +93,14 @@ def _parse_headers(raw: bytes) -> tuple[str, int, str, dict[str, str]]:
     return version, status, reason, headers
 
 
-async def _fetch_once(scheme: str, host: str, port: int, path: str, verify: bool = True) -> dict:
-    """One GET with phase timings. Returns dict of timings, status, headers, body size, ssl object info."""
+async def _fetch_once(scheme: str, host: str, port: int, path: str, verify: bool = True,
+                      pinned: tuple[str, float] | None = None) -> dict:
+    """One GET with phase timings. Returns dict of timings, status, headers, body size, ssl object info.
+    `pinned` = (ip, dns_ms) from _resolve(); the socket always goes to that validated IP literal."""
     phases: dict[str, float] = {}
-    ip, dns_ms = await _resolve(host)
+    ip, dns_ms = pinned if pinned else await _resolve(host)
+    if not is_public_ip(ip):  # defence in depth: never connect to a non-public address
+        raise CheckError(f"refusing to connect to non-public address {ip}")
     phases["dns_ms"] = round(dns_ms, 2)
 
     t0 = time.perf_counter()
@@ -251,10 +261,11 @@ def _cert_info(der: bytes, host: str, verified: bool) -> dict:
     }
 
 
-async def _probe_h2(host: str, port: int) -> str | None:
-    """Separate handshake offering h2 to learn the ALPN protocol the server prefers."""
+async def _probe_h2(host: str, port: int, ip: str) -> str | None:
+    """Separate handshake (to the same pinned IP) offering h2 to learn the server's preferred ALPN."""
     try:
-        ip, _ = await _resolve(host)
+        if not is_public_ip(ip):
+            return None
         ctx = _ssl_context(False, ["h2", "http/1.1"])
         reader, writer = await asyncio.wait_for(
             asyncio.open_connection(ip, port, ssl=ctx, server_hostname=host), HTTP_TIMEOUT)
@@ -265,13 +276,14 @@ async def _probe_h2(host: str, port: int) -> str | None:
         return None
 
 
-async def _fetch(scheme: str, host: str, port: int, path: str) -> tuple[dict, bool]:
+async def _fetch(scheme: str, host: str, port: int, path: str,
+                 pinned: tuple[str, float] | None = None) -> tuple[dict, bool]:
     """Verified fetch first; if the TLS verification fails, retry unverified so we can still report."""
     try:
-        return await _fetch_once(scheme, host, port, path, verify=True), True
+        return await _fetch_once(scheme, host, port, path, verify=True, pinned=pinned), True
     except CheckError as exc:
         if scheme == "https" and "TLS handshake failed" in str(exc):
-            info = await _fetch_once(scheme, host, port, path, verify=False)
+            info = await _fetch_once(scheme, host, port, path, verify=False, pinned=pinned)
             info["tls_error"] = str(exc)
             return info, False
         raise
@@ -280,6 +292,11 @@ async def _fetch(scheme: str, host: str, port: int, path: str) -> tuple[dict, bo
 @router.post("/check", dependencies=[Depends(rate_limit)])
 async def http_check(req: CheckRequest) -> dict:
     """Measure DNS / TCP / TLS / TTFB / download for a URL from this vantage point and inspect its certificate."""
+    async with _gate.slot():
+        return await _http_check(req)
+
+
+async def _http_check(req: CheckRequest) -> dict:
     try:
         scheme, host, port, path = validate_url(req.url)
     except ValidationError as exc:
@@ -291,7 +308,8 @@ async def http_check(req: CheckRequest) -> dict:
     verified = True
     for hop in range(MAX_REDIRECTS + 1):
         try:
-            info, verified = await _fetch(*cur)
+            pinned = await _resolve(cur[1])
+            info, verified = await _fetch(*cur, pinned=pinned)
         except CheckError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
         url_here = f"{cur[0]}://{cur[1]}{'' if cur[2] in (80, 443) else ':' + str(cur[2])}{cur[3]}"
@@ -315,7 +333,8 @@ async def http_check(req: CheckRequest) -> dict:
     samples = [info["phases"]]
     for _ in range(SAMPLES - 1):
         try:
-            more, _v = await _fetch(scheme, host, port, path)
+            _ip_again, dns_again = await _resolve(host)  # re-validated; timing only, IP stays pinned
+            more, _v = await _fetch(scheme, host, port, path, pinned=(pinned[0], dns_again))
             samples.append(more["phases"])
         except CheckError:
             break
@@ -348,7 +367,7 @@ async def http_check(req: CheckRequest) -> dict:
     if info["tls"]:
         tls = info["tls"]
         cert = _cert_info(tls["peer_der"], host, verified) if tls.get("peer_der") else None
-        alpn = await _probe_h2(host, port)
+        alpn = await _probe_h2(host, port, pinned[0])
         result["ssl"] = {
             "tls_version": tls["version"], "cipher": tls["cipher"], "cipher_bits": tls["cipher_bits"],
             "alpn_preferred": alpn, "http2_supported": alpn == "h2",

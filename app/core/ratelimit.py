@@ -1,12 +1,14 @@
-"""Tiny in-memory token bucket keyed by client IP (first X-Forwarded-For hop)."""
+"""Per-IP token bucket (second layer; nginx limit_req is authoritative) and concurrency gates."""
 from __future__ import annotations
 
+import asyncio
 import time
 from collections import defaultdict
+from contextlib import asynccontextmanager
 
 from fastapi import HTTPException, Request
 
-from app.core.config import RATE_LIMIT_PER_MIN
+from app.core.config import QUEUE_WAIT, RATE_LIMIT_PER_MIN
 
 
 class TokenBucket:
@@ -39,15 +41,46 @@ _bucket = TokenBucket(RATE_LIMIT_PER_MIN)
 
 
 def client_ip(request: Request) -> str:
-    xff = request.headers.get("x-forwarded-for")
-    if xff:
-        first = xff.split(",")[0].strip()
-        if first:
-            return first
+    """Client address. The app is reachable only through nginx on 127.0.0.1, which sets
+    X-Real-IP from the Cloudflare-verified $remote_addr (real_ip module) and overwrites any
+    client-supplied value. X-Forwarded-For is deliberately ignored (clients can prepend to it)."""
+    real = (request.headers.get("x-real-ip") or "").strip()
+    if real:
+        return real
     return request.client.host if request.client else "unknown"
 
 
 async def rate_limit(request: Request) -> None:
     """FastAPI dependency: 429 when the per-IP bucket is empty."""
     if not _bucket.allow(client_ip(request)):
-        raise HTTPException(status_code=429, detail="Rate limit exceeded: 30 requests per minute per IP.")
+        raise HTTPException(status_code=429, detail=f"Rate limit exceeded: {RATE_LIMIT_PER_MIN} requests per minute per IP.",
+                            headers={"Retry-After": "10"})
+
+
+class Gate:
+    """Caps concurrent outbound checks; waits up to QUEUE_WAIT seconds for a slot, then 503."""
+
+    def __init__(self, size: int, name: str) -> None:
+        self.size = size
+        self.name = name
+        self._sem: asyncio.Semaphore | None = None
+        self._loop = None
+
+    def _semaphore(self) -> asyncio.Semaphore:
+        loop = asyncio.get_running_loop()
+        if self._sem is None or self._loop is not loop:
+            self._sem, self._loop = asyncio.Semaphore(self.size), loop
+        return self._sem
+
+    @asynccontextmanager
+    async def slot(self):
+        sem = self._semaphore()
+        try:
+            await asyncio.wait_for(sem.acquire(), QUEUE_WAIT)
+        except asyncio.TimeoutError:
+            raise HTTPException(status_code=503, detail=f"{self.name} checker is busy, retry in a few seconds.",
+                                headers={"Retry-After": "5"})
+        try:
+            yield
+        finally:
+            sem.release()

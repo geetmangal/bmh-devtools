@@ -3,7 +3,7 @@
 <h1 class="text-3xl font-bold mb-2">IPv4 / IPv6 Subnet Calculator</h1>
 <p class="text-slate-300 max-w-3xl mb-5">Type a CIDR such as <span class="mono">10.0.0.0/22</span> or <span class="mono">2401:db00::/48</span> and get the network address, broadcast, usable host range, netmask, wildcard mask, binary form, address class, private/public flag and reverse DNS zone instantly. Results are computed in your browser; nothing is sent to a server.</p>
 
-<form id="sn-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end" method="post" action="/api/v1/subnet/calc">
+<form id="sn-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end" method="post" action="{{ api }}/subnet/calc">
   <label class="block text-sm">Address / CIDR<input id="sn-cidr" name="cidr" type="text" value="10.0.0.0/22" required autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
   <button class="btn" type="submit">Calculate</button>
 </form>
@@ -13,7 +13,7 @@
 <div class="grid gap-4 md:grid-cols-2 mt-6">
   <section class="card p-4">
     <h2 class="text-lg font-bold mb-2">Split into subnets</h2>
-    <form id="sn-split-form" class="grid gap-2 sm:grid-cols-[1fr_auto] items-end" method="post" action="/api/v1/subnet/split">
+    <form id="sn-split-form" class="grid gap-2 sm:grid-cols-[1fr_auto] items-end" method="post" action="{{ api }}/subnet/split">
       <label class="text-sm">New prefix length<input id="sn-newprefix" type="number" min="1" max="128" value="24" class="mt-1"></label>
       <button class="btn" type="submit">Split</button>
     </form>
@@ -22,7 +22,7 @@
   </section>
   <section class="card p-4">
     <h2 class="text-lg font-bold mb-2">Supernet / summarise</h2>
-    <form id="sn-sum-form" method="post" action="/api/v1/subnet/summarise">
+    <form id="sn-sum-form" method="post" action="{{ api }}/subnet/summarise">
       <label class="text-sm">One CIDR per line<textarea id="sn-sum-input" rows="4" class="mt-1 mono" spellcheck="false">192.168.0.0/24
 192.168.1.0/24
 192.168.2.0/23</textarea></label>
@@ -35,7 +35,7 @@
 <section class="mt-10 max-w-3xl text-slate-300 text-sm leading-relaxed">
   <h2 class="text-xl font-bold text-white mb-2">About CIDR notation</h2>
   <p>Classless Inter-Domain Routing (CIDR) writes an address and the number of leading network bits, for example 192.168.10.0/24. The remaining bits identify hosts: a /24 leaves 8 host bits (256 addresses), a /22 leaves 10 (1024 addresses). In IPv4 two addresses per subnet are reserved for the network and broadcast addresses, so a /24 has 254 usable hosts, except for /31 point-to-point links and /32 single hosts. IPv6 has no broadcast; the all-zeros interface identifier is the subnet-router anycast address.</p>
-  <p class="mt-2">The same calculation is available as JSON: <span class="mono">POST /api/v1/subnet/calc {"cidr": "10.0.0.0/22"}</span>, <span class="mono">POST /api/v1/subnet/split {"cidr", "new_prefix"}</span> and <span class="mono">POST /api/v1/subnet/summarise {"cidrs": [...]}</span>. Planning private networking for a <a href="https://bookmyhost.com">BookMyHost VPS</a>? A /24 per project is a sensible default.</p>
+  <p class="mt-2">The same calculation is available as JSON: <span class="mono">POST {{ api }}/subnet/calc {"cidr": "10.0.0.0/22"}</span>, <span class="mono">POST {{ api }}/subnet/split {"cidr", "new_prefix"}</span> and <span class="mono">POST {{ api }}/subnet/summarise {"cidrs": [...]}</span>. Planning private networking for a <a href="https://bookmyhost.com">BookMyHost VPS</a>? A /24 per project is a sensible default.</p>
 </section>
 {% endblock %}
-{% block scripts %}<script src="{{ prefix }}/static/js/subnet.js" defer></script>{% endblock %}
+{% block scripts %}<script src="{{ static_url('js/subnet.js') }}" nonce="{{ csp_nonce }}" defer></script>{% endblock %}

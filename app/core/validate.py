@@ -5,10 +5,11 @@ import ipaddress
 import re
 from urllib.parse import urlsplit
 
-from app.core.config import ALLOWED_PORTS
+from app.core.config import ALLOWED_PORTS, BLOCKED_NETS
 
 _LABEL = re.compile(r"^(?!-)[a-z0-9_-]{1,63}(?<!-)$")
 MAX_NAME_LEN = 253
+_BLOCKED = [ipaddress.ip_network(n, strict=False) for n in BLOCKED_NETS]
 
 
 class ValidationError(ValueError):
@@ -42,22 +43,29 @@ def is_ip_literal(value: str) -> bool:
 
 
 def is_public_ip(value: str) -> bool:
-    """True only for globally routable unicast addresses (rejects loopback, RFC1918,
-    link-local incl. 169.254.169.254 metadata, CGNAT, multicast, reserved, ULA...)."""
+    """True only for globally routable unicast addresses that are not on the block list
+    (rejects loopback, RFC1918, link-local incl. 169.254.169.254, CGNAT, multicast, reserved,
+    ULA, NAT64/6to4/Teredo wrappers, IPv4-mapped forms, and the hosting network's gateway,
+    virtual router and own addresses)."""
     try:
-        ip = ipaddress.ip_address(value)
+        ip = ipaddress.ip_address(value.split("%", 1)[0])
     except ValueError:
         return False
-    if isinstance(ip, ipaddress.IPv6Address) and ip.ipv4_mapped is not None:
-        ip = ip.ipv4_mapped
-    if isinstance(ip, ipaddress.IPv4Address) and ip in ipaddress.ip_network("100.64.0.0/10"):
-        return False  # CGNAT, not flagged by is_global on older Pythons
-    return bool(ip.is_global) and not ip.is_multicast and not ip.is_reserved
+    if isinstance(ip, ipaddress.IPv6Address):
+        if ip.ipv4_mapped is not None:
+            ip = ip.ipv4_mapped
+        elif ip.sixtofour is not None or ip.teredo is not None:
+            return False
+    for net in _BLOCKED:
+        if ip.version == net.version and ip in net:
+            return False
+    return bool(ip.is_global) and not ip.is_multicast and not ip.is_reserved \
+        and not ip.is_loopback and not ip.is_link_local and not ip.is_private and not ip.is_unspecified
 
 
 def assert_public_ip(value: str) -> None:
     if not is_public_ip(value):
-        raise ValidationError(f"address {value} is private, loopback, link-local or reserved")
+        raise ValidationError(f"address {value} is private, internal, link-local or reserved")
 
 
 def validate_ptr_target(value: str) -> str:
@@ -79,6 +87,8 @@ def validate_url(url: str) -> tuple[str, str, int, str]:
     url = url.strip()
     if len(url) > 2048:
         raise ValidationError("url too long")
+    if any(c in url for c in "\r\n\t\x00 "):
+        raise ValidationError("url contains whitespace or control characters")
     if "://" not in url:
         url = "https://" + url
     parts = urlsplit(url)
@@ -94,10 +104,10 @@ def validate_url(url: str) -> tuple[str, str, int, str]:
         host = str(ipaddress.ip_address(host))
     else:
         host = normalise_hostname(host)
-        if host.split(".")[-1].isdigit():
+        if host.split(".")[-1].isdigit() or re.fullmatch(r"0x[0-9a-f]+", host):
             raise ValidationError("malformed IP address literal")
         if host in ("localhost",) or host.endswith(".localhost") or host.endswith(".local") \
-                or host.endswith(".internal") or host.endswith(".home.arpa"):
+                or host.endswith(".internal") or host.endswith(".home.arpa") or "." not in host:
             raise ValidationError("local hostnames are not allowed")
     try:
         port = parts.port or (443 if parts.scheme == "https" else 80)

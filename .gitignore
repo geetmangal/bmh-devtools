@@ -8,3 +8,5 @@ node_modules/
 results/*.json
 !results/.gitkeep
 .pytest_cache/
+.cache/
+app/static/css/tools.css
