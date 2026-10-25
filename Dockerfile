@@ -32,4 +32,5 @@ USER tools
 EXPOSE 8765
 HEALTHCHECK --interval=30s --timeout=3s CMD python -c "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8765/tools/healthz', timeout=2).status==200 else 1)"
 # One worker: the in-app token bucket and concurrency gates are per process (nginx limit_req is authoritative).
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8765", "--workers", "1", "--no-access-log", "--no-server-header", "--timeout-keep-alive", "5", "--limit-concurrency", "100"]
+ENV BMH_TOOLS_BIND=0.0.0.0
+CMD ["sh", "-c", "exec uvicorn app.main:app --host \"$BMH_TOOLS_BIND\" --port 8765 --workers 1 --no-access-log --no-server-header --timeout-keep-alive 5 --limit-concurrency 100"]

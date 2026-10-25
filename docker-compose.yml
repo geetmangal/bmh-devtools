@@ -1,14 +1,19 @@
 services:
   devtools:
-    build: .
+    build:
+      context: .
+      network: host   # host nftables forward chain drops bridged container egress
     image: bmh-devtools:latest
     container_name: bmh-devtools
     restart: always
-    ports:
-      - "127.0.0.1:8765:8765"   # loopback only; nginx proxies /tools/
+    # Host networking: the host firewall (nftables inet filter, forward policy drop) blocks bridged
+    # container egress and the checkers need outbound DNS/HTTP. The app binds 127.0.0.1:8765 only
+    # (BMH_TOOLS_BIND); every outbound target goes through the SSRF guard.
+    network_mode: host
     environment:
       BMH_TOOLS_BASE_URL: https://bookmyhost.com
       BMH_TOOLS_PREFIX: /tools
+      BMH_TOOLS_BIND: 127.0.0.1
       BMH_TOOLS_RATE_PER_MIN: "30"
       # SSRF block list on top of all private/reserved ranges: gateway, this host, CloudStack VR.
       BMH_TOOLS_BLOCK_NETS: "160.22.109.1/32,160.22.109.2/32,160.22.109.9/32"
