@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-2">DNS Propagation Checker</h1>
+<p class="text-slate-300 max-w-3xl mb-5">Check whether a DNS change has reached public resolvers around the world, including Indian anycast nodes, and compare each answer with the zone's authoritative nameserver. Supports A, AAAA, CNAME, MX, NS, TXT, SOA and PTR records.</p>
+
+<form id="dns-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_140px_auto] items-end" method="post" action="/api/v1/dns/propagation">
+  <label class="block text-sm">Hostname<input id="dns-name" name="name" type="text" placeholder="example.com" required autocomplete="off" class="mt-1"></label>
+  <label class="block text-sm">Record type<select id="dns-type" name="type" class="mt-1">
+    {% for t in ["A","AAAA","CNAME","MX","NS","TXT","SOA","PTR"] %}<option>{{ t }}</option>{% endfor %}</select></label>
+  <button class="btn" type="submit" id="dns-submit">Check</button>
+  <label class="text-sm text-slate-400 sm:col-span-3 flex items-center gap-2"><input type="checkbox" id="dns-auto" class="w-4 h-4" style="width:auto"> Auto-refresh every 30 s</label>
+</form>
+
+<div id="dns-summary" class="mt-5 hidden"></div>
+<div id="dns-auth" class="mt-3 hidden card p-3 text-sm"></div>
+<div id="dns-results" class="mt-3 hidden card overflow-x-auto"></div>
+<p id="dns-error" class="mt-3 st-bad text-sm hidden"></p>
+
+<section class="mt-10 prose prose-invert max-w-3xl text-slate-300 text-sm leading-relaxed">
+  <h2 class="text-xl font-bold text-white mb-2">How DNS propagation works</h2>
+  <p>When you change a record at your DNS provider, the authoritative nameservers answer with the new value immediately. Recursive resolvers run by ISPs and public DNS operators, however, keep the previous answer in cache until its TTL (time to live) expires. This checker queries 18 recursive resolvers in parallel with a 2 second timeout each and marks every one that already returns the same record set as the authoritative server as propagated.</p>
+  <p class="mt-2">Tip: before migrating a website or mail server to a new <a href="https://bookmyhost.com">cloud server</a>, lower the TTL to 300 seconds at least 24 hours in advance, then raise it again after the move.</p>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ prefix }}/static/js/dns.js" defer></script>{% endblock %}

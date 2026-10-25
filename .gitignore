@@ -1,0 +1,10 @@
+.env
+*.key
+*.pem
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+results/*.json
+!results/.gitkeep
+.pytest_cache/

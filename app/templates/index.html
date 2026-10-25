@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-2">Free developer tools</h1>
+<p class="text-slate-300 max-w-2xl mb-6">Fast, single-purpose network tools built by the BookMyHost engineering team for our own day-to-day work: no sign-up, no ads, each with a JSON API.</p>
+<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+{% for t in tools %}
+  <a href="{{ prefix }}/{{ t.slug }}" class="card p-5 block no-underline hover:border-orange-500">
+    <h2 class="text-lg font-semibold text-white mb-1">{{ t.name }}</h2>
+    <p class="text-sm text-slate-400">{{ t.short }}</p>
+  </a>
+{% endfor %}
+</div>
+<section class="mt-10 card p-5 text-sm text-slate-300">
+  <h2 class="text-lg font-bold mb-2 text-white">JSON API</h2>
+  <p>Every tool is also an endpoint under <code class="mono">/api/v1/</code> with OpenAPI docs at <a href="/api/v1/docs">/api/v1/docs</a>. Limit: 30 requests per minute per IP.</p>
+  <pre class="snippet mono mt-3">curl -s -X POST {{ base_url }}/api/v1/subnet/calc -H 'Content-Type: application/json' -d '{"cidr":"10.0.0.0/22"}'</pre>
+</section>
+{% endblock %}
