@@ -15,4 +15,14 @@
   <p>Every tool is also an endpoint under <code class="mono">{{ api }}/</code> with OpenAPI docs at <a href="{{ api }}/docs">{{ api }}/docs</a>. Limit: {{ rate_per_min }} requests per minute per IP.</p>
   <pre class="snippet mono mt-3">curl -s -X POST {{ base_url }}{{ api }}/subnet/calc -H 'Content-Type: application/json' -d '{"cidr":"10.0.0.0/22"}'</pre>
 </section>
+<section class="mt-10 card p-5">
+  <h2 class="text-lg font-bold mb-1 text-white">More free tools for India</h2>
+  <p class="text-sm text-slate-400 mb-4">Cost, sizing and latency calculators for Indian cloud servers, on bookmyhost.com.</p>
+  <ul class="grid gap-3 sm:grid-cols-2 text-sm">
+    <li><a href="https://bookmyhost.com/free-tools/cloud-cost-gst-calculator" class="font-semibold">Cloud cost and GST calculator</a><br><span class="text-slate-400">Monthly cost of a server with 18% GST and the TDS and wallet maths.</span></li>
+    <li><a href="https://bookmyhost.com/free-tools/vps-sizing-calculator" class="font-semibold">VPS sizing calculator</a><br><span class="text-slate-400">vCPU, RAM and disk for your workload, with a plan to match.</span></li>
+    <li><a href="https://bookmyhost.com/free-tools/noida-latency-test" class="font-semibold">Noida latency test</a><br><span class="text-slate-400">Measure round-trip time from your browser to our Noida data centre.</span></li>
+    <li><a href="https://bookmyhost.com/free-tools" class="font-semibold">All free tools</a><br><span class="text-slate-400">The full hub, plus the India cloud uptime and latency report.</span></li>
+  </ul>
+</section>
 {% endblock %}
