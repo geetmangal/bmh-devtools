@@ -163,3 +163,10 @@ async def test_http_check_live(client):
     d = r.json()
     assert d["status"] in (200, 301, 302) and d["ssl"]["certificate"]["hostname_matches"] is True
     assert d["timing"]["ttfb_ms"]["min"] > 0 and d["timing_first_sample"]["tls_ms"] > 0
+
+
+async def test_index_links_to_free_tools(client):
+    r = await client.get("/tools/")
+    for path in ["/free-tools", "/free-tools/cloud-cost-gst-calculator",
+                 "/free-tools/vps-sizing-calculator", "/free-tools/noida-latency-test"]:
+        assert f'href="https://bookmyhost.com{path}"' in r.text
