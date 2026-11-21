@@ -34,7 +34,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 COPY --from=css /build/tools.css ./app/static/css/tools.css
 
-RUN useradd --system --uid 10001 --no-create-home tools && chown -R root:root /srv && chmod -R a+rX /srv
+RUN groupadd --system --gid 10001 tools && useradd --system --uid 10001 --gid 10001 --no-create-home tools && chown -R root:root /srv && chmod -R a+rX /srv
 USER tools
 
 EXPOSE 8765
