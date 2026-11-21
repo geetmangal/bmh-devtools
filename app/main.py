@@ -17,7 +17,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.api import dns, http_check, lookingglass, portcheck, rdns, subnet, whois
 from app.core.config import (API_PREFIX, BASE_URL, CORS_ORIGINS, RATE_LIMIT_PER_MIN, SITE_NAME, STATIC_PREFIX,
-                             RDNS_GUIDE_PUBLISHED, RDNS_GUIDE_URL, TOOLS, TOOLS_PREFIX, VERSION)
+                             RDNS_GUIDE_PUBLISHED, RDNS_GUIDE_URL, TOOLS, TOOLS_HUB_LASTMOD, TOOLS_PREFIX, VERSION)
 
 ROOT = Path(__file__).resolve().parent
 log = logging.getLogger("bmh_tools")
@@ -305,8 +305,9 @@ async def healthz():
 
 @app.get(f"{TOOLS_PREFIX}/sitemap.xml", include_in_schema=False)
 async def sitemap():
-    urls = [f"{BASE_URL}{TOOLS_PREFIX}/"] + [f"{BASE_URL}{TOOLS_PREFIX}/{t['slug']}" for t in TOOLS]
+    urls = [(f"{BASE_URL}{TOOLS_PREFIX}/", TOOLS_HUB_LASTMOD)] + [
+        (f"{BASE_URL}{TOOLS_PREFIX}/{t['slug']}", t["lastmod"]) for t in TOOLS]
     body = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    body += "".join(f"  <url><loc>{u}</loc><changefreq>monthly</changefreq></url>\n" for u in urls)
+    body += "".join(f"  <url><loc>{u}</loc><lastmod>{d}</lastmod><changefreq>monthly</changefreq></url>\n" for u, d in urls)
     body += "</urlset>\n"
     return Response(body, media_type="application/xml", headers={"Cache-Control": "public, max-age=3600"})

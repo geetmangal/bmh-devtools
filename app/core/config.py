@@ -63,39 +63,49 @@ BLOCKED_NETS = ALWAYS_BLOCKED_NETS + [n.strip() for n in os.getenv(
     "BMH_TOOLS_BLOCK_NETS", "160.22.109.1/32,160.22.109.2/32,160.22.109.9/32"
 ).split(",") if n.strip()]
 
+# W3C date (YYYY-MM-DD) per tool for <lastmod> in /tools/sitemap.xml: the day the page last changed.
+# Bump it when a tool's template or behaviour changes.
+TOOLS_HUB_LASTMOD = "2026-11-21"
 TOOLS = [
     {
         "slug": "dns-propagation-checker",
+        "lastmod": "2026-10-25",
         "name": "DNS Propagation Checker",
         "short": "Check whether your DNS record has propagated to public resolvers worldwide, including India.",
     },
     {
         "slug": "subnet-calculator",
+        "lastmod": "2026-10-25",
         "name": "IPv4 / IPv6 Subnet Calculator",
         "short": "CIDR calculator with network, broadcast, usable range, wildcard, binary, split and supernet.",
     },
     {
         "slug": "ttfb-ssl-checker",
+        "lastmod": "2026-10-25",
         "name": "TTFB & SSL Checker",
         "short": "Measure DNS, TCP, TLS, time to first byte and inspect the SSL certificate of any site.",
     },
     {
         "slug": "looking-glass",
+        "lastmod": "2026-11-21",
         "name": "Looking Glass (Ping, Traceroute, BGP)",
         "short": "Ping, traceroute and BGP route lookup from our Noida network, AS152523.",
     },
     {
         "slug": "whois-lookup",
+        "lastmod": "2026-11-21",
         "name": "WHOIS / RDAP Lookup",
         "short": "Domain and IP registration data via RDAP: registrar, dates, nameservers, network owner.",
     },
     {
         "slug": "reverse-dns-lookup",
+        "lastmod": "2026-11-21",
         "name": "Reverse DNS (PTR) Lookup",
         "short": "PTR record for any IPv4 or IPv6 address with a forward-confirmed reverse DNS check.",
     },
     {
         "slug": "port-checker",
+        "lastmod": "2026-11-21",
         "name": "Open Port Checker",
         "short": "Check which TCP ports are open on your own public IP address.",
     },
