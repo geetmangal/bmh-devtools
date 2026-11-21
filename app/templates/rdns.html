@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="text-3xl font-bold mb-2">Reverse DNS (PTR) Lookup</h1>
+<p class="text-slate-300 max-w-3xl mb-5">Find the PTR record of any public IPv4 or IPv6 address and check that it is forward-confirmed (FCrDNS): the hostname must resolve back to the same IP. Mail servers use this check when deciding whether to accept your email.</p>
+
+<form id="rdns-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end" method="post" action="{{ api }}/rdns/lookup">
+  <label class="block text-sm">IP address<input id="rdns-ip" name="ip" type="text" placeholder="8.8.8.8 or 2606:4700:4700::1111" required autocomplete="off" class="mt-1"></label>
+  <button class="btn" type="submit" id="rdns-submit">Look up</button>
+</form>
+
+<div id="rdns-summary" class="mt-5 hidden"></div>
+<div id="rdns-results" class="mt-3 hidden card overflow-x-auto"></div>
+<div id="rdns-note" class="mt-3 hidden card p-3 text-sm text-slate-300"></div>
+<p id="rdns-error" class="mt-3 st-bad text-sm hidden"></p>
+
+<section class="mt-10 prose prose-invert max-w-3xl text-slate-300 text-sm leading-relaxed">
+  <h2 class="text-xl font-bold text-white mb-2">PTR records and email delivery</h2>
+  <p>A PTR record is the reverse of an A or AAAA record. It is published in the <span class="mono">in-addr.arpa</span> or <span class="mono">ip6.arpa</span> zone by whoever owns the address block, so on a VPS you set it in the control panel or through your provider. For a mail server, use the same hostname as the SMTP HELO name and make sure its A record points to the IP.</p>
+  {% if guide_url %}<p class="mt-2">Step by step: <a href="{{ guide_url }}">how to set an rDNS / PTR record on a VPS</a>.</p>{% endif %}
+  <p class="mt-2">Need an IP with a proper PTR for outgoing mail? A <a href="https://bookmyhost.com">cloud server in India</a> from BookMyHost lets you set it yourself. Related tools: <a href="{{ prefix }}/whois-lookup">WHOIS / RDAP lookup</a> and the <a href="{{ prefix }}/dns-propagation-checker">DNS propagation checker</a>.</p>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ static_url('js/rdns.js') }}" nonce="{{ csp_nonce }}" defer></script>{% endblock %}

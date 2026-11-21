@@ -2,7 +2,7 @@
 import os
 
 SITE_NAME = "BookMyHost Dev Tools"
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 BASE_URL = os.getenv("BMH_TOOLS_BASE_URL", "https://bookmyhost.com").rstrip("/")
 TOOLS_PREFIX = os.getenv("BMH_TOOLS_PREFIX", "/tools").rstrip("/")  # public path prefix
 # Everything (pages, static, JSON API, health) lives under TOOLS_PREFIX so the host site's own
@@ -23,6 +23,30 @@ MAX_RESPONSE_BYTES = 1024 * 1024  # 1 MiB cap
 ALLOWED_PORTS = {80, 443, 8080, 8443}
 MAX_REDIRECTS = 5
 MAX_SPLIT_SUBNETS = 1024
+
+# --- network tools (looking glass, WHOIS/RDAP, reverse DNS, port checker) ---
+# Looking glass: runs from this server (Noida, AS152523). Strict own limits on top of the global one.
+LG_ASN = "AS152523"
+LG_LOCATION = "Noida, India"
+LG_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_LG_RATE_PER_MIN", "6"))   # per IP, burst 3
+LG_BURST = int(os.getenv("BMH_TOOLS_LG_BURST", "3"))
+MAX_CONCURRENT_LG = int(os.getenv("BMH_TOOLS_MAX_LG", "3"))          # global concurrent ping/traceroute runs
+LG_PING_COUNT = 4                                                    # hard cap, not configurable
+LG_TRACE_MAX_HOPS = 30                                               # hard cap, not configurable
+LG_PING_TIMEOUT = 12.0                                               # whole-command wall clock (s)
+LG_TRACE_TIMEOUT = 40.0
+RIPESTAT_URL = os.getenv("BMH_TOOLS_RIPESTAT_URL", "https://stat.ripe.net/data").rstrip("/")
+RIPESTAT_TIMEOUT = float(os.getenv("BMH_TOOLS_RIPESTAT_TIMEOUT", "8.0"))
+RDAP_TIMEOUT = float(os.getenv("BMH_TOOLS_RDAP_TIMEOUT", "8.0"))
+RDAP_BOOTSTRAP_URL = os.getenv("BMH_TOOLS_RDAP_BOOTSTRAP", "https://data.iana.org/rdap")
+MAX_CONCURRENT_NET = int(os.getenv("BMH_TOOLS_MAX_NET", "6"))        # whois / rdns / bgp / port checks
+NET_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_NET_RATE_PER_MIN", "20"))  # whois + rdns per IP
+PORT_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_PORT_RATE_PER_MIN", "8"))  # port checker per IP, burst 4
+PORT_TIMEOUT = 3.0
+COMMON_PORTS = [21, 22, 25, 53, 80, 110, 143, 443, 465, 587, 993, 995, 3306, 3389, 5432, 8080, 8443]
+# Show the link to the rDNS/PTR guide only once the blog post is live (BMH_TOOLS_RDNS_GUIDE_PUBLISHED=1).
+RDNS_GUIDE_PUBLISHED = os.getenv("BMH_TOOLS_RDNS_GUIDE_PUBLISHED", "0").strip().lower() in ("1", "true", "yes", "on")
+RDNS_GUIDE_URL = "https://bookmyhost.com/blog/rdns-ptr-record-vps"
 
 # SSRF: networks the checkers must never connect to, on top of every non-global range.
 # Defaults = the hosting network of the production box (public-direct 160.22.109.0/24):
@@ -54,5 +78,25 @@ TOOLS = [
         "slug": "ttfb-ssl-checker",
         "name": "TTFB & SSL Checker",
         "short": "Measure DNS, TCP, TLS, time to first byte and inspect the SSL certificate of any site.",
+    },
+    {
+        "slug": "looking-glass",
+        "name": "Looking Glass (Ping, Traceroute, BGP)",
+        "short": "Ping, traceroute and BGP route lookup from our Noida network, AS152523.",
+    },
+    {
+        "slug": "whois-lookup",
+        "name": "WHOIS / RDAP Lookup",
+        "short": "Domain and IP registration data via RDAP: registrar, dates, nameservers, network owner.",
+    },
+    {
+        "slug": "reverse-dns-lookup",
+        "name": "Reverse DNS (PTR) Lookup",
+        "short": "PTR record for any IPv4 or IPv6 address with a forward-confirmed reverse DNS check.",
+    },
+    {
+        "slug": "port-checker",
+        "name": "Open Port Checker",
+        "short": "Check which TCP ports are open on your own public IP address.",
     },
 ]

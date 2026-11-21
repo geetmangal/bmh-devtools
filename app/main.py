@@ -15,9 +15,9 @@ from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import dns, http_check, subnet
+from app.api import dns, http_check, lookingglass, portcheck, rdns, subnet, whois
 from app.core.config import (API_PREFIX, BASE_URL, CORS_ORIGINS, RATE_LIMIT_PER_MIN, SITE_NAME, STATIC_PREFIX,
-                             TOOLS, TOOLS_PREFIX, VERSION)
+                             RDNS_GUIDE_PUBLISHED, RDNS_GUIDE_URL, TOOLS, TOOLS_PREFIX, VERSION)
 
 ROOT = Path(__file__).resolve().parent
 log = logging.getLogger("bmh_tools")
@@ -31,7 +31,7 @@ if not log.handlers:
 app = FastAPI(
     title="BookMyHost Dev Tools API",
     version=VERSION,
-    description="Free developer tools by the BookMyHost engineering team: DNS propagation, subnet calculator, TTFB & SSL checker.",
+    description="Free developer tools by the BookMyHost engineering team: DNS propagation, subnet calculator, TTFB & SSL checker, looking glass, WHOIS/RDAP, reverse DNS, port checker.",
     docs_url=None,  # served below with a nonce'd CSP
     redoc_url=None,
     openapi_url=f"{API_PREFIX}/openapi.json",
@@ -46,6 +46,8 @@ app.add_middleware(
 app.include_router(dns.router, prefix=API_PREFIX)
 app.include_router(subnet.router, prefix=API_PREFIX)
 app.include_router(http_check.router, prefix=API_PREFIX)
+for _r in (lookingglass.router, whois.router, rdns.router, portcheck.router):
+    app.include_router(_r, prefix=API_PREFIX)
 app.mount(STATIC_PREFIX, StaticFiles(directory=ROOT / "static"), name="static")
 
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
@@ -155,8 +157,8 @@ async def index(request: Request):
          "Yes, please do. Each tool page has a ready-made HTML snippet you can paste into docs, blogs or internal wikis."),
     ]
     return _render(request, "index.html", None, faq,
-                   title="Free Developer Tools: DNS, Subnet, TTFB & SSL | BookMyHost",
-                   description="Free, fast developer tools from BookMyHost: DNS propagation checker with Indian resolvers, IPv4/IPv6 subnet calculator, TTFB and SSL certificate checker.")
+                   title="Free Developer Tools: DNS, Looking Glass, WHOIS, Ports, SSL | BookMyHost",
+                   description="Free, fast developer tools from BookMyHost: DNS propagation checker with Indian resolvers, looking glass (ping, traceroute, BGP) from Noida, WHOIS/RDAP, reverse DNS, port checker, subnet calculator, TTFB and SSL checker.")
 
 
 @app.get(f"{TOOLS_PREFIX}/dns-propagation-checker", response_class=HTMLResponse, include_in_schema=False)
@@ -216,6 +218,76 @@ async def page_ttfb(request: Request):
     return _render(request, "ttfb.html", "ttfb-ssl-checker", faq,
                    title="TTFB & SSL Certificate Checker (DNS, TCP, TLS waterfall) | BookMyHost",
                    description="Measure DNS lookup, TCP connect, TLS handshake, time to first byte and total load time of any URL, follow redirects and inspect the SSL certificate: issuer, SAN, expiry, TLS version, cipher, HSTS, HTTP/2.")
+
+
+@app.get(f"{TOOLS_PREFIX}/looking-glass", response_class=HTMLResponse, include_in_schema=False)
+async def page_lg(request: Request):
+    faq = [
+        ("Where do the ping and traceroute run from?",
+         "From a BookMyHost server in Noida, India, on our own network (AS152523). The result shows the path and latency from an Indian data centre to your target, which is what your Indian customers see."),
+        ("What is the BGP lookup based on?",
+         "Public BGP data from RIPEstat (RIPE NCC route collectors): the announced prefix, the origin AS and sample AS paths. We do not query our own routers for this."),
+        ("What are the limits?",
+         "Ping sends 4 packets, traceroute stops after 30 hops, each run is time-limited, and each IP may start a few runs per minute, one at a time. Only public IPv4/IPv6 addresses and hostnames that resolve to public addresses are accepted."),
+        ("Why are some traceroute hops shown as stars?",
+         "Many routers do not answer or rate-limit TTL-expired probes. A star in the middle of a path is normal as long as later hops answer."),
+        ("Is there an API?",
+         f"Yes: POST {API_PREFIX}/lg/run with JSON {{\"target\": \"1.1.1.1\", \"tool\": \"ping\"}} and POST {API_PREFIX}/lg/bgp with {{\"target\": \"8.8.8.8\"}}."),
+    ]
+    return _render(request, "lg.html", "looking-glass", faq,
+                   title="Looking Glass: Ping, Traceroute & BGP from India (AS152523) | BookMyHost",
+                   description="Free looking glass from Noida, India (AS152523): run ping and traceroute to any public IP or hostname and look up the BGP prefix, origin AS and AS paths. No sign-up.")
+
+
+@app.get(f"{TOOLS_PREFIX}/whois-lookup", response_class=HTMLResponse, include_in_schema=False)
+async def page_whois(request: Request):
+    faq = [
+        ("What is the difference between WHOIS and RDAP?",
+         "RDAP is the modern, JSON-based replacement for the WHOIS protocol. It is standardised, supports HTTPS and returns structured data. This tool uses RDAP and only falls back to classic WHOIS for a TLD that has no RDAP service."),
+        ("Why is the registrant hidden?",
+         "Since GDPR most registries and registrars redact personal data. We never display personal contact details; you see the registrar, dates, status and nameservers."),
+        ("Can I look up an IP address?",
+         "Yes. Enter an IPv4 or IPv6 address and we query the regional internet registry (ARIN, RIPE, APNIC, LACNIC or AFRINIC) for the network name, range, country and abuse role."),
+        ("How current is the data?",
+         "Answers come live from the registry and are cached for 5 minutes."),
+    ]
+    return _render(request, "whois.html", "whois-lookup", faq,
+                   title="WHOIS & RDAP Lookup for Domains and IP Addresses | BookMyHost",
+                   description="Free WHOIS / RDAP lookup: registrar, creation and expiry dates, status and nameservers of any domain, or network owner, range and country of any IPv4/IPv6 address.")
+
+
+@app.get(f"{TOOLS_PREFIX}/reverse-dns-lookup", response_class=HTMLResponse, include_in_schema=False)
+async def page_rdns(request: Request):
+    faq = [
+        ("What is a PTR record?",
+         "A PTR record maps an IP address back to a hostname (the reverse of an A or AAAA record). It lives in the in-addr.arpa (IPv4) or ip6.arpa (IPv6) zone, controlled by the owner of the IP block."),
+        ("What is forward-confirmed reverse DNS (FCrDNS)?",
+         "The PTR hostname must resolve (A or AAAA) back to the same IP address. Mail servers use it as a basic proof that the sender controls both sides."),
+        ("Why does my mail go to spam without a PTR record?",
+         "Large mailbox providers expect a valid, matching PTR on the sending IP. A missing or generic one (for example 203-0-113-9.isp.example) is a common reason for rejection."),
+        ("How do I set a PTR record on a VPS?",
+         "The reverse zone belongs to your provider, so set it in the server control panel or ask support. Use the same hostname as your mail server's HELO name and make sure its A record points to the IP."),
+    ]
+    return _render(request, "rdns.html", "reverse-dns-lookup", faq, guide_url=RDNS_GUIDE_URL if RDNS_GUIDE_PUBLISHED else None,
+                   title="Reverse DNS (PTR) Lookup with FCrDNS Check | BookMyHost",
+                   description="Free reverse DNS lookup for IPv4 and IPv6: see the PTR record and check forward-confirmed reverse DNS (FCrDNS), which mail servers rely on for delivery.")
+
+
+@app.get(f"{TOOLS_PREFIX}/port-checker", response_class=HTMLResponse, include_in_schema=False)
+async def page_ports(request: Request):
+    faq = [
+        ("Which IP address is checked?",
+         "Only your own public IP address, as seen by our server when you open the page. You cannot enter another address, so the tool cannot be used to scan other people's systems."),
+        ("What do open, closed and filtered mean?",
+         "Open: something accepted the TCP connection. Closed: the host answered that nothing listens there. Filtered: no answer within 3 seconds, usually a firewall dropping the traffic."),
+        ("Why does a port I opened show as closed or filtered?",
+         "Check that the service is running and listening on a public address, and that the server firewall, the cloud security group and your router (port forwarding) all allow the port. Behind CGNAT or a VPN the visible IP is not your machine."),
+        ("Is it free and are there limits?",
+         "Yes. A few checks per minute per IP, one port or the common-port set, 3 second timeout per port."),
+    ]
+    return _render(request, "ports.html", "port-checker", faq,
+                   title="Open Port Checker: Is My Port Open? (Your IP) | BookMyHost",
+                   description="Free open port checker: test whether common TCP ports (22, 80, 443, 3306, 3389 and more) or any port 1-65535 are reachable on your own public IP address.")
 
 
 @app.get(f"{API_PREFIX}/docs", include_in_schema=False)

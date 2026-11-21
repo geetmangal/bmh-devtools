@@ -130,7 +130,7 @@ async def test_pages_and_meta(client):
         assert "https://bookmyhost.com" in r.text
         assert "X-Robots-Tag" not in r.headers
     r = await client.get("/tools/sitemap.xml")
-    assert r.status_code == 200 and r.text.count("<loc>") == 4
+    assert r.status_code == 200 and r.text.count("<loc>") == 8
     r = await client.get("/tools/healthz")
     assert r.status_code == 200 and r.json()["status"] == "ok"
     r = await client.post("/tools/api/v1/subnet/calc", json={"cidr": "10.0.0.0/24"})
