@@ -7,12 +7,16 @@ Free, fast, single-purpose developer web tools built by the [BookMyHost](https:/
 | DNS Propagation Checker (18 resolvers, India-labelled, authoritative compare) | `/tools/dns-propagation-checker` | `POST /tools/api/v1/dns/propagation` |
 | IPv4 / IPv6 Subnet Calculator (client-side, split, supernet) | `/tools/subnet-calculator` | `POST /tools/api/v1/subnet/{calc,split,summarise}` |
 | TTFB & SSL Checker (DNS/TCP/TLS/TTFB waterfall, cert inspection) | `/tools/ttfb-ssl-checker` | `POST /tools/api/v1/http/check` |
+| Looking Glass (ping, traceroute, BGP; from Noida AS152523) | `/tools/looking-glass` | `POST /tools/api/v1/lg/{run,bgp}` |
+| WHOIS / RDAP lookup (domains + IPs) | `/tools/whois-lookup` | `POST /tools/api/v1/whois/lookup` |
+| Reverse DNS (PTR) + FCrDNS check | `/tools/reverse-dns-lookup` | `POST /tools/api/v1/rdns/lookup` |
+| Open Port Checker (visitor's own IP only) | `/tools/port-checker` | `POST /tools/api/v1/ports/check`, `GET /tools/api/v1/ports/myip` |
 
 Also: `/tools/` index, `/tools/sitemap.xml`, `/tools/healthz`, `/tools/api/v1/docs`, `/tools/api/v1/openapi.json`. Everything lives under `/tools/` (static files under `/tools/static/`), so the host site's own `/api/...` routes are never touched.
 
 ## Why
 
-Developers link to tools they use. These are the three checks we run most often ourselves when migrating customers to our Indian cloud servers, so we publish them as a public utility and a natural backlink magnet. No sign-up, no ads, no tracking.
+Developers link to tools they use. These are the checks we run most often ourselves when migrating customers to our Indian cloud servers, so we publish them as a public utility and a natural backlink magnet. No sign-up, no ads, no tracking.
 
 ## Stack
 
@@ -47,6 +51,36 @@ The storefront `robots.txt` should list `Sitemap: https://bookmyhost.com/tools/s
 
 Environment variables: `BMH_TOOLS_BASE_URL` (default `https://bookmyhost.com`), `BMH_TOOLS_PREFIX` (`/tools`), `BMH_TOOLS_CORS` (comma list), `BMH_TOOLS_RATE_PER_MIN` (30), `BMH_TOOLS_DNS_TIMEOUT` (2.0 s), `BMH_TOOLS_HTTP_TIMEOUT` (10 s), `BMH_TOOLS_MAX_DNS` (6) / `BMH_TOOLS_MAX_HTTP` (4) concurrent checks, `BMH_TOOLS_QUEUE_WAIT` (5 s, then 503), `BMH_TOOLS_BLOCK_NETS` (extra SSRF block list; default the host network's gateway 160.22.109.1, host 160.22.109.2 and CloudStack virtual router 160.22.109.9).
 
+## Network tools (looking glass, WHOIS/RDAP, rDNS, port checker): runbook
+
+Added in 1.2.0. Same app, same container; nothing else to install on the host except one sysctl.
+
+**Container packages:** `iputils-ping` and `traceroute` (added to the Dockerfile runtime stage; `libcap2-bin` is used only to strip the file capability from `ping`). No `mtr`. **NET_RAW is NOT required** and must not be added: the container stays non-root, `cap_drop: ALL`, `no-new-privileges`.
+
+**Host prerequisite (one time, on the devtools host, which shares its network namespace with the container):** ping runs through unprivileged ICMP sockets, so the container user (gid 10001) must be inside the host sysctl range:
+
+```bash
+sysctl net.ipv4.ping_group_range                 # must cover 10001, e.g. "0 2147483647"
+echo 'net.ipv4.ping_group_range = 0 2147483647' > /etc/sysctl.d/90-ping-group.conf && sysctl --system   # if not
+```
+
+traceroute uses its default UDP mode (kernel IP_RECVERR), no raw socket. If ping is not permitted the API still answers; `output` shows the ping error and `reachable` is false. Verify after deploy: `curl -s -X POST https://bookmyhost.com/tools/api/v1/lg/run -H 'Content-Type: application/json' -d '{"target":"1.1.1.1","tool":"ping"}'`.
+
+**Security model.** Looking glass: fixed command set (`ping -c 4`, `traceroute -m 30`), argv lists via `create_subprocess_exec` (no shell), the target is a single validated public IP literal (hostnames are resolved first, every address must be public, the command gets the pinned IP), the whole command is killed after 12 s (ping) / 40 s (traceroute), output capped at 16 KiB. Refused: private, loopback, link-local, CGNAT, multicast, reserved, IPv4-mapped/NAT64/6to4 forms and `BMH_TOOLS_BLOCK_NETS` (our gateway, host and virtual router). Limits: 6 runs/min per IP (burst 3), one run per IP at a time, 3 concurrent runs globally (503 beyond), plus nginx zone `bmh_tools_net`. BGP data comes from RIPEstat (`stat.ripe.net`); our routers are never queried. WHOIS/RDAP: IANA bootstrap (cached 24 h), https only, re-validated redirects, registrant/admin/tech personal data never returned, classic port-43 WHOIS only for a TLD with no RDAP service. Port checker: the target is always the client IP from `X-Real-IP` (set by nginx from the Cloudflare-verified address); the request model has no target field and unknown fields, query parameters and other headers are ignored; non-public visitor addresses are refused; 3 s timeout, 8 checks/min per IP.
+
+**Residual risk.** RDAP/RIPEstat requests resolve the upstream hostname twice (guard, then httpx); the upstream names come from IANA bootstrap data, responses are size-capped and never reflected unparsed. The port checker trusts nginx's `X-Real-IP`: keep the app bound to 127.0.0.1.
+
+**Env vars (new):** `BMH_TOOLS_LG_RATE_PER_MIN` (6), `BMH_TOOLS_LG_BURST` (3), `BMH_TOOLS_MAX_LG` (3), `BMH_TOOLS_NET_RATE_PER_MIN` (20, WHOIS + rDNS), `BMH_TOOLS_PORT_RATE_PER_MIN` (8), `BMH_TOOLS_MAX_NET` (6), `BMH_TOOLS_RIPESTAT_URL`, `BMH_TOOLS_RDAP_BOOTSTRAP`, `BMH_TOOLS_RDAP_TIMEOUT`, `BMH_TOOLS_RIPESTAT_TIMEOUT`, `BMH_TOOLS_RDNS_GUIDE_PUBLISHED` (0; set to 1 only when `/blog/rdns-ptr-record-vps` is live, which switches on the guide link on the rDNS page and in the API).
+
+**Deploy (from local main, never from GitHub):**
+
+1. nginx: back up, then install `deploy/nginx/conf.d-bmh-tools-ratelimit.conf` and `snippets-bmh-tools.conf` (new zone `bmh_tools_net` and the two `location ^~ /tools/api/v1/{lg,ports}/` blocks), `nginx -t && systemctl reload nginx`.
+2. Host sysctl as above.
+3. `docker tag bmh-devtools:latest bmh-devtools:prev`, `git archive` the release into `/opt/bmh-devtools`, then `docker compose up -d --build` (the image build needs outbound apt; compose already uses `network: host`).
+4. Smoke: `/tools/healthz`, the four pages, `sitemap.xml` (8 URLs), the ping call above, `/tools/api/v1/ports/myip`.
+
+**Rollback:** `docker tag bmh-devtools:prev bmh-devtools:latest && docker compose up -d --no-build`, or `git archive` the previous release (335f3ee) into `/opt/bmh-devtools` and `docker compose up -d --build`. Restore the backed-up nginx files and reload. The sysctl is harmless and may stay. No data or schema is involved (all state is in memory).
+
 ## API examples
 
 ```bash
@@ -61,6 +95,21 @@ curl -s -X POST https://bookmyhost.com/tools/api/v1/subnet/split \
 
 curl -s -X POST https://bookmyhost.com/tools/api/v1/subnet/summarise \
   -H 'Content-Type: application/json' -d '{"cidrs":["192.168.0.0/24","192.168.1.0/24"]}'
+
+curl -s -X POST https://bookmyhost.com/tools/api/v1/lg/run \
+  -H 'Content-Type: application/json' -d '{"target":"1.1.1.1","tool":"traceroute"}'
+
+curl -s -X POST https://bookmyhost.com/tools/api/v1/lg/bgp \
+  -H 'Content-Type: application/json' -d '{"target":"8.8.8.8"}'
+
+curl -s -X POST https://bookmyhost.com/tools/api/v1/whois/lookup \
+  -H 'Content-Type: application/json' -d '{"query":"bookmyhost.com"}'
+
+curl -s -X POST https://bookmyhost.com/tools/api/v1/rdns/lookup \
+  -H 'Content-Type: application/json' -d '{"ip":"8.8.8.8"}'
+
+curl -s -X POST https://bookmyhost.com/tools/api/v1/ports/check \
+  -H 'Content-Type: application/json' -d '{"port":443}'   # tests the caller's own IP only
 
 curl -s -X POST https://bookmyhost.com/tools/api/v1/http/check \
   -H 'Content-Type: application/json' -d '{"url":"https://bookmyhost.com"}'

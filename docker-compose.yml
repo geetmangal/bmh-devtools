@@ -16,6 +16,12 @@ services:
       BMH_TOOLS_BIND: 127.0.0.1
       BMH_TOOLS_RATE_PER_MIN: "30"
       # SSRF block list on top of all private/reserved ranges: gateway, this host, CloudStack VR.
+      # Looking glass / network tools (defaults shown; per-IP limits per minute, global concurrent runs).
+      BMH_TOOLS_LG_RATE_PER_MIN: "6"
+      BMH_TOOLS_MAX_LG: "3"
+      BMH_TOOLS_PORT_RATE_PER_MIN: "8"
+      # Set to "1" only once https://bookmyhost.com/blog/rdns-ptr-record-vps is published (shows the guide link).
+      BMH_TOOLS_RDNS_GUIDE_PUBLISHED: "0"
       BMH_TOOLS_BLOCK_NETS: "160.22.109.1/32,160.22.109.2/32,160.22.109.9/32"
     read_only: true
     tmpfs:

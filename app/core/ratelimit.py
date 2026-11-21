@@ -84,3 +84,34 @@ class Gate:
             yield
         finally:
             sem.release()
+
+
+def limiter(bucket_getter, label: str, per_min: int):
+    """Build a FastAPI dependency with its own per-IP bucket; bucket_getter returns the live bucket
+    (a callable so tests can swap the bucket on the owning module)."""
+    async def _dep(request: Request) -> None:
+        if not bucket_getter().allow(client_ip(request)):
+            raise HTTPException(status_code=429, detail=f"Rate limit exceeded: {per_min} {label} requests per minute per IP.",
+                                headers={"Retry-After": "10"})
+    return _dep
+
+
+class PerIpInflight:
+    """At most N simultaneous runs per client IP (stops one visitor holding every gate slot)."""
+
+    def __init__(self, limit: int = 1) -> None:
+        self.limit = limit
+        self._n: dict[str, int] = {}
+
+    @asynccontextmanager
+    async def hold(self, key: str):
+        if self._n.get(key, 0) >= self.limit:
+            raise HTTPException(status_code=429, detail="You already have a check running; wait for it to finish.",
+                                headers={"Retry-After": "5"})
+        self._n[key] = self._n.get(key, 0) + 1
+        try:
+            yield
+        finally:
+            self._n[key] -= 1
+            if self._n[key] <= 0:
+                self._n.pop(key, None)

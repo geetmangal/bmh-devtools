@@ -20,6 +20,14 @@ FROM python:3.12-slim
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1
 WORKDIR /srv
 
+# Looking glass needs ping + traceroute. The container runs non-root with cap_drop ALL and no-new-privileges, so
+# file capabilities on ping are stripped (an exec with caps outside the bounding set fails with EPERM) and ping
+# uses unprivileged ICMP datagram sockets instead: requires host sysctl net.ipv4.ping_group_range to include gid 10001.
+# traceroute runs in its default UDP mode (IP_RECVERR), which needs no raw socket either. See README "Network tools".
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends iputils-ping traceroute libcap2-bin >/dev/null \
+ && (setcap -r "$(command -v ping)" 2>/dev/null || true) \
+ && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
