@@ -1,0 +1,46 @@
+{
+  "title": "Email Blacklist Check (DNSBL) for IP or Domain",
+  "description": "Free blacklist check: query dozens of DNS blocklists (DNSBL) for an IP or domain, see which ones list it and why, with links to the removal pages.",
+  "og_line": "Is your mail server IP or domain on a spam blocklist?",
+  "answer": "A DNS blocklist (DNSBL, RFC 5782) is a public list of IP addresses or domains that mail servers query before accepting a message. This tool checks an IP address or domain against dozens of such lists at once and shows which ones list it, the reason the list gives and where to ask for removal.",
+  "inputs": "A public IPv4 or IPv6 address, or a domain name. Private and reserved addresses are refused.",
+  "outputs": "One result per list: listed, not listed, skipped (the list refuses public resolvers, needs a key or does not support IPv6), no answer or error. A summary shows how many lists were checked and how many list the target, and each listing links to the list's removal page.",
+  "curl": "curl -s -X POST @BASE@@API@/dnsbl/check -H 'Content-Type: application/json' -H 'X-Tools-Pass: <pass>' -d '{\"target\":\"8.8.8.8\"}'",
+  "sections": [
+    {"h": "How a DNS blocklist works", "p": [
+      "A DNSBL is published as a DNS zone. To ask whether 203.0.113.9 is listed, a mail server reverses the address to 9.113.0.203 and queries that name inside the list's zone, for example 9.113.0.203.zen.spamhaus.org. If the list knows the address, DNS answers with an address in 127.0.0.0/8 where the last number says why. If it does not, the answer is NXDOMAIN. Domain lists such as the Spamhaus DBL work the same way with the domain name in front of the zone. No mail has to be sent, and the whole check takes a fraction of a second per list.",
+      "Receivers decide for themselves which lists they use and how much weight they give each one. A listing on a major list can cause outright rejection at many providers, while a listing on a small or old list may change nothing. That is why this tool shows every list separately, instead of only a total."
+    ]},
+    {"h": "How to read the result", "p": [
+      "Listed means the list returned a positive answer. Open the entry to read the reason, which might be spam sent from the address, a compromised server, or a policy listing. Policy lists such as the Spamhaus PBL contain ranges that should not send mail directly at all, for example dynamic and residential addresses, and being listed there is not a sign of abuse.",
+      "Not listed means the list answered with NXDOMAIN, so it does not know the target.",
+      "Skipped means we could not use the list. Some lists refuse queries that come through public resolvers, some need a registered key and some do not support IPv6. A clean result does not cover skipped lists. The tool says why each one was skipped.",
+      "No answer means the list did not respond in time. Run the check again before drawing any conclusion. Spamhaus signals a refused query with an answer in 127.255.255.0/24 rather than a real listing, and the tool treats this as skipped, not as a listing."
+    ]},
+    {"h": "What to do if you are listed", "p": [
+      "First stop the cause. Typical reasons are a hacked mailbox or website contact form that sends spam, malware on a server, an open relay, a mailing list without consent, or a neighbour in a shared IP range. Look in the mail log for unexpected volume, change passwords of mail accounts, update the web application and check the queue.",
+      "Then request removal using the link next to the listing. Most lists remove an entry automatically after some days without new abuse, and some let you request earlier removal after you describe the fix. Removing the entry without fixing the cause is useless, because the address is listed again within days.",
+      "If a shared or provider-owned address is listed because of another customer, contact your provider. If you use a cloud server with an address that previously belonged to someone else, you may inherit an old listing, and requesting removal and setting up reverse DNS are the first steps."
+    ]},
+    {"h": "Keeping off blocklists", "p": [
+      "Publish SPF, DKIM and DMARC for your domain. Set a PTR record that matches the mail server's name. Send only to people who asked for your mail, remove addresses that bounce and keep complaints low. Use a separate server or sub-domain for bulk mail, so that a problem with a newsletter does not block your invoices. Watch for sudden volume: a compromised account often shows as a spike at night."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "A blocklist listing is only one reason for rejected mail. Check the reverse DNS of the sending IP, because receivers often reject mail from addresses without a matching PTR. Check SPF and DMARC, and test the mail server's connection with the SMTP test. The domain health report runs the blocklist check together with the email authentication and DNS checks."
+    ]}
+  ],
+  "faq": [
+    ["What is a DNSBL?", "A DNS blocklist is a public list of IP addresses or domains seen sending spam or abuse. A mail server asks the list by DNS before accepting a message and may reject or flag it if the answer is positive."],
+    ["Why are some lists shown as skipped?", "Some lists refuse queries from public resolvers, need a registered key or do not support IPv6. Those are skipped and say why, so a clean result does not cover them."],
+    ["I am listed. What should I do?", "Find and stop the cause first, such as a hacked mailbox, malware or an open relay. Then use the removal link on the listing. Removal without a fix is usually reversed within days."],
+    ["Does a listing always block my mail?", "No. Each receiver chooses which lists to use and how much weight to give them. Large lists such as Spamhaus matter far more than small ones."],
+    ["Is a listing on the Spamhaus PBL a problem?", "The PBL lists address ranges that should not send mail directly, such as dynamic and residential addresses. It is not about abuse. Send through your provider's or a relay's authenticated mail server instead."],
+    ["Can I check an IPv6 address?", "Yes, but fewer lists support IPv6, and the tool marks the ones that do not as skipped."]
+  ],
+  "related": [
+    {"slug": "reverse-dns-lookup", "anchor": "Check the reverse DNS (PTR) of the listed IP"},
+    {"slug": "smtp-test", "anchor": "Test the mail server's SMTP connection"},
+    {"slug": "spf-checker", "anchor": "Check SPF for the sending domain"},
+    {"slug": "domain-health", "anchor": "Run the full domain health report"}
+  ]
+}

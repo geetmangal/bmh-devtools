@@ -1,0 +1,49 @@
+{
+  "title": "SMTP Test: Banner, STARTTLS & Certificate | BookMyHost",
+  "description": "Test a mail server's SMTP connection: banner, EHLO, STARTTLS, TLS version and cipher, certificate chain and expiry. Read-only: no email is ever sent.",
+  "og_line": "Check a mail server's banner, STARTTLS and certificate",
+  "answer": "An SMTP test connects to a mail server the way another mail server would: it reads the greeting banner, says EHLO, tries STARTTLS (RFC 3207) and reports the TLS version, cipher and certificate. This one is read-only and never sends a message. It supports port 25, 587 and 2525.",
+  "inputs": "The host name of a public mail server, for example mail.example.com, and a port: 25 (server to server), 587 (submission) or 2525 (alternative submission).",
+  "outputs": "The server banner, the extensions advertised after EHLO (STARTTLS, SIZE, AUTH, 8BITMIME), whether STARTTLS works, the negotiated TLS version and cipher, the certificate subject, issuer, names, expiry date and chain, and findings with fixes.",
+  "curl": "curl -s -X POST @BASE@@API@/smtp/check -H 'Content-Type: application/json' -H 'X-Tools-Pass: <pass>' -d '{\"host\":\"mail.example.com\",\"port\":25}'",
+  "sections": [
+    {"h": "What the test does", "p": [
+      "SMTP, defined in RFC 5321, is a text conversation. The server opens it with a greeting line that starts with 220 and usually names the host. The client answers EHLO, and the server lists what it supports. If it lists STARTTLS, the client can ask to switch the same connection to encrypted TLS (RFC 3207), and after the handshake the client repeats EHLO. This tool performs these steps and then sends QUIT. It never sends MAIL FROM, RCPT TO or message data, so no mail is created and nobody is contacted.",
+      "That is the same sequence a sending mail server follows before it delivers a message to you. If any step looks wrong here, it looks wrong to senders too."
+    ]},
+    {"h": "How to read the result", "p": [
+      "Banner. The greeting should contain the fully qualified host name of the server, and the name should match the reverse DNS of its IP address. A banner with a different name, or with the software version of the mail server, is not an error, but many administrators hide versions.",
+      "STARTTLS. Without it, mail to and from the server crosses the internet in plain text. Most large providers use encryption when it is offered, and some senders configured with MTA-STS (RFC 8461) or DANE (RFC 7672) refuse to deliver without it. Offer STARTTLS on port 25 and require it on submission ports.",
+      "TLS version. TLS 1.2 and TLS 1.3 are the versions to expect. TLS 1.0 and 1.1 were formally deprecated in RFC 8996 and should be switched off. The cipher is shown so you can spot very old suites.",
+      "Certificate. The tool shows the subject, the names it covers, the issuer, the dates and the chain. For mail to be delivered, many senders accept even an expired or self-signed certificate, because they use opportunistic encryption. Senders that enforce MTA-STS or DANE do not, and mail to a server with a name mismatch or a certificate that has expired will fail or queue. The name in the certificate should match the host name in your MX record. A certificate that expires within 14 days is flagged, so that you renew it in time. The test itself connects with TLS 1.2 or newer, so a server that only offers TLS 1.0 or 1.1 shows up as a failed handshake."
+    ]},
+    {"h": "Which port to test", "p": [
+      "Port 25 is used between mail servers, and it is the one that matters for receiving mail. Port 587 is for your own users and applications to submit mail, and it is expected to require STARTTLS and authentication. Port 465 carries implicit TLS for submission (RFC 8314) and is not offered here. Port 2525 is an unofficial alternative that some services open when providers block 587.",
+      "Outbound port 25 is blocked on many hosting and broadband networks to limit spam. If the hosting network of this site blocks it, the live test is switched off and the page shows commands to run the same checks from your own machine, for example openssl s_client -starttls smtp -connect mail.example.com:25."
+    ]},
+    {"h": "Common problems and fixes", "p": [
+      "Connection timeout. The server is down, the port is closed, or a firewall drops traffic. Check the service and the firewall rules, and check that the MX record points to the right address.",
+      "STARTTLS not offered. Turn on TLS in the mail server configuration and install a certificate. A free certificate from Let's Encrypt is enough.",
+      "Certificate name mismatch. The certificate must list the host name used in the MX record, not only the domain.",
+      "Incomplete chain. The server sends only its own certificate, without the intermediate. Add the full chain file.",
+      "Slow banner. Some servers delay the greeting on purpose, or perform reverse DNS lookups before sending it. Delays above several seconds can cause senders to give up."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "Before testing a server, find its name with the MX lookup. If the connection works but mail is still refused, check the sending IP against blocklists and its reverse DNS, and review SPF and DMARC. For the web side of the same certificate topic, use the TTFB and SSL checker for HTTPS sites."
+    ]}
+  ],
+  "faq": [
+    ["Does this test send an email?", "No. It only sends EHLO, STARTTLS and QUIT. It never sends MAIL FROM, RCPT TO or message data."],
+    ["Why does it say the test is unavailable?", "Outbound mail port 25 is blocked on many hosting networks, including this one, so the live test is switched off here. The page shows commands to run the same check from your own computer."],
+    ["Which ports can be tested?", "25 (server to server), 587 (submission) and 2525 (alternative submission). Port 465, which uses implicit TLS, is not supported."],
+    ["Do I need a trusted certificate on my mail server?", "Many servers still deliver to an untrusted or self-signed certificate, but senders that use MTA-STS or DANE refuse to, and it looks unprofessional. A free Let's Encrypt certificate solves it."],
+    ["What TLS version should a mail server use?", "TLS 1.2 or 1.3. TLS 1.0 and 1.1 were deprecated by RFC 8996 and should be switched off."],
+    ["Can I test a private or internal mail server?", "No. Only public mail servers can be tested. Private, loopback and other internal addresses are refused."]
+  ],
+  "related": [
+    {"slug": "mx-lookup", "anchor": "Find a domain's mail servers with the MX lookup"},
+    {"slug": "blacklist-check", "anchor": "Check the server IP against email blocklists"},
+    {"slug": "reverse-dns-lookup", "anchor": "Check the PTR record of the mail server"},
+    {"slug": "ttfb-ssl-checker", "anchor": "Inspect the SSL certificate of a website"}
+  ]
+}

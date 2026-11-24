@@ -1,0 +1,46 @@
+{
+  "title": "WHOIS & RDAP Lookup for Domains and IPs | BookMyHost",
+  "description": "Free WHOIS and RDAP lookup: registrar, creation and expiry dates, status and nameservers of any domain, or owner, range and country of any IPv4 or IPv6 address.",
+  "og_line": "Registrar, dates and nameservers of a domain, or owner of an IP",
+  "answer": "RDAP (RFC 7480 to 7484, updated by RFC 9082 and 9083) is the JSON, HTTPS replacement for the older WHOIS protocol (RFC 3912). It returns the registrar, key dates, status codes and nameservers of a domain, or the network name, range and country of an IP address. This tool uses RDAP and falls back to classic WHOIS only for top-level domains that have no RDAP service.",
+  "inputs": "A domain name, an IPv4 address or an IPv6 address.",
+  "outputs": "For a domain: registrar, creation, last-changed and expiry dates, status codes, nameservers and DNSSEC flag. For an IP address: the network name, the address range, the country, the regional internet registry and the abuse contact role. Personal contact data is never displayed.",
+  "curl": "curl -s -X POST @BASE@@API@/whois/lookup -H 'Content-Type: application/json' -d '{\"query\":\"example.com\"}'",
+  "sections": [
+    {"h": "WHOIS and RDAP", "p": [
+      "WHOIS is an old text protocol on port 43 with no common format: every registry prints its own layout, and the data is hard to parse. RDAP was designed to replace it. It uses HTTPS and returns structured JSON, supports internationalised names, can limit what is shown to whom, and finds the right server through a public bootstrap file published by IANA. The tool asks the bootstrap file which RDAP service is responsible for the top-level domain or the address block, queries it, and shows the answer in a readable form.",
+      "For a domain, the authoritative answer comes from the registry for its top-level domain, and for some TLDs from the registrar. For an IP address, it comes from the regional internet registry: ARIN, RIPE NCC, APNIC, LACNIC or AFRINIC. India falls under APNIC, and many Indian networks hold their space through IRINN, the national internet registry run by NIXI, which allocates address space under APNIC. Domains under .in are run by the .IN Registry, which operates under NIXI as well."
+    ]},
+    {"h": "How to read a domain result", "p": [
+      "Registrar. The company through which the domain is registered. That is where you renew and where you change the nameservers or the contact data.",
+      "Dates. The creation date shows how old the domain is. The expiry date is the one to watch. An expired domain does not disappear at once: most registries give an auto-renew grace period of up to 45 days, then a redemption period of about 30 days in which only the owner can restore it at a higher cost, and then a pending delete period of about 5 days before it is released. The exact periods differ by registry.",
+      "Status codes. These are EPP codes. clientTransferProhibited is a lock that protects against unwanted transfers and is what you want to see. clientHold or serverHold removes the domain from DNS, so the website and email stop working, often because of non-payment or a dispute. redemptionPeriod and pendingDelete mean that the domain has expired and will be dropped.",
+      "Nameservers. These are the servers the registry delegates the domain to. They must be the same as the ones that actually serve your zone, so compare them with the DNS lookup.",
+      "Missing owner details. Since GDPR most registries and registrars redact personal data of the registrant. The tool never displays personal contact details, so a result that shows the registrar and dates is normal."
+    ]},
+    {"h": "How to read an IP result", "p": [
+      "An IP lookup shows the smallest block that was assigned, who it is assigned to, the country the holder registered it in and an abuse contact role to report spam or attacks. The country is the registration country, not necessarily the place where the server is. The block can be larger than what the holder uses, and a hosting provider normally sub-allocates smaller pieces to customers, which may appear as a more specific entry. For the live routing of the same space, look up the prefix with the BGP prefix lookup."
+    ]},
+    {"h": "Common uses and problems", "p": [
+      "Check before buying or after transfer. See the real registrar and dates, and that the transfer lock is on. Diagnose a dead domain. A hold status explains why DNS answers disappear. Find the right place to report abuse using the IP abuse contact. Confirm that the delegation at the registry matches your DNS provider after a move.",
+      "If the lookup says that no RDAP service exists and classic WHOIS is used, the output is less structured. If a domain is not found, it is either not registered or the registry did not answer within the time limit. Answers come live from the registry and are cached for 5 minutes."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "After you see the nameservers, open the DNS lookup to check that they serve the zone correctly, or the DNS propagation checker to see how fast a delegation change is spreading. For an IP address, the reverse DNS lookup shows its PTR record, and the BGP prefix lookup and ASN lookup show which network announces it."
+    ]}
+  ],
+  "faq": [
+    ["What is the difference between WHOIS and RDAP?", "RDAP is the modern, JSON-based replacement for the WHOIS protocol. It is standardised, runs over HTTPS and returns structured data. This tool uses RDAP and only falls back to classic WHOIS for a TLD that has no RDAP service."],
+    ["Why is the registrant hidden?", "Since GDPR most registries and registrars redact personal data. This tool never displays personal contact details; you see the registrar, dates, status and nameservers."],
+    ["Can I look up an IP address?", "Yes. Enter an IPv4 or IPv6 address and the tool queries the regional internet registry (ARIN, RIPE, APNIC, LACNIC or AFRINIC) for the network name, range, country and abuse role."],
+    ["How current is the data?", "Answers come live from the registry and are cached for 5 minutes."],
+    ["What does clientTransferProhibited mean?", "It is a registrar lock that blocks transfers to another registrar. It is normal and protective. You must remove it before you transfer the domain away."],
+    ["Does it work for .in domains?", "Yes, when the .IN registry offers RDAP the tool uses it. Otherwise it falls back to classic WHOIS, and the layout of the answer is less structured."]
+  ],
+  "related": [
+    {"slug": "dns-lookup", "anchor": "Check that the nameservers serve the zone correctly"},
+    {"slug": "dns-propagation-checker", "anchor": "Watch a nameserver change spread to resolvers"},
+    {"slug": "bgp-prefix-lookup", "anchor": "See who announces an IP block in BGP"},
+    {"slug": "reverse-dns-lookup", "anchor": "Look up the PTR record of an IP address"}
+  ]
+}

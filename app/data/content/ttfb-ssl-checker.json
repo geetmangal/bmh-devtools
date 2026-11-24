@@ -1,0 +1,47 @@
+{
+  "title": "TTFB & SSL Certificate Checker | BookMyHost",
+  "description": "Measure DNS, TCP connect, TLS handshake, time to first byte and total load time of any URL, follow redirects and inspect the SSL certificate and HSTS.",
+  "og_line": "Time to first byte, TLS handshake and SSL certificate check",
+  "answer": "TTFB (time to first byte) is the delay between sending an HTTP request and receiving the first byte of the response. Google's web.dev guidance treats 0.8 seconds or less as good and more than 1.8 seconds as poor. This tool splits the request into DNS, TCP, TLS and wait time and reads the SSL certificate, measured from a BookMyHost server in India.",
+  "inputs": "A URL or host name. Ports 80, 443, 8080 and 8443 are allowed, and up to five redirects are followed. Private, loopback and other internal addresses are refused.",
+  "outputs": "A waterfall with DNS lookup, TCP connect, TLS handshake, time to first byte and total time; the redirect chain with the status code of each step; the HTTP status; and the certificate subject, issuer, names (SAN), validity dates, days remaining, chain length, signature algorithm, TLS version, cipher, HSTS header and HTTP/2 support.",
+  "curl": "curl -s -X POST @BASE@@API@/http/check -H 'Content-Type: application/json' -d '{\"url\":\"https://bookmyhost.com\"}'",
+  "sections": [
+    {"h": "What the waterfall shows", "p": [
+      "A web request is a chain of steps and the tool times each one. DNS lookup is the time to turn the host name into an address. TCP connect is the time to open the connection, which is one round trip between the server we test from and the site. The TLS handshake adds one or two more round trips to agree on encryption and check the certificate. Then the request is sent and the server works until it sends the first byte of the answer. That last wait is the server time, and it is what most people mean by TTFB, although the web.dev definition counts everything from the start of the navigation, including redirects, DNS, connection and TLS, up to the first byte.",
+      "The remaining time until the full response arrives is the download. A page with a small TTFB and a long download needs a smaller response, compression or a faster link. A page with a large wait is slow on the server: no caching, a slow database query, an overloaded PHP or application process, or a far-away origin."
+    ]},
+    {"h": "How to read the numbers", "p": [
+      "Compare phases, not just the total. If DNS takes hundreds of milliseconds, the nameserver is slow or far away, or the TTL is so low that the resolver asks every time. A high TCP connect time reflects distance, since the test runs from India, a site hosted on another continent will show it. A high TLS time may come from a long certificate chain, an old protocol or a server without session reuse. A high wait time points at the application.",
+      "For a quick judgement, a wait under 200 ms measured from a nearby location is good, 200 to 500 ms is acceptable, and anything above 800 ms points to slow processing, a missing cache or a distant server. Compare runs against each other instead of against a global benchmark, and test two or three times, since the first request often warms a cache.",
+      "The redirect chain matters. Each redirect adds a full set of round trips. A common slow pattern is http to https, then non-www to www, then to a language path: three redirects before any content. Redirect straight to the final address, and use HSTS so that browsers skip the http step."
+    ]},
+    {"h": "What the certificate check covers", "p": [
+      "The tool reads the certificate the server presents and reports who it was issued to, who issued it, which names it covers (Subject Alternative Names), the validity window and the days left. A name mismatch means the host name you typed is not in the SAN list, and browsers show a warning. An expired or soon-to-expire certificate is flagged. Lifetimes of public certificates keep getting shorter under CA/Browser Forum rules, with 398 days being the older limit and a step down to 47 days planned by 2029, so renewal must be automated, for example with an ACME client such as certbot.",
+      "The chain length shows how many certificates the server sends. A missing intermediate certificate is a frequent cause of errors that appear on some devices but not on others. The TLS version should be 1.2 or 1.3, as TLS 1.0 and 1.1 are deprecated (RFC 8996). The HSTS header (RFC 6797) tells browsers to use only https for a set time, and HTTP/2 support is reported because it speeds up pages with many assets."
+    ]},
+    {"h": "Common problems and fixes", "p": [
+      "High wait time. Turn on page or object caching, check slow database queries, raise the PHP or application worker limit if requests queue, and use a CDN for static files.",
+      "High connect time from India. If your visitors are in India, host in or near India. A server in Noida or Mumbai answers Indian visitors with far fewer round-trip milliseconds than one in Europe or the USA.",
+      "Hostname mismatch. Reissue the certificate with all the names you use, including the www variant.",
+      "Incomplete chain. Install the full chain file the CA provides, not only the leaf certificate."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "If DNS time is the problem, check the records and nameservers with the DNS lookup. After a move to a new server, use the DNS propagation checker to see when every resolver has the new address. To see where network latency comes from, run a ping and traceroute with the looking glass. For the certificate of a mail server, use the SMTP test."
+    ]}
+  ],
+  "faq": [
+    ["What is TTFB?", "Time To First Byte: the delay between sending the HTTP request and receiving the first byte of the response. It includes server processing time. This tool also shows DNS, TCP and TLS setup separately."],
+    ["What is a good TTFB?", "Google's web.dev treats 0.8 seconds or less as good and above 1.8 seconds as poor. As a rule of thumb for the server wait alone, under 200 ms from a nearby location is good, and above 800 ms points to slow processing, no caching or a distant server."],
+    ["Where is the measurement taken from?", "From a BookMyHost server in India. Latency to sites hosted abroad includes the intercontinental round trip, so compare numbers between runs rather than against a global benchmark."],
+    ["Why does the SSL check say hostname mismatch?", "The certificate does not list the host name you entered in its Subject Alternative Names. Browsers show a security warning in this case. Reissue the certificate with the correct names."],
+    ["Does it check OCSP stapling?", "Not yet. It reports TLS version, cipher, certificate subject, issuer, SAN list, validity window, days remaining, chain length, signature algorithm, HSTS header and HTTP/2 support."],
+    ["Can it test private or internal addresses?", "No. Private, loopback, link-local, CGNAT and other internal addresses are refused, including names that resolve to them and redirects that point to them."]
+  ],
+  "related": [
+    {"slug": "dns-lookup", "anchor": "Check DNS records and nameservers when lookup time is high"},
+    {"slug": "looking-glass", "anchor": "Trace the network path with ping and traceroute"},
+    {"slug": "dns-propagation-checker", "anchor": "Check that DNS has propagated after a server move"},
+    {"slug": "smtp-test", "anchor": "Test the certificate of a mail server"}
+  ]
+}

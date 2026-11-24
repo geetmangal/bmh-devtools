@@ -1,0 +1,39 @@
+{
+  "title": "Free Developer Tools: Email, DNS, BGP, SSL | BookMyHost",
+  "description": "Free online tools from BookMyHost: SPF, DKIM and DMARC checkers, blacklist check, DNS lookup, looking glass, WHOIS, ASN and BGP lookup, subnet calculator, SSL.",
+  "og_line": "18 free tools for email, DNS, network and web checks",
+  "answer": "The BookMyHost Toolbox is a set of 18 free tools for checking email authentication, DNS, IP networks and websites. Every tool needs no sign-up, runs a live check and explains the result in plain language, and most have a JSON API. BookMyHost provides cloud servers and VPS in India.",
+  "sections": [
+    {"h": "What is in the Toolbox", "p": [
+      "The tools are grouped by the problem they solve. The Email group answers 'why does my mail go to spam or bounce': the domain health report grades everything at once, and the MX lookup, SPF checker, DKIM checker, DMARC checker, blacklist check, SMTP test and email header analyzer each look at one part. The DNS group covers the DNS lookup, the DNS propagation checker, WHOIS and RDAP lookup and the reverse DNS (PTR) lookup. The Network and BGP group has the looking glass for ping, traceroute and BGP lookups, the ASN lookup, the BGP prefix lookup, the subnet calculator and the open port checker. The Web and SSL group has the TTFB and SSL certificate checker.",
+      "Each result is written for people who have to fix something. A check says what was found, what it means, how to fix it and, where it helps, gives a DNS record you can copy. A Beginner and Expert switch at the top shows more or less technical detail."
+    ]},
+    {"h": "Which tool should I start with", "p": [
+      "If you only have a domain name and a vague problem with mail, start with the domain health report. It runs all email and DNS checks together, gives an A to F grade and lists the fixes in order of importance, and you can open the single tool for any item.",
+      "If a website is slow or unreachable, test it with the TTFB and SSL checker to see whether time goes into DNS, the connection, TLS or the server, then use the looking glass to see the network path from India or from other regions.",
+      "If you changed DNS, the propagation checker shows which of 18 resolvers already have the new answer. If you need to know who an IP address or a network belongs to, use WHOIS and RDAP, the ASN lookup or the BGP prefix lookup.",
+      "If you plan network ranges, the subnet calculator handles IPv4 and IPv6, splitting and summarising in your browser."
+    ]},
+    {"h": "How the tools work", "p": [
+      "Most checks use public data: DNS queries, RDAP, public route collectors such as RIPE RIS and PeeringDB. The looking glass runs from a server in Noida, India (AS152523) and can also use probes in other regions. The email header analyzer and the subnet calculator work in your browser, so what you paste does not leave your device. Checks that are heavy or touch third parties, such as the blacklist check, the looking glass, the SMTP test and the BGP lookups, ask for a quick Cloudflare Turnstile check, and there are per-target limits so that the tools cannot be used to flood someone.",
+      "Every tool is free to use and to link to. Each page has an embed snippet for documentation and blogs, and the JSON API is described in the OpenAPI documentation. For machines, a short summary of the toolbox is at llms.txt and a longer one at llms-full.txt."
+    ]},
+    {"h": "Notes for India", "p": [
+      "Where it matters, the tools reflect how networks in India behave. DNS propagation includes a resolver in India, the TTFB measurement and the looking glass run from Noida, traceroutes show the carrier networks along the path, and WHOIS and RDAP can read records for .in domains and for address space allocated through APNIC and the national registry IRINN. For cost and sizing calculators for Indian cloud servers, see the free tools on bookmyhost.com."
+    ]}
+  ],
+  "faq": [
+    ["Are these developer tools free?", "Yes. Every tool is free, needs no sign-up and has a public JSON API. They are built and run by the BookMyHost engineering team."],
+    ["Can I link to or embed a tool?", "Yes. Each tool page has a ready-made HTML snippet for an iframe widget or a plain link that you can paste into docs, blogs or internal wikis."],
+    ["Is there an API?", "Yes. Every tool is an endpoint under @API@/ with OpenAPI documentation at @API@/docs. The limit is @RATE@ requests per minute per IP, and heavy endpoints need a pass issued after a Cloudflare Turnstile check."],
+    ["Do the tools store what I enter?", "The email header analyzer and subnet calculator run in your browser and send nothing. For the other tools, the query is sent to our server to run the check. We log the request path and status, not the query string or body."],
+    ["Which tool shows why my email goes to spam?", "Start with the domain health report, then use the SPF, DKIM and DMARC checkers, the blacklist check and the reverse DNS lookup for the sending server."],
+    ["Who runs the Toolbox?", "The BookMyHost engineering team. BookMyHost provides cloud servers and VPS in India."]
+  ],
+  "related": [
+    {"slug": "domain-health", "anchor": "Grade a domain with the domain health report"},
+    {"slug": "spf-checker", "anchor": "Check an SPF record and its lookup count"},
+    {"slug": "looking-glass", "anchor": "Run ping and traceroute from India"},
+    {"slug": "dns-propagation-checker", "anchor": "See if a DNS change has propagated"}
+  ]
+}

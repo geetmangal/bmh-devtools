@@ -1,0 +1,48 @@
+{
+  "title": "ASN Lookup: Prefixes, Peers, RPKI & IXPs | BookMyHost",
+  "description": "Free ASN lookup: announced IPv4 and IPv6 prefixes, upstream and downstream networks on a graph, RPKI coverage, and the exchanges and data centres of any AS.",
+  "og_line": "Prefixes, upstreams, RPKI coverage and IXPs of any AS number",
+  "answer": "An ASN (autonomous system number) identifies one network on the internet that has its own routing policy, for example AS13335 for Cloudflare. Networks use ASNs to announce their IP ranges with BGP (RFC 4271). This tool shows the prefixes an AS announces, its upstream and downstream neighbours, how many of its prefixes have an RPKI route origin authorisation, and where it connects.",
+  "inputs": "An AS number, written as 13335 or AS13335.",
+  "outputs": "The holder and name of the AS, the count of announced IPv4 and IPv6 prefixes with a list, RPKI route validation for the prefixes, an upstream and downstream neighbour graph, and internet exchanges and facilities from PeeringDB.",
+  "curl": "curl -s @BASE@@API@/asn/13335 -H 'X-Tools-Pass: <pass>'",
+  "sections": [
+    {"h": "What an AS number is", "p": [
+      "The internet is a network of networks. Each one that runs its own routing, such as an ISP, a cloud provider, a university or a large company, is called an autonomous system and has a number from a regional internet registry. Originally ASNs were 16 bits long (up to 65535). Since RFC 6793 they are 32 bits, so numbers go beyond four billion. A small range is reserved for private use (64512 to 65534 and 4200000000 to 4294967294, RFC 6996) and must never appear on the public internet.",
+      "A network that has an ASN can announce IP prefixes to its neighbours with the Border Gateway Protocol, and that is how the rest of the world learns where to send traffic for those addresses. The ASN you look up here is the 'origin' of the prefixes it announces."
+    ]},
+    {"h": "How to read the result", "p": [
+      "Holder and name. The organisation the number was assigned to, taken from routing and registry data. Check that it is who you expect, which is the quickest test when a log shows an unknown AS.",
+      "Prefixes. The IPv4 and IPv6 blocks currently announced. A big network announces thousands. The list is cut off at a limit, and the tool says so. Each prefix links to the BGP prefix lookup for more detail.",
+      "RPKI coverage. RPKI lets the holder of an address block sign a record (a ROA, RFC 6482) saying which AS may announce it. Networks that filter on route origin validation then reject announcements from the wrong AS, which stops many accidental leaks and some hijacks. The percentage is the share of the AS's prefixes that have a valid ROA. We validate up to 100 prefixes, so for very large networks the figure is a sample. Aim for 100 % for your own prefixes.",
+      "Upstreams, downstreams and peers. Upstreams are networks this AS pays to reach the rest of the internet. Downstreams are its customers. Peers swap traffic with each other, usually for free. The graph is built from routes seen by public collectors, so it is a sample of the real relationships and not a contract list.",
+      "Exchanges and facilities. From PeeringDB, a public database that networks fill in themselves: the internet exchanges where the AS has a port, with speed and route-server use, and the data centres where it is present. It shows where you could peer or cross-connect with that network. It is self-reported, so absence from PeeringDB does not prove absence from an exchange."
+    ]},
+    {"h": "Using it in practice", "p": [
+      "Identify traffic. A firewall log or a traceroute shows an AS number but not a name. Look it up to see who runs it, then check its prefixes to decide whether to allow or block it.",
+      "Plan connectivity. Before choosing a provider or a data centre, look at its upstreams and exchange presence. A network present at several exchanges and with several upstreams is more resilient than one with a single upstream.",
+      "Check your own network. Confirm that your prefixes are announced, that all have a ROA, and that the upstreams you pay for show up. A prefix that is missing in the list is not being announced.",
+      "India. In India, the national exchange operator NIXI runs internet exchange points in several cities, and many Indian networks appear there. Address space and ASNs for Indian networks are often assigned by APNIC or through the national registry IRINN. Checking an ASN seen on a traceroute, for example one of the large carriers, shows how it connects locally and abroad."
+    ]},
+    {"h": "Limits and data sources", "p": [
+      "Routing data comes from RIPEstat, which collects routes from RIPE NCC route collectors, and exchange and facility data comes from PeeringDB. Both are public and cached for a few minutes. If a source is slow, the report is shown as partial and says which parts are missing, and the rest stays accurate. Routing is a moving target, so a result is a snapshot of what the collectors saw recently."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "To see where one prefix is announced, who originates it and how far it is visible, use the BGP prefix lookup. To test the actual path from our network, run a traceroute in the looking glass. The WHOIS and RDAP lookup shows the registry record for an address block, which is the other side of the same data."
+    ]}
+  ],
+  "faq": [
+    ["What is an ASN?", "An autonomous system number identifies one network on the internet with its own routing policy, for example AS13335 for Cloudflare. Networks use ASNs to announce their IP ranges with BGP."],
+    ["What do upstream and downstream mean?", "Upstreams are the networks an AS buys transit from, closer to the rest of the internet. Downstreams are its customers. The graph is built from routes seen by public collectors, so it is a sample, not a contract list."],
+    ["What is RPKI coverage?", "The share of the AS's prefixes that have a signed ROA saying which AS may announce them. Up to 100 prefixes are validated, so the figure is a sample for very large networks."],
+    ["Where does the data come from?", "RIPEstat (RIPE NCC route collectors) for routing data and PeeringDB for exchange and facility presence. Both are public, and answers are cached for a few minutes."],
+    ["Can I look up a private ASN?", "Private ASNs (64512 to 65534 and 4200000000 to 4294967294) are not announced on the public internet, so a lookup returns little or nothing."],
+    ["Is there an API?", "Yes: GET @API@/asn/13335. It needs a pass obtained after a Turnstile check, because it fetches data from several public sources."]
+  ],
+  "related": [
+    {"slug": "bgp-prefix-lookup", "anchor": "Look up a prefix announced by the AS"},
+    {"slug": "looking-glass", "anchor": "Run a traceroute and see networks by AS number"},
+    {"slug": "whois-lookup", "anchor": "See registry data for an IP block or domain"},
+    {"slug": "subnet-calculator", "anchor": "Work out the size and range of a prefix"}
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "title": "Domain Health Report: Email & DNS Grade | BookMyHost",
+  "description": "Free domain health report: grades a domain A to F for mail delivery, SPF, DKIM, DMARC, DNS, security and blocklist reputation, with a prioritised list of fixes.",
+  "og_line": "Grade your domain A to F for email, DNS and reputation",
+  "answer": "A domain health report runs the email and DNS checks together and turns them into one A to F grade. It covers mail servers, SPF, DKIM, DMARC, BIMI, MTA-STS, TLS reporting, nameservers, DNSSEC and blocklists. Some gaps, such as having no SPF or no DMARC, cap the grade so that a good average cannot hide them.",
+  "inputs": "A domain name or an email address, and optionally a DKIM selector.",
+  "outputs": "An overall score and grade, scores for six areas (mail delivery, authentication, security, DNS, reputation, configuration), the caps that were applied, and a list of findings ordered by importance, each with a plain-language explanation and a fix.",
+  "curl": "curl -s -X POST @BASE@@API@/health/domain -H 'Content-Type: application/json' -H 'X-Tools-Pass: <pass>' -d '{\"domain\":\"example.com\"}'",
+  "sections": [
+    {"h": "What the report checks", "p": [
+      "A domain that cannot send or receive mail reliably usually has one of a small number of problems: a missing or broken SPF record, no DMARC policy, mail servers without reverse DNS, a single nameserver, or an address on a blocklist. The report checks them all in one run, so that you do not have to open eight tools and compare the notes.",
+      "It looks at the mail servers (MX), the SPF record and its lookup count, DKIM keys for about thirty common selectors or for the one you give, the DMARC policy, BIMI and MTA-STS records, the TLS-RPT reporting address, the nameservers and their network spread, DNSSEC state and blocklist listings of the mail server addresses. A live SMTP connection test is added where this server is allowed to open outbound mail connections. It is read-only and sends no email."
+    ]},
+    {"h": "How the grade is built", "p": [
+      "Each check produces a score from 0 to 100. The checks are grouped into six areas, each area is the weighted average of its checks, and the overall score is the weighted average of the areas. An overall score of 90 or more is an A, 80 a B, 70 a C, 60 a D and anything lower an F.",
+      "Some problems are serious enough to limit the grade regardless of the average. A domain without SPF or without DMARC cannot rise above C, and a domain with neither cannot rise above D. The report lists every cap that was applied so that the grade is never a mystery. The radar chart shows the six areas at a glance, so you can see whether a weak spot is in mail delivery, authentication or DNS."
+    ]},
+    {"h": "How to use the findings", "p": [
+      "The findings are sorted by importance, with failures first. Work from the top. A failure such as no SPF, a record over the lookup limit or a mail server on a blocklist affects delivery today. A warning, such as a DMARC policy of none or a 1024-bit DKIM key, will not break mail but leaves you exposed. Information items, such as a missing BIMI record, are optional improvements.",
+      "Every finding says what was found, why it matters and how to fix it, and, where a DNS record is needed, shows a record you can copy. After each fix, run the report again. DNS changes appear as soon as the old TTL has passed, so waiting a few minutes to hours is normal.",
+      "The checks are the same as in the single tools, so a detail you do not understand can be explored there. For example, open the SPF checker to see the include tree behind a lookup warning."
+    ]},
+    {"h": "Limits to keep in mind", "p": [
+      "The report sees only what is public. It cannot know about senders that are not in DNS, mail that is rejected inside your own filters, or reports that only you receive. A domain can score A and still have mail in spam because of content, sending volume or complaints. A low grade on a domain that only receives mail, or that never sends, may be less urgent than it looks.",
+      "DKIM keys live under selector names that only the sender knows. We try about thirty common names, and a custom selector will be missed unless you enter it. Blocklist results depend on which lists answer public queries at the moment of the check, and the report states which ones were skipped."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "Use the single tools when you want to work on one part. Open the DMARC checker for a staged rollout plan, the DNS lookup for the full set of records and nameserver health, and the MX lookup to confirm where mail is delivered. If the report shows a blocklisted address, use the blacklist check for removal links and the reverse DNS tool to fix the PTR record."
+    ]}
+  ],
+  "faq": [
+    ["How is the grade calculated?", "Each check scores 0 to 100, six areas are weighted averages of their checks, and the overall score is the weighted average of the areas. A is 90 or more, B 80, C 70, D 60, anything lower is F."],
+    ["Why can I not get an A without SPF and DMARC?", "A good average must not hide a critical gap, so missing SPF or DMARC caps the grade at C, and missing both caps it at D. The report lists every cap that applied."],
+    ["Does the report send email or touch my mail server?", "It sends no email. Almost all checks are public DNS lookups. The live SMTP test only runs where this server may open outbound mail connections, and it only says EHLO, tries STARTTLS and quits."],
+    ["How does it find my DKIM key?", "DKIM keys live under a selector that only the sender knows. The report tries about 30 common names such as google, selector1, k1 and s1. If yours is different, enter it in the optional selector field or use the DKIM checker."],
+    ["Does a domain that only receives mail need SPF and DMARC?", "Yes, ideally. A domain that never sends mail should publish a restrictive SPF record (v=spf1 -all) and a DMARC policy of reject so that nobody can spoof it."],
+    ["How often should I run the report?", "After every change to DNS or to your mail providers, and about once a month. Blocklist status and certificate dates change without any action on your side."]
+  ],
+  "related": [
+    {"slug": "spf-checker", "anchor": "Look at the SPF lookup count in detail"},
+    {"slug": "dmarc-checker", "anchor": "Plan a DMARC rollout to reject"},
+    {"slug": "dns-lookup", "anchor": "See all DNS records and nameserver health"},
+    {"slug": "blacklist-check", "anchor": "Check blocklists for a mail server IP"}
+  ]
+}
