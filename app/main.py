@@ -18,12 +18,14 @@ from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, Redirect
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import dns, http_check, lookingglass, pass_, portcheck, rdns, subnet, whois
-from app.core import config, turnstile
+from app.api import bgp, dns, health, http_check, lookingglass, mail, pass_, portcheck, rdns, smtp, subnet, whois
+from app.api import dnsbl as dnsbl_api
+from app.core import config, cooldown, turnstile
 from app.core.config import (API_PREFIX, BASE_URL, CALCULATORS, CATEGORIES, CORS_ORIGINS, EMBED_BASE_URL,
                              EMBED_RATE_PER_MIN, RATE_LIMIT_PER_MIN, SITE_NAME, STATIC_PREFIX,
                              RDNS_GUIDE_PUBLISHED, RDNS_GUIDE_URL, TOOLS, TOOLS_HUB_LASTMOD, TOOLS_PREFIX, VERSION)
 from app.core.ratelimit import TokenBucket, client_ip
+from app.pages import PAGES
 
 ROOT = Path(__file__).resolve().parent
 log = logging.getLogger("bmh_tools")
@@ -54,7 +56,8 @@ app.include_router(pass_.router, prefix=API_PREFIX)
 app.include_router(dns.router, prefix=API_PREFIX)
 app.include_router(subnet.router, prefix=API_PREFIX)
 app.include_router(http_check.router, prefix=API_PREFIX)
-for _r in (lookingglass.router, whois.router, rdns.router, portcheck.router):
+for _r in (lookingglass.router, whois.router, rdns.router, portcheck.router, mail.router, dnsbl_api.router,
+           smtp.router, health.router, bgp.router):
     app.include_router(_r, prefix=API_PREFIX)
 app.mount(STATIC_PREFIX, StaticFiles(directory=ROOT / "static"), name="static")
 
@@ -157,6 +160,11 @@ def note_embed_referrer(host: str | None) -> None:
         _embed_refs["(none)"] += 1
 
 
+@app.exception_handler(cooldown.TargetBusy)
+async def _target_busy(request: Request, exc: cooldown.TargetBusy):
+    return cooldown.busy_response()
+
+
 @app.exception_handler(turnstile.PassRequired)
 async def _pass_required(request: Request, exc: turnstile.PassRequired):
     return turnstile.pass_required_response()
@@ -257,8 +265,8 @@ async def index(request: Request):
          "Yes, please do. Each tool page has a ready-made HTML snippet you can paste into docs, blogs or internal wikis."),
     ]
     return _render(request, "index.html", None, faq,
-                   title="Free Developer Tools: DNS, Looking Glass, WHOIS, Ports, SSL | BookMyHost",
-                   description="Free, fast developer tools from BookMyHost: DNS propagation checker with Indian resolvers, looking glass (ping, traceroute, BGP) from Noida, WHOIS/RDAP, reverse DNS, port checker, subnet calculator, TTFB and SSL checker.")
+                   title="Free Developer Tools: Email, DNS, BGP, Looking Glass, WHOIS, SSL | BookMyHost",
+                   description="Free, fast developer tools from BookMyHost: domain health report, SPF, DKIM and DMARC checkers, blacklist check, DNS and propagation lookups, ASN and BGP prefix lookup, looking glass from Noida and worldwide, WHOIS/RDAP, reverse DNS, ports, subnets, TTFB and SSL.")
 
 
 @app.get(f"{TOOLS_PREFIX}/dns-propagation-checker", response_class=HTMLResponse, include_in_schema=False)
@@ -324,7 +332,7 @@ async def page_ttfb(request: Request):
 async def page_lg(request: Request):
     faq = [
         ("Where do the ping and traceroute run from?",
-         "From a BookMyHost server in Noida, India, on our own network (AS152523). The result shows the path and latency from an Indian data centre to your target, which is what your Indian customers see."),
+         "By default from a BookMyHost server in Noida, India, on our own network (AS152523). The From menu also runs the test from up to six probes in India, Asia, Europe, North America or worldwide, using the public Globalping network, so you can compare latency by location. Traceroute hops show the network (AS) and an approximate location from public routing data."),
         ("What is the BGP lookup based on?",
          "Public BGP data from RIPEstat (RIPE NCC route collectors): the announced prefix, the origin AS and sample AS paths. We do not query our own routers for this."),
         ("What are the limits?",
@@ -390,11 +398,22 @@ async def page_ports(request: Request):
                    description="Free open port checker: test whether common TCP ports (22, 80, 443, 3306, 3389 and more) or any port 1-65535 are reachable on your own public IP address.")
 
 
+def _make_page(slug: str):
+    async def handler(request: Request):
+        p = PAGES[slug]
+        return _render(request, "tool_generic.html", slug, p["faq"], title=p["title"], description=p["description"], page=p)
+    handler.__name__ = "page_" + slug.replace("-", "_")
+    return handler
+
+
+for _slug in PAGES:  # email / DNS / BGP suite: one generic template, one JS module per slug
+    app.get(f"{TOOLS_PREFIX}/{_slug}", response_class=HTMLResponse, include_in_schema=False)(_make_page(_slug))
+
 _ACCENT_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 _EMBED_TEMPLATES = {
     "dns-propagation-checker": "dns.html", "subnet-calculator": "subnet.html", "ttfb-ssl-checker": "ttfb.html",
     "looking-glass": "lg.html", "whois-lookup": "whois.html", "reverse-dns-lookup": "rdns.html",
-    "port-checker": "ports.html"}
+    "port-checker": "ports.html", **{s: "tool_generic.html" for s in PAGES}}
 
 
 @app.get(f"{TOOLS_PREFIX}/embed/{{slug}}", response_class=HTMLResponse, include_in_schema=False)
@@ -412,7 +431,7 @@ async def embed_page(request: Request, slug: str, theme: str = "auto", accent: s
     return templates.TemplateResponse(request, _EMBED_TEMPLATES[slug], {
         "tool": tool, "canonical": f"{BASE_URL}{TOOLS_PREFIX}/{slug}", "faq": [], "layout": "embed.html", "embed": True,
         "title": f"{tool['name']} | BookMyHost", "description": tool["short"], "schema_json": "[]",
-        "noindex": True, "theme": theme, "accent": accent, "compact": compact == "1", "embed_host": host or "",
+        "noindex": True, "page": PAGES.get(slug), "theme": theme, "accent": accent, "compact": compact == "1", "embed_host": host or "",
         "powered_href": f"{tool_url}?utm_source={host or 'embed'}&utm_medium=widget&utm_campaign=tools-embed",
         "turnstile_sitekey": config.TURNSTILE_SITEKEY if turnstile.enabled() else "", "tool_url": tool_url,
         "guide_url": RDNS_GUIDE_URL if RDNS_GUIDE_PUBLISHED else None, "csp_nonce": request.state.csp_nonce,

@@ -48,6 +48,17 @@ COMMON_PORTS = [21, 22, 25, 53, 80, 110, 143, 443, 465, 587, 993, 995, 3306, 338
 RDNS_GUIDE_PUBLISHED = os.getenv("BMH_TOOLS_RDNS_GUIDE_PUBLISHED", "0").strip().lower() in ("1", "true", "yes", "on")
 RDNS_GUIDE_URL = "https://bookmyhost.com/blog/rdns-ptr-record-vps"
 
+# --- email / DNSBL / SMTP / health / BGP tools ---
+MAIL_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_MAIL_RATE_PER_MIN", "20"))        # light mail DNS checks per IP
+HEAVY_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_HEAVY_RATE_PER_MIN", "6"))       # dnsbl / smtp / dkim probe per IP, burst 3
+HEALTH_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_HEALTH_RATE_PER_MIN", "4"))     # full domain health runs per IP, burst 2
+BGP_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_BGP_RATE_PER_MIN", "10"))          # ASN / prefix reports per IP, burst 5
+GLOBAL_LG_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_GLOBAL_LG_RATE_PER_MIN", "4"))  # Globalping runs per IP, burst 2
+MAX_CONCURRENT_HEALTH = int(os.getenv("BMH_TOOLS_MAX_HEALTH", "3"))
+# One shared limiter per TARGET (domain / IP / ASN) across all clients and all heavy endpoints, so a single
+# victim cannot be hammered from many addresses. Over the limit: 429 {"error": "target_busy"}.
+TARGET_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_TARGET_RATE_PER_MIN", "20"))
+
 # SSRF: networks the checkers must never connect to, on top of every non-global range.
 # Defaults = the hosting network of the production box (public-direct 160.22.109.0/24):
 # gateway .1, this host .2 and the CloudStack virtual router .9 (serves VM userdata/metadata).
@@ -78,7 +89,7 @@ EMBED_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_EMBED_RATE_PER_MIN", "12"))
 
 # W3C date (YYYY-MM-DD) per tool for <lastmod> in /tools/sitemap.xml: the day the page last changed.
 # Bump it when a tool's template or behaviour changes.
-TOOLS_HUB_LASTMOD = "2026-11-21"
+TOOLS_HUB_LASTMOD = "2026-11-25"
 
 # Ordered tab-rail categories. Tools whose category has no tool yet are simply not shown as a tab group.
 CATEGORIES = [
@@ -115,7 +126,7 @@ TOOLS = [
         "category": "web", "icon": "gauge", "accepts": ["url", "domain", "host"], "heavy": False, "embeddable": True,
     },
     {
-        "slug": "looking-glass", "lastmod": "2026-11-21", "name": "Looking Glass (Ping, Traceroute, BGP)",
+        "slug": "looking-glass", "lastmod": "2026-11-25", "name": "Looking Glass (Ping, Traceroute, BGP)",
         "short": "Ping, traceroute and BGP route lookup from our Noida network, AS152523.",
         "category": "network", "icon": "route", "accepts": ["ip", "host", "domain"], "heavy": True, "embeddable": True,
     },
@@ -133,5 +144,62 @@ TOOLS = [
         "slug": "port-checker", "lastmod": "2026-11-21", "name": "Open Port Checker",
         "short": "Check which TCP ports are open on your own public IP address.",
         "category": "network", "icon": "plug", "accepts": [], "heavy": True, "embeddable": True,
+    },
+
+    # ---- email / DNS / BGP suite (2026-11-25) ----
+    {
+        "slug": "domain-health", "lastmod": "2026-11-25", "name": "Domain Health Report",
+        "short": "Grade a domain A to F for email delivery, authentication, DNS, security and blocklist reputation.",
+        "category": "email", "icon": "mail", "accepts": ["domain", "email"], "heavy": True, "embeddable": True,
+    },
+    {
+        "slug": "mx-lookup", "lastmod": "2026-11-25", "name": "MX Lookup",
+        "short": "Mail servers of a domain in priority order, with IP addresses, reverse DNS and provider.",
+        "category": "email", "icon": "inbox", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+    },
+    {
+        "slug": "spf-checker", "lastmod": "2026-11-25", "name": "SPF Checker",
+        "short": "Validate an SPF record, follow every include and count the 10 DNS lookup limit.",
+        "category": "email", "icon": "shield", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+    },
+    {
+        "slug": "dmarc-checker", "lastmod": "2026-11-25", "name": "DMARC Checker",
+        "short": "Read a DMARC policy, alignment and report addresses, with a staged rollout plan.",
+        "category": "email", "icon": "shield", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+    },
+    {
+        "slug": "dkim-checker", "lastmod": "2026-11-25", "name": "DKIM Checker",
+        "short": "Look up a DKIM selector or probe common ones and check key strength.",
+        "category": "email", "icon": "key", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+    },
+    {
+        "slug": "blacklist-check", "lastmod": "2026-11-25", "name": "Blacklist Check",
+        "short": "Check an IP address or domain against dozens of DNS blocklists, live, with removal links.",
+        "category": "email", "icon": "ban", "accepts": ["ip", "domain"], "heavy": True, "embeddable": True,
+    },
+    {
+        "slug": "smtp-test", "lastmod": "2026-11-25", "name": "SMTP Test",
+        "short": "Read-only SMTP test: banner, STARTTLS, TLS version and certificate of a mail server.",
+        "category": "email", "icon": "plug", "accepts": ["host", "domain"], "heavy": True, "embeddable": True,
+    },
+    {
+        "slug": "email-header-analyzer", "lastmod": "2026-11-25", "name": "Email Header Analyzer",
+        "short": "Paste email headers to see hop delays, SPF/DKIM/DMARC results and spam scores, in your browser.",
+        "category": "email", "icon": "file", "accepts": [], "heavy": False, "embeddable": True,
+    },
+    {
+        "slug": "dns-lookup", "lastmod": "2026-11-25", "name": "DNS Lookup",
+        "short": "All DNS records with TTLs, nameserver health, SOA timers, CAA and DNSSEC state.",
+        "category": "dns", "icon": "dns", "accepts": ["domain", "host"], "heavy": False, "embeddable": True,
+    },
+    {
+        "slug": "asn-lookup", "lastmod": "2026-11-25", "name": "ASN Lookup",
+        "short": "Prefixes, upstreams, downstreams, RPKI coverage and exchange points of any AS number.",
+        "category": "network", "icon": "graph", "accepts": ["asn"], "heavy": True, "embeddable": True,
+    },
+    {
+        "slug": "bgp-prefix-lookup", "lastmod": "2026-11-25", "name": "BGP Prefix Lookup",
+        "short": "Origin AS, RPKI, global visibility map, 30-day history and AS paths of an IP prefix.",
+        "category": "network", "icon": "globe", "accepts": ["prefix", "ip"], "heavy": True, "embeddable": True,
     },
 ]
