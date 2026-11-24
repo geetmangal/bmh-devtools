@@ -4,10 +4,12 @@
 <p class="text-mute max-w-3xl mb-5">Run ping and traceroute from our network in Noida, India (<span class="mono">AS152523</span>) to any public IP address or hostname, and look up the BGP prefix, origin AS and sample AS paths for the target.</p>
 {% endblock %}
 {% block content %}
-<form id="lg-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_200px_auto] items-end" method="post" action="{{ api }}/lg/run">
+<form id="lg-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_190px_190px_auto] items-end" method="post" action="{{ api }}/lg/run">
   <label class="block text-sm">Target (public IP or hostname)<input id="lg-target" name="target" type="text" placeholder="1.1.1.1 or example.com" required autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
   <label class="block text-sm">Test<select id="lg-tool" name="tool" class="mt-1">
     <option value="ping">Ping (4 packets)</option><option value="traceroute">Traceroute (max 30 hops)</option><option value="bgp">BGP route (RIPEstat)</option></select></label>
+  <label class="block text-sm">From<select id="lg-from" name="from" class="mt-1">
+    <option value="local">BMH Noida, India</option><option value="india">India (3rd-party probes)</option><option value="asia">Asia</option><option value="europe">Europe</option><option value="north america">North America</option><option value="world">Worldwide</option></select></label>
   <button class="btn" type="submit" id="lg-submit">Run</button>
 </form>
 <div id="results" class="mt-5 space-y-4 gloss-scope" aria-live="polite" aria-busy="false"></div>

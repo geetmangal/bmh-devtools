@@ -1,14 +1,16 @@
-import { h, $, plural, fmtMs } from '../ui/dom.js';
+import { h, $, clear, plural, fmtMs, icon, srOnly } from '../ui/dom.js';
 import { initTool, qParam } from '../ui/tool.js';
 import { verdict } from '../ui/verdict.js';
 import { checkCard } from '../ui/card.js';
 import { gauge } from '../ui/gauge.js';
-import { timeline } from '../ui/timeline.js';
+import { progressBar } from '../ui/stream.js';
+import { hopTimeline, traceMap } from '../viz/tracemap.js';
 import { dataTable } from '../ui/table.js';
 
-const targetEl = $('#lg-target'), toolEl = $('#lg-tool');
+const targetEl = $('#lg-target'), toolEl = $('#lg-tool'), fromEl = $('#lg-from');
+const NOIDA = { lat: 28.57, lon: 77.32, label: 'BMH Noida' };
 
-/** Phase 3 hook: enrich each hop with ASN / organisation / geo (RIPEstat) before drawing. Currently a no-op. */
+/** The server already adds ASN, organisation and location to each hop (hopenrich); this keeps the hook for callers. */
 async function enrichHops(hops) { return hops; }
 
 const rttStatus = (ms) => (ms < 80 ? 'ok' : ms < 200 ? 'warn' : 'bad');
@@ -57,21 +59,66 @@ async function renderTrace(d) {
   const summary = d.reached
     ? `Packets ${d.source.label} reach ${d.target} in ${plural(hops.length, 'hop')}${last ? `, ${last.rtt_ms} ms at the end` : ''}${silent ? `; ${plural(silent, 'router')} on the way did not reply, which is normal` : ''}.`
     : `The path ${d.source.label} to ${d.target} was followed for ${plural(hops.length, 'hop')}, but the destination itself did not answer (filtered or timed out).`;
-  let prev = 0;
-  const steps = hops.map((x) => {
-    const jump = x.rtt_ms != null && x.rtt_ms - prev > 60 && prev > 0;
-    if (x.rtt_ms != null) prev = x.rtt_ms;
-    return { label: x.ip || '*', sub: `hop ${x.hop}${x.ip && x.ip === d.resolved_ip ? ' (destination)' : ''}${jump ? ' - latency jumps here' : ''}`, ms: x.rtt_ms, status: x.rtt_ms == null ? 'mute' : jump ? 'warn' : rttStatus(x.rtt_ms), note: x.rtt_ms == null ? 'no reply (100% loss)' : null };
-  });
   return [
-    verdict({ status, title: d.reached ? 'Destination reached' : 'Destination did not answer', summary, meta: `${d.target} - ${d.resolved_ip} - max ${d.max_hops} hops` }),
-    checkCard({ status, title: `Path to the target: ${plural(hops.length, 'hop')}`, body: timeline({ steps }),
+    verdict({ status, title: d.reached ? 'Destination reached' : 'Destination did not answer', summary: summary + (d.path_summary ? ' ' + d.path_summary : ''), meta: `${d.target} - ${d.resolved_ip} - max ${d.max_hops} hops` }),
+    checkCard({ status, title: `Path to the target: ${plural(hops.length, 'hop')}`, body: hopTimeline({ hops, segments: d.segments, destination: d.resolved_ip }),
       meaning: 'Each line is one router your packets pass through, with the time to get a reply from it. Bars that grow sharply mean the packet crossed a long link (often an ocean or a different network).',
       details: d.output }),
+    mapCard(hops),
     silent ? checkCard({ status: d.reached ? 'info' : 'warn', title: `${plural(silent, 'hop')} showed a star (no reply)`,
       meaning: d.reached ? 'Many routers do not answer or rate-limit these probes. A star in the middle is harmless as long as later hops answer.' : 'The probes stopped getting answers. The next router may be filtering traffic, or the target itself blocks these probes.',
       fix: d.reached ? null : { steps: ['Check the target\'s firewall allows UDP/ICMP probes, or test the real service port with the Open Port Checker.', 'Ask your provider whether the last answering hop belongs to their network.'] } }) : null,
   ];
+}
+
+function mapCard(hops) {
+  const m = traceMap(hops, { source: NOIDA });
+  return m ? checkCard({ status: 'info', title: 'Where the path goes', body: m,
+    meaning: 'The dots follow the hops in order. Private addresses and addresses we cannot place are left out, so the line can skip steps.' }) : null;
+}
+
+const LOCS = { india: 'India', asia: 'Asia', europe: 'Europe', 'north america': 'North America', world: 'Worldwide' };
+const heat = (ms) => (ms == null ? 'mute' : rttStatus(ms));
+
+/** Multi-location run through Globalping: a row per probe fills in as results arrive, with a latency heat strip. */
+async function runGlobal(ctx, target, type, preset) {
+  const rows = [], tbody = h('tbody');
+  const bar = progressBar({ total: 6, noun: 'locations answered' });
+  const table = h('div', { class: 'overflow-x-auto' }, h('table', null, h('thead', null, h('tr', null, ['Location', 'Network', 'Latency', 'Loss'].map((x) => h('th', { scope: 'col' }, x)))), tbody));
+  const el = h('div', { class: 'space-y-3' }, bar.el, table);
+  let total = 6;
+  await ctx.stream('/lg/global', { target, type, preset, limit: 6 }, {
+    onStart: () => clear(ctx.out).append(el),
+    onItem: (o) => {
+      if (o.type === 'created' && o.probes_count) { total = o.probes_count; bar.update(0, total); }
+      if (o.type !== 'probe') return;
+      const r = o.probe || {}, loc = r.probe || {}, st = r.stats || {};
+      const last = (r.hops || []).length ? r.hops[r.hops.length - 1] : null;
+      const avg = st.avg ?? (last?.timings?.length ? last.timings.reduce((a, t) => a + (t.rtt || 0), 0) / last.timings.length : null);
+      rows.push({ loc, avg, loss: st.loss ?? null, status: r.status, hops: (r.hops || []).length });
+      const s = heat(avg);
+      tbody.append(h('tr', null, h('td', null, [loc.city, loc.country].filter(Boolean).join(', ') || 'Unknown'), h('td', { class: 'mono text-xs' }, loc.asn ? `AS${loc.asn} ${loc.network || ''}` : loc.network || ''),
+        h('td', null, h('div', { class: 'flex items-center gap-2' }, h('div', { class: 'bar-track h-2.5 w-24', 'aria-hidden': 'true' }, h('div', { class: 'h-2.5 rounded-full', style: `width:${avg == null ? 0 : Math.min(100, (avg / 300) * 100)}%;background:var(--${s === 'mute' ? 'mute' : s})` })),
+          h('span', { class: 'mono text-xs' }, avg == null ? (r.status === 'failed' ? 'failed' : 'no data') : fmtMs(avg)), avg != null ? h('span', { class: `text-xs st-${s}` }, rttWords(avg)) : null)),
+        h('td', { class: 'mono text-xs' }, st.loss != null ? `${st.loss}%` : '')));
+      bar.update(rows.length, total);
+    },
+  });
+  bar.finish();
+  return { target, type, preset, rows, _el: el };
+}
+
+function renderGlobal(d) {
+  const ok = d.rows.filter((r) => r.avg != null);
+  const best = ok.length ? ok.reduce((a, b) => (b.avg < a.avg ? b : a)) : null, worst = ok.length ? ok.reduce((a, b) => (b.avg > a.avg ? b : a)) : null;
+  const status = !ok.length ? 'bad' : worst.avg >= 200 ? 'warn' : 'ok';
+  const where = (r) => [r.loc.city, r.loc.country].filter(Boolean).join(', ');
+  const summary = ok.length ? `${d.target} answered from ${ok.length} of ${d.rows.length} locations (${LOCS[d.preset] || d.preset}). Fastest: ${where(best)} at ${fmtMs(best.avg)}. Slowest: ${where(worst)} at ${fmtMs(worst.avg)}.` : `No location got an answer from ${d.target}.`;
+  return [verdict({ status, title: ok.length ? 'Reachable from other locations' : 'No answer from any location', summary, meta: `${d.type} from ${LOCS[d.preset] || d.preset} via Globalping` }),
+    checkCard({ status: 'info', title: 'Latency by location', body: d._el,
+      meaning: 'Each row is a different probe somewhere in the world running the same test against your target. Bigger latency for far-away places is normal; a nearby place that is much slower than its neighbours points to a routing problem.',
+      details: 'Measured by the Globalping network (globalping.io), a community probe network. Probes are volunteers\' devices, so their quality varies.' }),
+    srOnly(d.rows.map((r) => `${where(r)}: ${r.avg == null ? 'no data' : fmtMs(r.avg)}`).join('; '))];
 }
 
 function renderBgp(d) {
@@ -95,15 +142,22 @@ function renderBgp(d) {
 initTool({
   form: '#lg-form',
   async run(ctx) {
-    const target = targetEl.value.trim(), tool = toolEl.value;
+    const target = targetEl.value.trim(), tool = toolEl.value, from = fromEl ? fromEl.value : 'local';
+    if (tool !== 'bgp' && from !== 'local') {
+      const g = await runGlobal(ctx, target, tool, from);
+      const res = { target: g.target, type: g.type, preset: g.preset, rows: g.rows, _tool: 'global', _from: from };
+      Object.defineProperty(res, '_el', { value: g._el, enumerable: false });
+      return res;
+    }
     const data = tool === 'bgp' ? await ctx.api('/lg/bgp', { target }, { heavy: true }) : await ctx.api('/lg/run', { target, tool }, { heavy: true });
     return { ...data, _tool: tool };
   },
-  render: (d) => (d._tool === 'bgp' ? renderBgp(d) : d._tool === 'ping' ? renderPing(d) : renderTrace(d)),
-  state: (d) => ({ q: targetEl.value.trim(), tool: d._tool }),
+  render: (d) => (d._tool === 'global' ? renderGlobal(d) : d._tool === 'bgp' ? renderBgp(d) : d._tool === 'ping' ? renderPing(d) : renderTrace(d)),
+  state: (d) => ({ q: targetEl.value.trim(), tool: d._tool === 'global' ? toolEl.value : d._tool, ...(d._from && d._from !== 'local' ? { from: d._from } : {}) }),
   prefill: (p) => {
     const q = qParam(p, 'target');
     if (['ping', 'traceroute', 'bgp'].includes(p.get('tool'))) toolEl.value = p.get('tool');
+    if (fromEl && [...fromEl.options].some((o) => o.value === p.get('from'))) fromEl.value = p.get('from');
     if (q) targetEl.value = q;
     return !!q;
   },

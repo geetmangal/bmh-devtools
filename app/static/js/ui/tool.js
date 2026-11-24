@@ -2,14 +2,16 @@
 // the share bar and the Expert-only raw JSON panel, and calls the JSON API (with Turnstile for heavy tools).
 import { h, clear, icon, $ } from './dom.js';
 import { heavyFetch } from './turnstile.js';
-import { skeletonCards } from './stream.js';
+import { skeletonCards, readNdjson } from './stream.js';
 import { shareBar } from './share.js';
 import { rawJson } from './card.js';
 
-const cfg = (() => { try { return JSON.parse(document.getElementById('toolbox-config').textContent); } catch { return { api: '/tools/api/v1' }; } })();
+const cfg = (() => { try { return JSON.parse(document.getElementById('toolbox-config').textContent); } catch { return { api: '/tools/api/v1', prefix: '/tools' }; } })();
 const embedHost = () => (document.documentElement.dataset.embed ? (document.body.dataset.embedHost || 'embed') : null);
+export const config = cfg;
 
 export function errorMessage(data, status) {
+  if (data && data.error === 'target_busy') return 'This target is being checked by a lot of people right now. Please wait a minute and try again.';
   if (data && typeof data.detail === 'string') return data.detail;
   if (data && data.detail) return JSON.stringify(data.detail);
   if (status === 429) return 'Too many requests. Please wait a few seconds and try again.';
@@ -17,19 +19,34 @@ export function errorMessage(data, status) {
   return `The server answered with an error (${status}).`;
 }
 
-/** POST JSON to the tools API. path is relative to /tools/api/v1. Throws Error(message) on failure. */
-export async function api(path, body, { heavy = false, container } = {}) {
-  const headers = { 'Content-Type': 'application/json' };
+function request(path, body, heavy, container) {
+  const headers = {};
   const eh = embedHost(); if (eh) headers['X-Tools-Embed'] = eh;
-  const init = { method: 'POST', headers, body: JSON.stringify(body) };
+  const init = body == null ? { method: 'GET', headers } : { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
   const url = cfg.api + path;
-  const r = heavy ? await heavyFetch(url, init, container) : await fetch(url, init);
+  return heavy ? heavyFetch(url, init, container) : fetch(url, init);
+}
+
+/** POST JSON (or GET when body is null) to the tools API. path is relative to /tools/api/v1. Throws Error(message) on failure. */
+export async function api(path, body, { heavy = false, container } = {}) {
+  const r = await request(path, body, heavy, container);
   const data = await r.json().catch(() => null);
   if (!r.ok) throw new Error(errorMessage(data, r.status));
   return data;
 }
 
-export const apiGet = async (path) => { const r = await fetch(cfg.api + path); return r.json(); };
+/**
+ * POST and read an NDJSON stream. onItem(obj) runs for every line; onStart() once the server accepted the request
+ * (use it to replace the skeleton). Lines of {type: 'error'} throw so the page shows the normal error card.
+ */
+export async function apiStream(path, body, { heavy = true, container, onItem, onStart } = {}) {
+  const r = await request(path, body, heavy, container);
+  if (!r.ok) throw new Error(errorMessage(await r.json().catch(() => null), r.status));
+  if (onStart) onStart();
+  await readNdjson(r, (o) => { if (o && o.type === 'error') throw new Error(o.message || 'The check failed.'); onItem(o); });
+}
+
+export const apiGet = (path, opts = {}) => api(path, null, opts);
 
 export function errorCard(message) {
   return h('div', { class: 'card p-4 flex items-start gap-3', role: 'alert' }, h('span', { class: 'st-bad mt-0.5' }, icon('bad', 20)),
@@ -37,18 +54,22 @@ export function errorCard(message) {
 }
 
 /**
- * initTool({ form, run, render, state, prefill, buttons, busyText })
- *  run(ctx)   -> data (use ctx.api(path, body, {heavy}))
+ * initTool({ form, run, render, state, prefill, buttons })
+ *  run(ctx)   -> data (use ctx.api(path, body, {heavy}) or ctx.stream(path, body, {onItem, onStart}))
  *  render(data, ctx) -> Node | Node[]  (verdict, cards, ...)
  *  state(data) -> object of URL params to keep in the address bar (always includes q for sharing)
  *  prefill(params) -> truthy when the page should run immediately (e.g. ?q=example.com)
  */
-export function initTool({ form, results = '#results', run, render, state, prefill, buttons = [], autorunDelay = 0 }) {
+export function initTool({ form, results = '#results', run, render, state, prefill, buttons = [], autorunDelay = 0, shareExtra }) {
   const formEl = $(form), out = $(results);
   let last = null, token = 0;
   const btns = () => [...formEl.querySelectorAll('button')].concat(buttons.map((b) => $(b)).filter(Boolean));
 
-  const ctx = { out, api: (p, b, o = {}) => api(p, b, { container: out, ...o }), params: new URLSearchParams(location.search) };
+  const ctx = {
+    out, params: new URLSearchParams(location.search),
+    api: (p, b, o = {}) => api(p, b, { container: out, ...o }),
+    stream: (p, b, o = {}) => apiStream(p, b, { container: out, ...o }),
+  };
 
   async function execute(extra) {
     const my = ++token;
@@ -61,7 +82,7 @@ export function initTool({ form, results = '#results', run, render, state, prefi
       last = data;
       const nodes = [].concat(await render(data, ctx)).filter(Boolean);
       clear(out);
-      out.append(...nodes, h('div', { class: 'mt-2 space-y-3' }, rawJson(data), shareBar({ getJson: () => last })));
+      out.append(...nodes, h('div', { class: 'mt-2 space-y-3' }, rawJson(data), shareBar({ getJson: () => last, ...(shareExtra || {}) })));
       if (state && !document.documentElement.dataset.embed) {
         const q = new URLSearchParams(state(data));
         try { history.replaceState(null, '', '?' + q.toString()); } catch { /* sandboxed frames */ }

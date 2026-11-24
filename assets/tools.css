@@ -78,7 +78,7 @@
   .tab { display: inline-flex; align-items: center; gap: .4rem; padding: .4rem .75rem; border-radius: .6rem; font-size: .85rem; color: var(--ink); border: 1px solid transparent; white-space: nowrap; }
   .tab:hover { background: var(--surface2); text-decoration: none; }
   .tab[aria-current="page"] { background: var(--accent-soft); color: var(--accent); border-color: var(--accent); font-weight: 600; }
-  @media (min-width: 768px) { .tabrail { flex-wrap: wrap; overflow: visible; row-gap: 1rem; } }
+  @media (min-width: 768px) { .tabrail { flex-wrap: wrap; overflow: visible; row-gap: 1rem; } .tabgroup { min-width: 0; max-width: 100%; } .tabs { flex-wrap: wrap; } }
 
   /* results kit */
   .verdict { display: flex; gap: 1.1rem; align-items: center; padding: 1.1rem 1.25rem; }
@@ -121,4 +121,12 @@
   .card { box-shadow: none !important; break-inside: avoid; }
   .expert-only { display: block !important; }
   a { color: #000 !important; }
+  .card-flat, .tile, figure, li { break-inside: avoid; }
+  svg { max-width: 100%; }
+  #results { margin-top: 0; }
+  .skeleton { display: none; }
 }
+
+/* SVG visuals: keyboard focus ring for AS graph nodes */
+.asnode:focus { outline: none; }
+.asnode:focus-visible circle { stroke: var(--accent); stroke-width: 3; }
