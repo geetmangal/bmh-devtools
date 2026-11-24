@@ -1,0 +1,28 @@
+{
+  "_note": "Active RIPE RIS route collectors. name/city/country/lat/lon for 22 collectors come from the probe metadata RIPEstat's visibility data call returns (so they match the API). rrc21 is added from general knowledge (France-IX Paris) with approximate coordinates (approx=true). rrc02, rrc08, rrc09, rrc17 are decommissioned and intentionally absent.",
+  "collectors": [
+    {"id": "rrc00", "name": "RIPE-NCC Multihop", "city": "Amsterdam", "country": "NL", "lat": 52.3667, "lon": 4.8833, "approx": false},
+    {"id": "rrc01", "name": "LINX / LONAP", "city": "London", "country": "GB", "lat": 51.4969, "lon": -0.0192, "approx": false},
+    {"id": "rrc03", "name": "AMS-IX / NL-IX", "city": "Amsterdam", "country": "NL", "lat": 52.3563, "lon": 4.9508, "approx": false},
+    {"id": "rrc04", "name": "CIXP", "city": "Geneva", "country": "CH", "lat": 46.234, "lon": 6.0526, "approx": false},
+    {"id": "rrc05", "name": "VIX", "city": "Vienna", "country": "AT", "lat": 48.214, "lon": 16.3575, "approx": false},
+    {"id": "rrc06", "name": "DIX-IE / JPIX", "city": "Tokyo", "country": "JP", "lat": 35.6845, "lon": 139.769, "approx": false},
+    {"id": "rrc07", "name": "Netnod", "city": "Stockholm", "country": "SE", "lat": 59.3177, "lon": 18.0657, "approx": false},
+    {"id": "rrc10", "name": "MIX-IT", "city": "Milan", "country": "IT", "lat": 45.4786, "lon": 9.1027, "approx": false},
+    {"id": "rrc11", "name": "NYIIX", "city": "New York", "country": "US", "lat": 40.7058, "lon": -74.0135, "approx": false},
+    {"id": "rrc12", "name": "DE-CIX", "city": "Frankfurt", "country": "DE", "lat": 50.1124, "lon": 8.704, "approx": false},
+    {"id": "rrc13", "name": "MSK-IX", "city": "Moscow", "country": "RU", "lat": 55.7101, "lon": 37.5949, "approx": false},
+    {"id": "rrc14", "name": "Equinix Palo Alto", "city": "Palo Alto", "country": "US", "lat": 37.4457, "lon": -122.161, "approx": false},
+    {"id": "rrc15", "name": "IX.br Sao Paulo", "city": "Sao Paulo", "country": "BR", "lat": -23.6002, "lon": -46.6947, "approx": false},
+    {"id": "rrc16", "name": "Equinix Miami", "city": "Miami", "country": "US", "lat": 25.7748, "lon": -80.1977, "approx": false},
+    {"id": "rrc18", "name": "CATNIX", "city": "Barcelona", "country": "ES", "lat": 41.3825, "lon": 2.1769, "approx": false},
+    {"id": "rrc19", "name": "NAPAfrica JB", "city": "Johannesburg", "country": "ZA", "lat": -26.2044, "lon": 28.0416, "approx": false},
+    {"id": "rrc20", "name": "SwissIX", "city": "Zurich", "country": "CH", "lat": 47.3744, "lon": 8.5411, "approx": false},
+    {"id": "rrc21", "name": "France-IX", "city": "Paris", "country": "FR", "lat": 48.8566, "lon": 2.3522, "approx": true},
+    {"id": "rrc22", "name": "InterLAN-IX", "city": "Bucharest", "country": "RO", "lat": 44.4134, "lon": 26.0978, "approx": false},
+    {"id": "rrc23", "name": "Equinix Singapore", "city": "Singapore", "country": "SG", "lat": 1.3, "lon": 103.8, "approx": false},
+    {"id": "rrc24", "name": "LACNIC Multihop", "city": "Montevideo", "country": "UY", "lat": -34.9059, "lon": -56.1913, "approx": false},
+    {"id": "rrc25", "name": "RIPE-NCC Multihop", "city": "Amsterdam", "country": "NL", "lat": 52.3667, "lon": 4.8833, "approx": false},
+    {"id": "rrc26", "name": "UAE-IX", "city": "Dubai", "country": "AE", "lat": 25.2697, "lon": 55.3094, "approx": false}
+  ]
+}
