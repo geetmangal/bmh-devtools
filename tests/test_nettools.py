@@ -45,6 +45,10 @@ def fresh_state(monkeypatch):
     monkeypatch.setattr(rdns, "_cache", rdns.TTLCache(120))
     monkeypatch.setattr(lookingglass, "_bgp_cache", lookingglass.TTLCache(300))
 
+    async def no_enrich(hops, loss_pct=None):
+        return None
+    monkeypatch.setattr(lookingglass, "_enrich", no_enrich)  # keep the old lg tests offline
+
 
 @pytest.fixture
 def no_exec(monkeypatch):
@@ -517,7 +521,7 @@ async def test_sitemap_index_and_api_docs_include_new_tools(client):
     s = (await client.get("/tools/sitemap.xml")).text
     for slug in NEW:
         assert f"<loc>https://bookmyhost.com/tools/{slug}</loc>" in s
-    assert s.count("<loc>") == 8
+    assert s.count("<loc>") == 19
     idx = (await client.get("/tools/")).text
     for slug in NEW:
         assert f'href="/tools/{slug}"' in idx

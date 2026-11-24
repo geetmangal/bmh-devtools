@@ -159,7 +159,7 @@ async def test_pass_endpoint_off_when_disabled(client):
 
 # ---------- heavy endpoints ----------
 def test_heavy_flags_match_the_protected_routes():
-    assert {t["slug"] for t in TOOLS if t["heavy"]} == {"looking-glass", "port-checker"}
+    assert {t["slug"] for t in TOOLS if t["heavy"]} == {"looking-glass", "port-checker", "domain-health", "blacklist-check", "smtp-test", "asn-lookup", "bgp-prefix-lookup"}
 
 
 async def test_heavy_requires_pass_when_enabled(client, ts_on, fake_probe):
@@ -251,7 +251,7 @@ async def test_embed_js_served_with_fixed_schema(client):
 
 async def test_embed_pages_not_in_sitemap(client):
     r = await client.get("/tools/sitemap.xml")
-    assert r.text.count("<loc>") == 8 and "/embed" not in r.text
+    assert r.text.count("<loc>") == 19 and "/embed" not in r.text
 
 
 async def test_embed_api_calls_have_own_bucket(client):
@@ -288,7 +288,10 @@ def test_tool_config_fields():
     assert [c["label"] for c in CATEGORIES] == ["Network & BGP", "DNS", "Email", "Web & SSL", "Calculators"]
     kinds = {"ip", "prefix", "asn", "domain", "email", "url", "host"}
     expect = {"looking-glass": "network", "port-checker": "network", "dns-propagation-checker": "dns", "reverse-dns-lookup": "dns",
-              "whois-lookup": "dns", "ttfb-ssl-checker": "web", "subnet-calculator": "network"}
+              "whois-lookup": "dns", "ttfb-ssl-checker": "web", "subnet-calculator": "network",
+              "domain-health": "email", "mx-lookup": "email", "spf-checker": "email", "dmarc-checker": "email", "dkim-checker": "email",
+              "blacklist-check": "email", "smtp-test": "email", "email-header-analyzer": "email", "dns-lookup": "dns",
+              "asn-lookup": "network", "bgp-prefix-lookup": "network"}
     for t in TOOLS:
         assert t["category"] == expect[t["slug"]] and t["category"] in cats
         assert t["icon"] and set(t["accepts"]) <= kinds and isinstance(t["heavy"], bool) and t["embeddable"] is True
@@ -297,7 +300,9 @@ def test_tool_config_fields():
         "https://www.bookmyhost.com/free-tools/vps-sizing-calculator",
         "https://www.bookmyhost.com/free-tools/noida-latency-test"]
     assert [t["slug"] for t in TOOLS] == ["dns-propagation-checker", "subnet-calculator", "ttfb-ssl-checker", "looking-glass",
-                                          "whois-lookup", "reverse-dns-lookup", "port-checker"]
+                                          "whois-lookup", "reverse-dns-lookup", "port-checker", "domain-health", "mx-lookup", "spf-checker",
+                                          "dmarc-checker", "dkim-checker", "blacklist-check", "smtp-test", "email-header-analyzer", "dns-lookup",
+                                          "asn-lookup", "bgp-prefix-lookup"]
 
 
 @pytest.mark.parametrize("path", ["/tools/"] + [f"/tools/{t['slug']}" for t in TOOLS])

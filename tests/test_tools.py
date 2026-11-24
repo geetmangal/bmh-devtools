@@ -130,12 +130,12 @@ async def test_pages_and_meta(client):
         assert "https://bookmyhost.com" in r.text
         assert "X-Robots-Tag" not in r.headers
     r = await client.get("/tools/sitemap.xml")
-    assert r.status_code == 200 and r.text.count("<loc>") == 8
+    assert r.status_code == 200 and r.text.count("<loc>") == 19
     import re
-    assert r.text.count("<lastmod>") == 8
+    assert r.text.count("<lastmod>") == 19
     dates = re.findall(r"<lastmod>([^<]+)</lastmod>", r.text)
     assert all(re.fullmatch(r"\d{4}-\d{2}-\d{2}", d) for d in dates)
-    assert "<loc>https://bookmyhost.com/tools/looking-glass</loc><lastmod>2026-11-21</lastmod>" in r.text
+    assert "<loc>https://bookmyhost.com/tools/looking-glass</loc><lastmod>2026-11-25</lastmod>" in r.text
     assert "<loc>https://bookmyhost.com/tools/subnet-calculator</loc><lastmod>2026-10-25</lastmod>" in r.text
     r = await client.get("/tools/healthz")
     assert r.status_code == 200 and r.json()["status"] == "ok"
