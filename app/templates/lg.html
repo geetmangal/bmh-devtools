@@ -1,24 +1,22 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends layout %}
+{% block intro %}
 <h1 class="text-3xl font-bold mb-2">Looking Glass: Ping, Traceroute &amp; BGP</h1>
-<p class="text-slate-300 max-w-3xl mb-5">Run ping and traceroute from our network in Noida, India (<span class="mono">AS152523</span>) to any public IP address or hostname, and look up the BGP prefix, origin AS and sample AS paths for the target.</p>
-
-<form id="lg-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_180px_auto] items-end" method="post" action="{{ api }}/lg/run">
-  <label class="block text-sm">Target (public IP or hostname)<input id="lg-target" name="target" type="text" placeholder="1.1.1.1 or example.com" required autocomplete="off" class="mt-1"></label>
+<p class="text-mute max-w-3xl mb-5">Run ping and traceroute from our network in Noida, India (<span class="mono">AS152523</span>) to any public IP address or hostname, and look up the BGP prefix, origin AS and sample AS paths for the target.</p>
+{% endblock %}
+{% block content %}
+<form id="lg-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_200px_auto] items-end" method="post" action="{{ api }}/lg/run">
+  <label class="block text-sm">Target (public IP or hostname)<input id="lg-target" name="target" type="text" placeholder="1.1.1.1 or example.com" required autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
   <label class="block text-sm">Test<select id="lg-tool" name="tool" class="mt-1">
     <option value="ping">Ping (4 packets)</option><option value="traceroute">Traceroute (max 30 hops)</option><option value="bgp">BGP route (RIPEstat)</option></select></label>
   <button class="btn" type="submit" id="lg-submit">Run</button>
 </form>
-
-<div id="lg-summary" class="mt-5 hidden"></div>
-<div id="lg-results" class="mt-3 hidden card overflow-x-auto"></div>
-<pre id="lg-raw" class="mt-3 hidden snippet mono text-xs overflow-x-auto"></pre>
-<p id="lg-error" class="mt-3 st-bad text-sm hidden"></p>
-
-<section class="mt-10 prose prose-invert max-w-3xl text-slate-300 text-sm leading-relaxed">
-  <h2 class="text-xl font-bold text-white mb-2">What a looking glass tells you</h2>
+<div id="results" class="mt-5 space-y-4 gloss-scope" aria-live="polite" aria-busy="false"></div>
+{% endblock %}
+{% block about %}
+<section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
+  <h2 class="text-xl font-bold text-ink mb-2">What a looking glass tells you</h2>
   <p>A looking glass shows how the internet looks from another vantage point. Ping and traceroute here start inside a BookMyHost data centre in Noida, so the latency and path are what a visitor on an Indian network sees when reaching your server. The BGP view uses public RIPEstat data (RIPE NCC route collectors), not our own routers.</p>
   <p class="mt-2">Planning a move? Compare the round trip to your current host with a <a href="https://bookmyhost.com">cloud server in India</a>, or measure your own browser latency with the <a href="https://bookmyhost.com/free-tools/noida-latency-test">Noida latency test</a>. Also see the <a href="{{ prefix }}/dns-propagation-checker">DNS propagation checker</a> and the <a href="{{ prefix }}/ttfb-ssl-checker">TTFB and SSL checker</a>.</p>
 </section>
 {% endblock %}
-{% block scripts %}<script src="{{ static_url('js/lg.js') }}" nonce="{{ csp_nonce }}" defer></script>{% endblock %}
+{% block scripts %}<script type="module" src="{{ static_url('js/tools/looking-glass.js') }}" nonce="{{ csp_nonce }}"></script>{% endblock %}

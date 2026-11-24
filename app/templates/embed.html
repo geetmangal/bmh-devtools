@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en" data-embed="1" data-mode="beginner"{% if compact %} data-compact="1"{% endif %}{% if theme in ("light", "dark") %} data-theme="{{ theme }}"{% endif %}{% if accent %} style="--accent: {{ accent }}"{% endif %}>
+<head>
+{% include "_head.html" %}
+</head>
+<body class="p-3 sm:p-4" data-turnstile-sitekey="{{ turnstile_sitekey }}" data-embed-host="{{ embed_host }}">
+<main id="main">
+{% block content %}{% endblock %}
+</main>
+<footer class="mt-4 text-xs text-mute text-right"><a href="{{ powered_href }}" target="_blank" rel="noopener">Powered by BookMyHost</a></footer>
+<script type="module" src="{{ static_url('js/shell.js') }}" nonce="{{ csp_nonce }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

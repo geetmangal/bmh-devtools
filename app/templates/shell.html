@@ -1,0 +1,107 @@
+{% from "_icons.html" import icon %}<!doctype html>
+<html lang="en" data-mode="beginner">
+<head>
+{% include "_head.html" %}
+<script nonce="{{ csp_nonce }}">(function(){try{var d=document.documentElement,t=localStorage.getItem('bmh-theme');if(t==='light'||t==='dark')d.dataset.theme=t;if(localStorage.getItem('bmh-mode')==='expert')d.dataset.mode='expert';}catch(e){}})();</script>
+</head>
+<body class="min-h-screen flex flex-col" data-turnstile-sitekey="{{ turnstile_sitekey }}">
+<a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 btn">Skip to content</a>
+<header class="border-b border-line bg-surface no-print">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
+    <a href="{{ prefix }}/" class="flex items-center gap-2 font-bold text-ink no-underline hover:no-underline">
+      <span class="inline-flex w-7 h-7 rounded-lg bg-accent text-white items-center justify-center">{{ icon("route", "w-4 h-4") }}</span>
+      <span>BookMyHost <span class="text-accent">Toolbox</span></span>
+    </a>
+    <div class="ml-auto flex items-center gap-2 sm:gap-3 text-sm">
+      <div class="inline-flex rounded-lg border border-line overflow-hidden" role="group" aria-label="Detail level">
+        <button type="button" class="px-2.5 py-1 text-xs sm:text-sm" data-mode-btn="beginner" aria-pressed="true">Beginner</button>
+        <button type="button" class="px-2.5 py-1 text-xs sm:text-sm" data-mode-btn="expert" aria-pressed="false">Expert</button>
+      </div>
+      <button type="button" class="btn btn-ghost btn-sm" data-theme-toggle aria-label="Switch between light and dark theme" aria-pressed="false" title="Toggle theme"><span data-theme-icon="moon">{{ icon("moon") }}</span><span class="hidden" data-theme-icon="sun">{{ icon("sun") }}</span></button>
+      <a href="{{ api }}/docs" class="hidden sm:inline text-mute">API docs</a>
+    </div>
+  </div>
+</header>
+
+<section class="hero-glow border-b border-line no-print">
+  <div class="max-w-4xl mx-auto px-4 pt-8 pb-5">
+    <form id="cmdbar" class="cmdbar" role="search" action="{{ prefix }}/" method="get" autocomplete="off">
+      <label for="cmd-input" class="sr-only">Enter an IP address, prefix, ASN, domain, email address or URL</label>
+      <input id="cmd-input" name="q" type="text" class="mono" placeholder="8.8.8.8, example.com, AS13335, 1.1.1.0/24, you@example.com or mx:example.com" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="cmd-hint" value="{{ request.query_params.get('q', '') if tool is none else '' }}">
+      <button type="submit" class="btn">Go</button>
+    </form>
+    <div class="mt-3 flex flex-wrap items-center gap-2 min-h-[2rem]" id="cmd-chips" aria-live="polite"></div>
+    <p id="cmd-hint" class="mt-1 text-xs text-mute">We detect what you typed and suggest the right tool. Shortcuts: <span class="mono">mx: spf: dmarc: dkim: blacklist: asn: trace: ping: whois: dns: ports: ssl:</span></p>
+  </div>
+</section>
+
+<div class="border-b border-line bg-surface no-print">
+  <nav class="max-w-6xl mx-auto px-4 py-3 tabrail" aria-label="Tools">
+  {% for g in tool_groups %}
+    <div class="tabgroup">
+      <span class="tabgroup-label" id="grp-{{ g.key }}">{{ g.label }}</span>
+      <div class="tabs" role="group" aria-labelledby="grp-{{ g.key }}">
+      {% for it in g["items"] %}
+        <a class="tab" href="{{ it.href }}"{% if it.external %} rel="noopener"{% endif %}{% if tool and it.slug == tool.slug %} aria-current="page"{% endif %}>{{ icon(it.icon) }}<span>{{ it.name }}</span>{% if it.external %}{{ icon("external", "w-3 h-3 opacity-60") }}{% endif %}</a>
+      {% endfor %}
+      </div>
+    </div>
+  {% endfor %}
+  </nav>
+</div>
+
+<main id="main" class="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
+{% block intro %}{% endblock %}
+{% block content %}{% endblock %}
+{% block about %}{% endblock %}
+
+{% if faq %}
+<section class="mt-12" id="faq">
+  <h2 class="text-xl font-bold mb-3">Frequently asked questions</h2>
+  <div class="space-y-2">
+  {% for q, a in faq %}
+    <details class="card p-4"><summary class="font-semibold">{{ q }}</summary><p class="mt-2 text-mute text-sm leading-relaxed">{{ a }}</p></details>
+  {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+{% if tool %}
+<section class="mt-10 card p-5 no-print" id="embed" data-slug="{{ tool.slug }}" data-name="{{ tool.name }}" data-tool-url="{{ tool_url }}" data-embed-base="{{ embed_base }}{{ prefix }}/embed/" data-embed-js="{{ embed_base }}{{ prefix }}/embed.js" data-local-base="{{ prefix }}/embed/">
+  <details id="embed-drawer">
+    <summary class="font-bold text-lg">Embed this tool on your site</summary>
+    <p class="text-sm text-mute mt-2">Paste the snippet into your docs, blog or wiki. It is free; the small link below the widget credits the tool.</p>
+    <div class="mt-4 grid gap-5 md:grid-cols-2">
+      <div class="space-y-3">
+        <div class="inline-flex rounded-lg border border-line overflow-hidden" role="group" aria-label="Snippet type">
+          <button type="button" class="px-3 py-1 text-sm" data-embed-kind="iframe" aria-pressed="true">Iframe widget</button>
+          <button type="button" class="px-3 py-1 text-sm" data-embed-kind="link" aria-pressed="false">Plain link</button>
+        </div>
+        <div class="grid grid-cols-3 gap-3 text-sm" data-embed-options>
+          <label>Theme<select id="embed-theme" class="mt-1"><option value="auto">Auto</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+          <label>Accent<input id="embed-accent" type="color" value="#2f5bff" class="mt-1"></label>
+          <label>Height (px)<input id="embed-height" type="number" min="240" max="1200" step="20" value="420" class="mt-1"></label>
+          <label class="col-span-3 flex items-center gap-2"><input id="embed-script" type="checkbox" checked> Include auto-resize script</label>
+        </div>
+        <pre class="snippet mono" id="embed-snippet" tabindex="0" aria-label="Embed code"></pre>
+        <button class="btn btn-sm" type="button" id="embed-copy">Copy snippet</button>
+      </div>
+      <div data-embed-options>
+        <div class="text-xs font-semibold uppercase tracking-wide text-mute mb-2">Live preview</div>
+        <iframe id="embed-preview" title="Embed preview" class="w-full rounded-xl border border-line bg-bg" style="min-height:420px" loading="lazy" data-bmh-tool="{{ tool.slug }}"></iframe>
+      </div>
+    </div>
+  </details>
+</section>
+{% endif %}
+</main>
+<footer class="border-t border-line mt-10 no-print">
+  <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-mute flex flex-wrap gap-4 justify-between">
+    <span>Built by the <a href="https://bookmyhost.com" rel="author">BookMyHost</a> engineering team. Indian cloud servers and VPS by Blazing Bullet Pvt Ltd.</span>
+    <span><a href="{{ prefix }}/">All tools</a> &middot; <a href="{{ api }}/docs">API</a> &middot; <a href="https://bookmyhost.com/free-tools">Cost, sizing and latency tools</a> &middot; <a href="https://bookmyhost.com/">Cloud servers</a> &middot; MIT licensed</span>
+  </div>
+</footer>
+<script type="module" src="{{ static_url('js/shell.js') }}" nonce="{{ csp_nonce }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
