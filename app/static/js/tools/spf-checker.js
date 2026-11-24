@@ -1,7 +1,7 @@
 import { h, srOnly, pill, plural } from '../ui/dom.js';
 import { checkCard, codeBlock } from '../ui/card.js';
 import { tree } from '../ui/tree.js';
-import { domainTool, findingCards, resultVerdict, stat } from '../ui/findings.js';
+import { domainTool, findingCards, resultVerdict, stat, nextSteps } from '../ui/findings.js';
 
 /** Lookup budget bar: x of 10 DNS lookups. Green up to 7, amber 8-10, red above 10 (the limit is 10, RFC 7208). */
 function lookupBar(n, limit = 10) {
@@ -49,6 +49,7 @@ function render(res) {
     out.push(h('div', null, h('div', { class: 'text-xs text-mute mb-1' }, 'Published record'), codeBlock(d.record, 'Copy')));
   }
   out.push(...findingCards(res.findings));
+  out.push(nextSteps([{ slug: 'dmarc-checker', q: res.target, text: 'Now check DMARC' }, { slug: 'dkim-checker', q: res.target, text: 'Check DKIM' }]));
   return out;
 }
 

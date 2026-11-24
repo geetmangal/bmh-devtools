@@ -3,7 +3,7 @@ import { initTool, qParam, config } from '../ui/tool.js';
 import { checkCard } from '../ui/card.js';
 import { gauge } from '../ui/gauge.js';
 import { dataTable } from '../ui/table.js';
-import { findingCards, resultVerdict, stat, partialNote } from '../ui/findings.js';
+import { findingCards, resultVerdict, stat, partialNote, nextSteps } from '../ui/findings.js';
 import { asGraph } from '../viz/asgraph.js';
 
 const input = $('#tool-input');
@@ -45,6 +45,7 @@ function render(res) {
   }
   out.push(...findingCards(res.findings));
   if ((res.notes || []).length) out.push(h('p', { class: 'text-xs text-mute' }, res.notes.join(' ')));
+  out.push(nextSteps([{ slug: 'bgp-prefix-lookup', q: (p.list || [])[0]?.prefix, text: 'Look up a prefix' }, { slug: 'looking-glass', text: 'Trace the path from India' }]));
   return out;
 }
 

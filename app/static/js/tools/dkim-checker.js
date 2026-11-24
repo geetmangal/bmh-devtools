@@ -1,7 +1,7 @@
 import { h, $, srOnly, pill } from '../ui/dom.js';
 import { checkCard } from '../ui/card.js';
 import { tiles } from '../ui/tiles.js';
-import { domainTool, findingCards, resultVerdict, stat } from '../ui/findings.js';
+import { domainTool, findingCards, resultVerdict, stat, nextSteps } from '../ui/findings.js';
 
 const selEl = $('#tool-selector');
 
@@ -38,6 +38,7 @@ function render(res) {
       fix: s.bits < 2048 ? { steps: ['Generate a new 2048-bit key in your mail provider, publish it under a new selector, then switch signing over and remove the old record.'] } : null })));
   }
   out.push(...findingCards(res.findings));
+  out.push(nextSteps([{ slug: 'dmarc-checker', q: res.target, text: 'Now check DMARC' }, { slug: 'domain-health', q: res.target, text: 'Run the full domain health report' }]));
   return out;
 }
 

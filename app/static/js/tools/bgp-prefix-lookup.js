@@ -3,7 +3,7 @@ import { initTool, qParam } from '../ui/tool.js';
 import { checkCard } from '../ui/card.js';
 import { gauge } from '../ui/gauge.js';
 import { dataTable } from '../ui/table.js';
-import { findingCards, resultVerdict, stat, partialNote } from '../ui/findings.js';
+import { findingCards, resultVerdict, stat, partialNote, nextSteps } from '../ui/findings.js';
 import { worldMap } from '../viz/worldmap.js';
 
 const input = $('#tool-input');
@@ -82,6 +82,7 @@ function render(res) {
     meaning: title === 'Less specific prefixes' ? 'Larger blocks that contain this one.' : 'Smaller blocks inside this one, announced separately.' }) : null);
   out.push(rel('Less specific prefixes', res.less_specifics), rel('More specific prefixes', res.more_specifics));
   out.push(...findingCards(res.findings));
+  out.push(nextSteps([(res.origins || [])[0] ? { slug: 'asn-lookup', q: 'AS' + res.origins[0].asn, text: `Look up AS${res.origins[0].asn}` } : null, { slug: 'looking-glass', text: 'Trace the path from India' }]));
   return out;
 }
 

@@ -1,6 +1,6 @@
 import { h, srOnly, icon } from '../ui/dom.js';
 import { checkCard, codeBlock } from '../ui/card.js';
-import { domainTool, findingCards, resultVerdict, stat } from '../ui/findings.js';
+import { domainTool, findingCards, resultVerdict, stat, nextSteps } from '../ui/findings.js';
 
 const STEPS = [
   { key: 'none', title: 'none', note: 'Monitor only. Nothing is blocked; you receive reports.' },
@@ -70,6 +70,7 @@ function render(res) {
     out.push(h('div', null, h('div', { class: 'text-xs text-mute mb-1' }, 'Starter record to publish at _dmarc'), codeBlock(d.starter, 'Copy')));
   }
   out.push(...findingCards(res.findings));
+  out.push(nextSteps([{ slug: 'dkim-checker', q: res.target, text: 'Now check DKIM' }, { slug: 'spf-checker', q: res.target, text: 'Check SPF' }]));
   return out;
 }
 

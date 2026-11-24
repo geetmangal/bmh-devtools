@@ -2,6 +2,7 @@ import { h, $, icon, statusOf } from '../ui/dom.js';
 import { initTool, qParam } from '../ui/tool.js';
 import { verdict } from '../ui/verdict.js';
 import { checkCard } from '../ui/card.js';
+import { nextSteps } from '../ui/findings.js';
 import { dataTable } from '../ui/table.js';
 
 const ipEl = $('#rdns-ip');
@@ -52,6 +53,7 @@ function render(d) {
   const guide = d.guide_url || $('#results').dataset.guideUrl;
   if (guide) noteKids.push(' ', h('a', { href: guide }, 'How to set a PTR record on a VPS'), '.');
   out.push(checkCard({ status: 'info', title: 'Why this matters for email', body: h('p', { class: 'text-sm' }, ...noteKids) }));
+  out.push(nextSteps([{ slug: 'blacklist-check', q: d.ip, text: 'Check this IP against blocklists' }, { slug: 'whois-lookup', q: d.ip, text: 'WHOIS for this IP' }]));
   return out;
 }
 

@@ -3,7 +3,7 @@ import { initTool, qParam } from '../ui/tool.js';
 import { progressBar } from '../ui/stream.js';
 import { donut } from '../ui/tiles.js';
 import { checkCard } from '../ui/card.js';
-import { findingCards, resultVerdict, stat } from '../ui/findings.js';
+import { findingCards, resultVerdict, stat, nextSteps } from '../ui/findings.js';
 
 const input = $('#tool-input');
 const ROW_STATUS = { listed: 'bad', clear: 'ok', skipped: 'mute', timeout: 'warn', error: 'warn' };
@@ -66,6 +66,7 @@ const tool = initTool({
         srOnly(`Listed on ${c.listed || 0} of ${checked} blocklists checked.`)),
       res._live.el,
       ...findingCards(res.findings)];
+    out.push(nextSteps([/^[0-9a-f:.]+$/i.test(res.target || '') ? { slug: 'reverse-dns-lookup', q: res.target, text: 'Now check reverse DNS for this IP' } : { slug: 'spf-checker', q: res.target, text: 'Now check SPF' }, { slug: 'domain-health', q: res.target, text: 'Full domain health report' }]));
     return out;
   },
   state: (d) => ({ q: d.target || input.value.trim() }),

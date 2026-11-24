@@ -1,7 +1,7 @@
 import { h, plural, pill } from '../ui/dom.js';
 import { checkCard } from '../ui/card.js';
 import { dataTable, keyValueTable } from '../ui/table.js';
-import { domainTool, findingCards, resultVerdict, stat } from '../ui/findings.js';
+import { domainTool, findingCards, resultVerdict, stat, nextSteps } from '../ui/findings.js';
 
 const TYPES = ['A', 'AAAA', 'CNAME', 'MX', 'NS', 'TXT', 'CAA', 'SOA'];
 const human = (s) => {
@@ -64,6 +64,7 @@ function render(res) {
       fix: d.dnssec.state === 'broken' ? { steps: ['Remove the DS record at your registrar, or re-publish the DNSKEY it points to. Do this quickly: validating resolvers reject the domain meanwhile.'] } : null }));
   }
   out.push(...findingCards(res.findings));
+  out.push(nextSteps([{ slug: 'spf-checker', q: res.target, text: 'Check SPF' }, { slug: 'dmarc-checker', q: res.target, text: 'Check DMARC' }]));
   return out;
 }
 

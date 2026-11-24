@@ -1,6 +1,6 @@
 import { h, srOnly, icon, plural } from '../ui/dom.js';
 import { checkCard } from '../ui/card.js';
-import { domainTool, findingCards, resultVerdict, stat } from '../ui/findings.js';
+import { domainTool, findingCards, resultVerdict, stat, nextSteps } from '../ui/findings.js';
 
 /** Priority ladder: MX host -> IPs -> reverse DNS, with a tick when the name and address match each other (FCrDNS). */
 function ladder(rows) {
@@ -17,7 +17,7 @@ function ladder(rows) {
           h('span', { class: 'mono' }, a.ip), h('span', { class: 'text-xs text-mute' }, a.family === 6 || a.family === 'IPv6' ? 'IPv6' : 'IPv4'),
           h('span', { class: 'text-mute', 'aria-hidden': 'true' }, '→'),
           h('span', { class: 'mono text-xs break-all' }, (a.ptr || []).join(', ') || 'no reverse name'),
-          h('span', { class: a.fcrdns ? 'st-ok inline-flex items-center gap-1 text-xs' : 'st-warn inline-flex items-center gap-1 text-xs' }, icon(a.fcrdns ? 'ok' : 'warn', 12), a.fcrdns ? 'names match' : 'names do not match')))) : h('div', { class: 'text-xs st-bad mt-1' }, 'This host has no IP address.'))))))),
+          h('span', { class: a.fcrdns ? 'st-ok inline-flex items-center gap-1 text-xs' : 'st-warn inline-flex items-center gap-1 text-xs' }, icon(a.fcrdns ? 'ok' : 'warn', 12), a.fcrdns ? 'names match' : 'names do not match')))) : h('div', { class: 'text-xs st-bad mt-1' }, 'This host has no IP address.')))))),
   );
 }
 
@@ -33,6 +33,7 @@ function render(res) {
     out.push(srOnly(rows.map((r) => `Priority ${r.priority}: ${r.host}`).join('; ')));
   }
   out.push(...findingCards(res.findings));
+  out.push(nextSteps([{ slug: 'spf-checker', q: res.target, text: 'Now check SPF' }, { slug: 'blacklist-check', q: res.target, text: 'Check blocklists' }]));
   return out;
 }
 

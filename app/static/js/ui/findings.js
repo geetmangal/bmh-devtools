@@ -67,6 +67,20 @@ export function toolLink(slug, q, text, extra = {}) {
   return h('a', { href: `${cfg.prefix}/${slug}?${new URLSearchParams({ q, ...extra }).toString()}`, class: 'text-sm' }, text);
 }
 
+/**
+ * "Next step" strip under a result: links to the logical next tool for the same input.
+ * items: [{ slug, q (optional), text }]. Rendered inside the results list, not in the check cards.
+ */
+export function nextSteps(items, lead = 'Next step:') {
+  const cfg = (() => { try { return JSON.parse(document.getElementById('toolbox-config').textContent); } catch { return { prefix: '/tools' }; } })();
+  const kids = [];
+  items.filter((i) => i && i.slug).forEach((i, n) => {
+    if (n) kids.push(' \u00b7 ');
+    kids.push(h('a', { href: `${cfg.prefix}/${i.slug}${i.q ? '?' + new URLSearchParams({ q: i.q }).toString() : ''}`, class: 'font-semibold' }, i.text));
+  });
+  return h('p', { class: 'card-flat px-3 py-2 text-sm no-print', 'data-next-steps': '' }, h('span', { class: 'text-mute' }, lead + ' '), ...kids);
+}
+
 const MISSING_WORD = { prefixes: 'the list of announced prefixes', neighbours: 'neighbour data', peeringdb: 'PeeringDB details', ix: 'internet exchange data', facilities: 'facility data', rpki: 'some route validation results', overview: 'the AS overview', visibility: 'collector visibility', history: 'routing history', paths: 'AS paths' };
 
 /** Notice shown when a BGP report came back partial (an upstream data source was slow or rate limited). */
