@@ -9,7 +9,7 @@ export const project = (lat, lon) => [(lon + 180) * 2, (90 - lat) * 2];
 
 let landP = null;
 function loadLand() {
-  if (!landP) landP = fetch(`${cfg.prefix}/static/viz/land-110m.svgpath.txt`).then((r) => (r.ok ? r.text() : '')).catch(() => '');
+  if (!landP) landP = fetch(new URL('../../viz/land-110m.svgpath.txt', import.meta.url)).then((r) => (r.ok ? r.text() : '')).catch(() => '');
   return landP;
 }
 

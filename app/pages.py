@@ -1,7 +1,7 @@
-"""Page copy for the email, DNS and BGP tools (title, meta description, intro, form labels, 4 FAQs, about text).
+"""Form labels, intro and about text for the email, DNS and BGP tools.
 
 One generic template (templates/tool_generic.html) renders all of these; each tool has its own JS module
-(static/js/tools/<slug>.js). The long-form SEO copy is a later phase: this is the accurate baseline.
+(static/js/tools/<slug>.js). Titles, meta descriptions, guides, FAQs and related links live in app/data/content/<slug>.json.
 """
 from app.core.config import API_PREFIX as API
 
@@ -10,168 +10,69 @@ FORM_DOMAIN = {"input": "domain", "label": "Domain name", "placeholder": "exampl
 PAGES: dict[str, dict] = {
     "domain-health": {
         **FORM_DOMAIN, "button": "Run health check", "mono_extra": "dkim_selector",
-        "title": "Domain Health Report: Email, DNS & Blocklist Check (A-F Grade) | BookMyHost",
-        "description": "Free domain health report: grades your domain A to F for mail delivery, authentication (SPF, DKIM, DMARC), security, DNS and blocklist reputation, with a prioritised fix list.",
         "h1": "Domain Health Report",
         "intro": "Enter a domain to run all the email and DNS checks at once: mail servers (MX), SPF, DKIM, DMARC, BIMI, MTA-STS, TLS reporting, nameservers, DNSSEC and blocklists. You get an A to F grade, a six-axis chart and a fix list ordered by importance.",
-        "faq": [
-            ("How is the grade calculated?", "Each check scores 0 to 100, six areas (mail delivery, authentication, security, DNS, reputation, configuration) are weighted averages of those scores, and the overall score is the weighted average of the areas. A is 90 or more, B 80, C 70, D 60, anything lower is F."),
-            ("Why can't I get an A without SPF and DMARC?", "A good average must not hide a critical gap, so some problems cap the grade: no SPF or no DMARC limits you to C, and no SPF plus no DMARC limits you to D. The report lists every cap that applied."),
-            ("Does it send email or touch my mail server?", "It sends no email. Almost everything is public DNS lookups. The live SMTP connection test only runs where our server is allowed to open outbound mail connections, and even then it only says EHLO, tries STARTTLS and quits."),
-            ("How does it find my DKIM key?", "DKIM keys live under a selector name that only the sender knows. We try about 30 common names (google, selector1, k1, s1 and so on). If yours is different, open the DKIM checker and enter your selector."),
-        ],
-        "related": ["spf-checker", "dmarc-checker", "dkim-checker", "mx-lookup", "blacklist-check", "dns-lookup"],
         "about": ["A domain that cannot send or receive mail reliably usually has one of a handful of problems: a missing or broken SPF record, no DMARC policy, mail servers without reverse DNS, a single nameserver, or an address listed on a blocklist. This report checks them together so you can see which one matters most.",
                   f"The same data is available from the JSON API: POST {API}/health/domain with {{\"domain\": \"example.com\"}} streams one line per check and a final graded summary."],
     },
     "mx-lookup": {
         **FORM_DOMAIN, "button": "Look up MX",
-        "title": "MX Lookup: Mail Servers, Priority and Reverse DNS | BookMyHost",
-        "description": "Free MX lookup: list a domain's mail servers in priority order, their IP addresses, reverse DNS (PTR) with forward-confirmed check, and the mail provider they belong to.",
         "h1": "MX Lookup",
         "intro": "Find the mail servers that receive email for a domain, in the order senders try them. For each server you see its IP addresses and whether the reverse DNS matches (FCrDNS), plus the mail provider we recognise from the host name.",
-        "faq": [
-            ("What is an MX record?", "A DNS record that tells other mail servers where to deliver email for your domain. Each MX has a priority number: senders try the lowest number first and fall back to higher numbers if it does not answer."),
-            ("What if a domain has no MX record?", "Senders then fall back to the domain's A or AAAA record (an old rule from RFC 5321). That is usually a web server that does not accept mail, so add explicit MX records. A domain that should never receive mail can publish a null MX (priority 0, host \".\")."),
-            ("Can an MX point to an IP address or a CNAME?", "No. An MX must name a host that has A or AAAA records directly. IP addresses and aliases (CNAME) are not allowed, and some senders will refuse to deliver."),
-            ("Why does reverse DNS matter for a mail server?", "Many receivers check that the sending IP has a PTR record and that the name resolves back to the same IP (FCrDNS). A mismatch is a common reason mail lands in spam."),
-        ],
-        "related": ["spf-checker", "dmarc-checker", "blacklist-check", "smtp-test", "reverse-dns-lookup"],
         "about": [f"This tool queries public DNS only. API: POST {API}/mail/mx with {{\"domain\": \"example.com\"}}."],
     },
     "spf-checker": {
         **FORM_DOMAIN, "button": "Check SPF",
-        "title": "SPF Record Checker: Lookup Count, Include Tree and Errors | BookMyHost",
-        "description": "Free SPF checker: validate your SPF record, follow every include, count the 10-lookup limit, find +all, duplicate records and void lookups, and get a corrected record to copy.",
         "h1": "SPF Record Checker",
         "intro": "SPF is a DNS record that lists the servers allowed to send email for your domain. This checker reads it, follows every include, counts the DNS lookups against the limit of 10 and shows exactly where the record is too permissive or broken.",
-        "faq": [
-            ("What is the 10 DNS lookup limit?", "An SPF check may cause at most 10 DNS lookups (include, a, mx, ptr, exists and redirect, counting those inside included records). Over the limit receivers return a permanent error and SPF fails for all of your mail."),
-            ("Why does my domain need exactly one SPF record?", "If two or more SPF records exist, receivers return an error and ignore SPF entirely. Merge them into one record."),
-            ("What is the difference between -all, ~all and ?all?", "-all asks receivers to reject mail from servers you did not list, ~all marks it suspicious (soft fail) and ?all gives no opinion. +all allows everyone and should never be used."),
-            ("Does SPF stop spoofing on its own?", "No. SPF checks the hidden envelope sender, not the From address people see. Together with DKIM and a DMARC policy it protects the visible From address."),
-        ],
-        "related": ["dmarc-checker", "dkim-checker", "domain-health", "mx-lookup", "dns-lookup"],
         "about": [f"This tool queries public DNS only. API: POST {API}/mail/spf with {{\"domain\": \"example.com\"}}."],
     },
     "dmarc-checker": {
         **FORM_DOMAIN, "button": "Check DMARC",
-        "title": "DMARC Record Checker: Policy, Alignment and Rollout Plan | BookMyHost",
-        "description": "Free DMARC checker: read your policy (none, quarantine, reject), pct, alignment and report addresses, spot mistakes and follow a staged plan from monitoring to full enforcement.",
         "h1": "DMARC Record Checker",
         "intro": "DMARC tells receivers what to do with mail that claims to be from your domain but fails SPF and DKIM alignment, and where to send reports. This checker explains your current policy, how alignment works and what to change next.",
-        "faq": [
-            ("What do p=none, quarantine and reject mean?", "none only monitors and reports, quarantine sends failing mail to spam, reject refuses it. Moving from none to reject in steps is the normal path."),
-            ("What does pct do?", "pct is the percentage of failing mail the policy applies to. With p=quarantine and pct=25, a quarter of failing messages are quarantined and the rest are treated as if the policy were one step weaker."),
-            ("What is alignment?", "DMARC passes when SPF or DKIM passes and the domain it validated matches the visible From domain. Relaxed alignment accepts sub-domains of the same organisation; strict needs an exact match."),
-            ("Why am I not getting reports?", "Check that rua= is present and is a valid mailto: address. If it points to a different domain, that domain must publish permission with a TXT record, which this checker looks for."),
-        ],
-        "related": ["spf-checker", "dkim-checker", "domain-health", "mx-lookup"],
         "about": [f"This tool queries public DNS only. API: POST {API}/mail/dmarc with {{\"domain\": \"example.com\"}}."],
     },
     "dkim-checker": {
         **FORM_DOMAIN, "button": "Check DKIM", "selector": True,
-        "title": "DKIM Record Checker: Selector Lookup and Key Strength | BookMyHost",
-        "description": "Free DKIM checker: look up a DKIM selector, or probe about 30 common selectors, and check the public key for validity and strength (1024 vs 2048-bit RSA, Ed25519).",
         "h1": "DKIM Record Checker",
         "intro": "DKIM adds a signature to outgoing email that receivers verify with a public key published in DNS under a selector name. Enter your domain and, if you know it, the selector; without one we try the most common selector names.",
-        "faq": [
-            ("How do I find my DKIM selector?", "Send yourself an email, view the original message source and look for the DKIM-Signature header. The value after s= is the selector (for example s=google or s=selector1)."),
-            ("Why does it say no key found when DKIM works?", "DNS cannot list selectors, so without your selector we can only guess common names. A custom selector will not be found until you enter it."),
-            ("Is a 1024-bit key still OK?", "It works and is accepted widely, but 2048-bit is the current recommendation. Publish the new key under a new selector, switch signing to it and remove the old record later."),
-            ("Why is the key split into several quoted strings?", "A single DNS text string holds at most 255 characters and a 2048-bit key is longer. Most DNS panels split it automatically; receivers join the strings."),
-        ],
-        "related": ["spf-checker", "dmarc-checker", "domain-health", "dns-lookup"],
         "about": [f"This tool queries public DNS only. API: POST {API}/mail/dkim with {{\"domain\": \"example.com\", \"selector\": \"google\"}}; leave the selector out to probe common names."],
     },
     "blacklist-check": {
         "input": "target", "label": "IP address or domain", "placeholder": "8.8.8.8 or example.com", "button": "Check blocklists",
-        "title": "Email Blacklist Check: Is My IP or Domain on a Spam Blocklist? | BookMyHost",
-        "description": "Free blacklist check: query dozens of DNS blocklists (DNSBL) for an IP address or domain, see which ones list it and why, with direct links to the removal pages.",
         "h1": "Email Blacklist Check",
         "intro": "Mail servers use public DNS blocklists to decide whether to accept mail from an IP address or a domain. Enter either one to see, live, which lists know it, what they say and where to ask for removal.",
-        "faq": [
-            ("What is a DNSBL?", "A DNS blocklist is a public list of IP addresses or domains seen sending spam or abuse. A mail server asks the list by DNS before accepting a message and may reject or flag it if the answer is positive."),
-            ("Why are some lists shown as skipped?", "Some lists refuse queries from public resolvers or need a registered key, and some do not support IPv6. Those are skipped and say why, so a clean result does not cover them."),
-            ("I am listed. What now?", "First find and stop the cause (a hacked mailbox or form, malware, an open relay or purchased lists). Then use the removal link on the listing. Removal without a fix is usually reversed within days."),
-            ("Does a listing always block my mail?", "No. Each receiver chooses which lists it uses and how much weight to give them. Major lists such as Spamhaus matter far more than small ones."),
-        ],
-        "related": ["domain-health", "mx-lookup", "reverse-dns-lookup", "smtp-test"],
         "about": [f"Only public IP addresses and plain domain names can be checked. API: POST {API}/dnsbl/check with {{\"target\": \"8.8.8.8\"}}; the answer streams as one JSON line per list."],
     },
     "smtp-test": {
         "input": "host", "label": "Mail server host name", "placeholder": "mail.example.com", "button": "Test SMTP", "port": True,
-        "title": "SMTP Test: Banner, STARTTLS, TLS Version and Certificate | BookMyHost",
-        "description": "Test a mail server's SMTP connection: banner, EHLO, STARTTLS, TLS version and cipher, and the certificate chain and expiry. Read-only: no email is ever sent.",
         "h1": "SMTP Server Test",
         "intro": "Connects to a public mail server the way another mail server would: reads the greeting, says EHLO, tries STARTTLS and reports the TLS version, cipher and certificate. It never sends a message.",
-        "faq": [
-            ("Does this send an email?", "No. It only sends EHLO, STARTTLS and QUIT. It never sends MAIL FROM, RCPT TO or message data."),
-            ("Why does it say the test is unavailable?", "Outbound mail port 25 is blocked on many hosting networks, including ours, so this test is switched off here. The page shows the commands to run the same check from your own computer."),
-            ("Which ports can be tested?", "25 (server to server), 587 (submission) and 2525 (alternative submission)."),
-            ("Do I need a trusted certificate on my mail server?", "Most servers still deliver to an untrusted or self-signed certificate (opportunistic encryption), but senders with MTA-STS or DANE refuse, and it looks unprofessional. A free Let's Encrypt certificate fixes this."),
-        ],
-        "related": ["mx-lookup", "blacklist-check", "domain-health", "ttfb-ssl-checker"],
         "about": [f"Only public mail servers can be tested. API: POST {API}/smtp/check with {{\"host\": \"mail.example.com\", \"port\": 25}}."],
     },
     "email-header-analyzer": {
         "input": "headers", "textarea": True, "label": "Paste the full email headers", "placeholder": "Received: from mail.example.com ...\nAuthentication-Results: ...\nFrom: ...", "button": "Analyze headers",
-        "title": "Email Header Analyzer: Delays, SPF/DKIM/DMARC Results and Path | BookMyHost",
-        "description": "Paste an email's raw headers to see the route it took, the delay at each hop, the SPF, DKIM and DMARC results and spam scores. Runs entirely in your browser; nothing is uploaded.",
         "h1": "Email Header Analyzer",
         "intro": "Paste the raw headers of a message to see the servers it passed through and how long each hop took, whether SPF, DKIM and DMARC passed, and what the spam filters said. The analysis runs in your browser: your headers are never sent to our server.",
-        "faq": [
-            ("How do I get the full headers?", "In Gmail open the message, choose the three-dot menu and Show original. In Outlook open the message properties (File, Properties) or use View message source. Copy everything above the message body."),
-            ("Does anything leave my browser?", "No. The page parses the text with JavaScript on your device and makes no network request with it."),
-            ("Why are the hops in reverse order?", "Each server adds its Received header on top, so the newest hop is at the top. We reverse them to show the journey from sender to recipient."),
-            ("What does a long delay at one hop mean?", "The message waited there: greylisting, a busy queue, a scanning step or a retry after a temporary error. Delays above 60 seconds are flagged. Clock differences between servers can also show as odd or negative values."),
-        ],
-        "related": ["spf-checker", "dkim-checker", "dmarc-checker", "domain-health"],
         "about": ["Header analysis is only a guide: any server can add false Received lines below the one added by your own mail server, so trust the topmost hops that belong to servers you know."],
     },
     "dns-lookup": {
         **FORM_DOMAIN, "button": "Look up DNS",
-        "title": "DNS Lookup: All Records, Nameservers, SOA, CAA and DNSSEC | BookMyHost",
-        "description": "Free DNS lookup: A, AAAA, MX, NS, TXT, SOA, CAA and CNAME records with TTLs, a nameserver health check, SOA timers, CAA allowed certificate authorities and the DNSSEC state.",
         "h1": "DNS Lookup",
         "intro": "See every common DNS record of a domain with its TTL, check that each nameserver answers and sits on a separate network, review the SOA timers and CAA policy, and see whether DNSSEC is signed and validating.",
-        "faq": [
-            ("What does the TTL mean?", "Time to live: how many seconds a resolver may cache the answer. A low TTL makes changes show up sooner; a high TTL reduces lookups."),
-            ("Why should nameservers be on different networks?", "If all of them sit in the same network block, one outage or routing problem takes them all down together and your site and email disappear."),
-            ("What is a CAA record?", "It lists the certificate authorities that may issue certificates for your domain. It is optional, but it blocks mis-issuance by any other CA."),
-            ("What does a DNSSEC state of unverified mean?", "The domain publishes DNSSEC keys, but the resolver we used did not confirm validation. Test with a validating resolver such as 1.1.1.1 to be sure."),
-        ],
-        "related": ["dns-propagation-checker", "whois-lookup", "spf-checker", "mx-lookup"],
         "about": [f"This tool queries public DNS only. API: POST {API}/mail/dns with {{\"domain\": \"example.com\"}}."],
     },
     "asn-lookup": {
         "input": "asn", "label": "AS number", "placeholder": "AS13335 or 13335", "button": "Look up AS",
-        "title": "ASN Lookup: Prefixes, Peers, Upstreams, RPKI and IXPs | BookMyHost",
-        "description": "Free ASN lookup: announced IPv4 and IPv6 prefixes, upstream and downstream networks on an AS graph, RPKI coverage and the internet exchanges and data centres where the network is present.",
         "h1": "ASN Lookup",
         "intro": "Look up any autonomous system number to see who runs it, which prefixes it announces, how many are protected by RPKI, which networks sit upstream and downstream of it on a graph, and where it connects (internet exchanges and facilities from PeeringDB).",
-        "faq": [
-            ("What is an ASN?", "An autonomous system number identifies one network on the internet that has its own routing policy, for example AS13335 for Cloudflare. Networks use ASNs to announce their IP ranges with BGP."),
-            ("What do upstream and downstream mean?", "Upstreams are the networks an AS buys transit from, closer to the rest of the internet. Downstreams are its customers. The graph is built from routes seen by public collectors, so it is a sample, not a contract list."),
-            ("What is RPKI coverage?", "The share of the AS's prefixes that have a signed ROA saying which AS may announce them. We validate up to 100 prefixes, so the figure is a sample for very large networks."),
-            ("Where does the data come from?", "RIPEstat (RIPE NCC route collectors) for routing data and PeeringDB for exchange and facility presence. Both are public, and answers are cached for a few minutes."),
-        ],
-        "related": ["bgp-prefix-lookup", "looking-glass", "whois-lookup"],
         "about": [f"API: GET {API}/asn/13335."],
     },
     "bgp-prefix-lookup": {
         "input": "prefix", "label": "IP prefix or address", "placeholder": "1.1.1.0/24 or 1.1.1.1", "button": "Look up prefix",
-        "title": "BGP Prefix Lookup: Origin AS, RPKI, Visibility Map and AS Paths | BookMyHost",
-        "description": "Free BGP prefix lookup: origin AS, RPKI validity and ROAs, how many RIPE RIS route collectors see the prefix on a world map, 30-day origin history, AS paths and more or less specific routes.",
         "h1": "BGP Prefix Lookup",
         "intro": "Enter an IP prefix or a single address to see which AS originates it, whether RPKI validates the announcement, how widely it is visible around the world, how the origin changed over the last 30 days and the AS paths collectors use to reach it.",
-        "faq": [
-            ("What does RPKI valid, invalid or not found mean?", "Valid: a signed ROA authorises this AS to announce the prefix. Invalid: a ROA exists but contradicts the announcement (wrong AS or too specific), and networks that filter will drop it. Not found: no ROA covers the prefix."),
-            ("What is visibility on route collectors?", "RIPE RIS collectors are passive BGP listeners in many cities. If most of them see the prefix, it is widely propagated; if few do, some networks are filtering it or it is very new."),
-            ("What is a more-specific route?", "A longer prefix inside the one you looked up (for example a /24 inside a /23). Traffic follows the most specific route, so a more-specific from another AS can redirect part of your range."),
-            ("Why do I see more than one origin AS?", "That is called MOAS. It is normal for anycast and multi-provider setups, but it is also how a hijack looks, so confirm that every origin is expected and has a ROA."),
-        ],
-        "related": ["asn-lookup", "looking-glass", "subnet-calculator", "whois-lookup"],
         "about": [f"API: GET {API}/prefix/1.1.1.0/24."],
     },
 }

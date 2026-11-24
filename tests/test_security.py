@@ -146,7 +146,7 @@ async def test_page_csp_nonce_and_no_inline_script(client):
     for tag in re.findall(r"<script\b[^>]*>", r.text):
         assert f'nonce="{nonce}"' in tag, tag
     assert "onclick=" not in r.text and "cdn.tailwindcss.com" not in r.text
-    assert re.search(r'href="/tools/static/css/tools\.css\?v=[0-9a-f]+"', r.text)
+    assert re.search(r'href="/tools/static/v/[A-Za-z0-9._-]+/css/tools\.css"', r.text)
     assert r.headers["cache-control"] == "no-cache"
     r2 = await client.get("/tools/ttfb-ssl-checker")
     assert r2.headers["content-security-policy"] != csp  # fresh nonce per response
@@ -163,8 +163,12 @@ async def test_api_not_cached_and_noindex(client):
 
 
 async def test_static_cache_headers(client):
-    r = await client.get("/tools/static/js/shell.js?v=abc")
-    assert r.status_code == 200 and "immutable" in r.headers["cache-control"]
+    # versioned path: immutable for a year; the old unversioned path still works with a short cache
+    from app.main import VERSIONED_PREFIX
+    r = await client.get(f"{VERSIONED_PREFIX}/js/shell.js")
+    assert r.status_code == 200 and r.headers["cache-control"] == "public, max-age=31536000, immutable"
+    r = await client.get("/tools/static/js/shell.js")
+    assert r.status_code == 200 and r.headers["cache-control"] == "public, max-age=300"
 
 
 async def test_nothing_outside_tools_prefix(client):

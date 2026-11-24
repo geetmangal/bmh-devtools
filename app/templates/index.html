@@ -6,7 +6,7 @@
 {% endblock %}
 {% block content %}
 {% for g in tool_groups %}
-<section class="mb-8">
+<section class="mb-8" id="cat-{{ g.key }}">
   <h2 class="text-sm font-bold uppercase tracking-wide text-mute mb-3">{{ g.label }}</h2>
   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
   {% for it in g["items"] %}

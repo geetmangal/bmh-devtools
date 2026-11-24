@@ -55,6 +55,26 @@
 {% block content %}{% endblock %}
 {% block about %}{% endblock %}
 
+{% if content %}
+<section class="mt-12 max-w-3xl" id="guide" aria-label="Guide">
+  <div class="card p-5 mb-2" data-direct-answer>
+    <h2 class="text-sm font-bold uppercase tracking-wide text-mute mb-2">In short</h2>
+    <p class="leading-relaxed">{{ content.answer }}</p>
+  </div>
+  {% for s in content.sections %}
+  <h2 class="text-xl font-bold mt-8 mb-2">{{ s.h }}</h2>
+  {% for p in s.p %}<p class="text-mute leading-relaxed mt-2">{{ p }}</p>
+  {% endfor %}{% endfor %}
+  {% if related %}
+  <h2 class="text-xl font-bold mt-8 mb-2" id="related">Related tools</h2>
+  <ul class="grid gap-2 sm:grid-cols-2 text-sm" data-related>
+    {% for r in related %}<li class="card p-3"><a href="{{ r.url }}" class="font-semibold">{{ r.anchor }}</a><br><span class="text-mute">{{ r.name }}</span></li>
+    {% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endif %}
+
 {% if faq %}
 <section class="mt-12" id="faq">
   <h2 class="text-xl font-bold mb-3">Frequently asked questions</h2>

@@ -509,7 +509,7 @@ async def test_new_pages_meta(client, slug):
     path = f"/tools/{slug}"
     r = await client.get(path)
     assert r.status_code == 200
-    assert "<h1" in r.text and "FAQPage" in r.text and "SoftwareApplication" in r.text
+    assert "<h1" in r.text and "FAQPage" in r.text and "WebApplication" in r.text
     assert f'<link rel="canonical" href="https://bookmyhost.com{path}"' in r.text
     assert 'href="https://bookmyhost.com"' in r.text  # money-page link
     assert "noindex" not in r.text.lower() and "X-Robots-Tag" not in r.headers

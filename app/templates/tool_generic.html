@@ -27,9 +27,7 @@
 <section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
   <h2 class="text-xl font-bold text-ink mb-2">About this tool</h2>
   {% for para in page.about %}<p class="{{ 'mt-2' if not loop.first }}">{{ para }}</p>{% endfor %}
-  {% if page.related %}<p class="mt-2">Related tools:
-    {% for slug in page.related %}{% set t = tools | selectattr("slug", "equalto", slug) | first %}{% if t %}<a href="{{ prefix }}/{{ slug }}">{{ t.name }}</a>{{ ", " if not loop.last }}{% endif %}{% endfor %}.</p>{% endif %}
-  <p class="mt-2">Need reliable mail and DNS for your own domain? BookMyHost runs <a href="https://bookmyhost.com">cloud servers and hosting in India</a>.</p>
+  <p class="mt-2">BookMyHost provides <a href="https://bookmyhost.com">cloud servers and VPS in India</a>.</p>
 </section>
 {% endblock %}
 {% block scripts %}<script type="module" src="{{ static_url('js/tools/' ~ tool.slug ~ '.js') }}" nonce="{{ csp_nonce }}"></script>{% endblock %}
