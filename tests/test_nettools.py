@@ -510,7 +510,7 @@ async def test_new_pages_meta(client, slug):
     assert 'href="https://bookmyhost.com"' in r.text  # money-page link
     assert "noindex" not in r.text.lower() and "X-Robots-Tag" not in r.headers
     assert "script-src 'self' 'nonce-" in r.headers["content-security-policy"]
-    assert f"/js/{ {'looking-glass': 'lg', 'whois-lookup': 'whois', 'reverse-dns-lookup': 'rdns', 'port-checker': 'ports'}[slug] }.js" in r.text
+    assert f"/js/tools/{slug}.js" in r.text
 
 
 async def test_sitemap_index_and_api_docs_include_new_tools(client):

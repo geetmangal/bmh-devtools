@@ -163,7 +163,7 @@ async def test_api_not_cached_and_noindex(client):
 
 
 async def test_static_cache_headers(client):
-    r = await client.get("/tools/static/js/common.js?v=abc")
+    r = await client.get("/tools/static/js/shell.js?v=abc")
     assert r.status_code == 200 and "immutable" in r.headers["cache-control"]
 
 
