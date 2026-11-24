@@ -81,6 +81,22 @@ traceroute uses its default UDP mode (kernel IP_RECVERR), no raw socket. If ping
 
 **Rollback:** `docker tag bmh-devtools:prev bmh-devtools:latest && docker compose up -d --no-build`, or `git archive` the previous release (335f3ee) into `/opt/bmh-devtools` and `docker compose up -d --build`. Restore the backed-up nginx files and reload. The sysctl is harmless and may stay. No data or schema is involved (all state is in memory).
 
+## Toolbox shell, Turnstile and embeds
+- **Shell**: every page renders `shell.html` (command bar, category tab rail, Beginner/Expert toggle, light/dark theme). Tool
+  scripts are ES modules in `app/static/js/tools/<slug>.js` built on the results kit in `app/static/js/ui/` (verdict, cards,
+  gauges, timeline, tree, tiles, waterfall, radar, address bar, glossary, streaming, share, Turnstile). Glossary text is
+  `app/data/glossary.json`.
+- **Turnstile** (heavy tools: `heavy: True` in `app/core/config.py`): set `TURNSTILE_SITEKEY`, `TURNSTILE_SECRET` and
+  `TOOLS_PASS_SECRET` (all three, from the environment / compose `.env`; Cloudflare's published test keys work in dev).
+  The page exchanges a Turnstile token at `POST /tools/api/v1/pass` for a 15 minute HMAC pass bound to the client /24 (/48 for
+  IPv6) and the User-Agent, sent as `X-Tools-Pass`. Without a pass heavy endpoints answer `403 {"error":"pass_required"}`;
+  if Cloudflare is unreachable `/pass` answers 503 so they fail closed. `TURNSTILE_BYPASS_IPS` (CIDRs) skips the check.
+  With any of the three unset the check is a no-op and a warning is logged at startup.
+- **Embeds**: `/tools/embed/<slug>?theme=light|dark|auto&accent=%23hex&q=&compact=1` is the only path that may be framed
+  (`frame-ancestors *`, no `X-Frame-Options`); everything else stays `DENY`. `/tools/embed.js` resizes iframes marked
+  `data-bmh-tool` from `{type:'bmh-tools:resize', height}` messages (origin checked). Embed API calls carry `X-Tools-Embed`
+  and use their own 12/min bucket per IP + embedding host; embedding hostnames (no IPs) are logged once an hour.
+
 ## API examples
 
 ```bash

@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.core.config import COMMON_PORTS, MAX_CONCURRENT_NET, PORT_RATE_PER_MIN, PORT_TIMEOUT
+from app.core.turnstile import require_pass
 from app.core.ratelimit import Gate, TokenBucket, client_ip, limiter
 from app.core.validate import is_ip_literal, is_public_ip
 
@@ -57,7 +58,7 @@ async def probe(ip: str, port: int) -> dict:
     return res
 
 
-@router.post("/check", dependencies=[Depends(_dep)])
+@router.post("/check", dependencies=[Depends(require_pass), Depends(_dep)])
 async def check(req: PortRequest, request: Request) -> dict:
     """Check one TCP port (1-65535) or the common-port set on the caller's own IP only."""
     if req.port is None and not req.common:

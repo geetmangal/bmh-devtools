@@ -21,6 +21,7 @@ from app.core.cache import TTLCache
 from app.core.config import (LG_ASN, LG_BURST, LG_LOCATION, LG_PING_COUNT, LG_PING_TIMEOUT, LG_RATE_PER_MIN,
                              LG_TRACE_MAX_HOPS, LG_TRACE_TIMEOUT, MAX_CONCURRENT_LG, RIPESTAT_TIMEOUT, RIPESTAT_URL)
 from app.core.httpjson import FetchError, fetch_json
+from app.core.turnstile import require_pass
 from app.core.ratelimit import Gate, PerIpInflight, TokenBucket, client_ip, limiter
 from app.core.target import TargetError, resolve_target
 from app.core.validate import is_public_ip
@@ -142,7 +143,7 @@ def parse_traceroute(text: str) -> list[dict]:
     return hops
 
 
-@router.post("/run", dependencies=[Depends(_dep)])
+@router.post("/run", dependencies=[Depends(require_pass), Depends(_dep)])
 async def run(req: RunRequest, request: Request) -> dict:
     """Ping (4 packets) or traceroute (max 30 hops) from this server to a public target."""
     try:
@@ -189,7 +190,7 @@ def summarise_bgp(ip: str, overview: dict, lg: dict | None) -> dict:
     }
 
 
-@router.post("/bgp", dependencies=[Depends(_dep)])
+@router.post("/bgp", dependencies=[Depends(require_pass), Depends(_dep)])
 async def bgp(req: BgpRequest, request: Request) -> dict:
     """BGP route for the target's prefix from public RIPEstat data (RIPE RIS collectors). Not our routers."""
     try:

@@ -4,23 +4,30 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import re
 import secrets
 import time
+from collections import Counter
 from pathlib import Path
+from urllib.parse import urlparse
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
-from app.api import dns, http_check, lookingglass, portcheck, rdns, subnet, whois
-from app.core.config import (API_PREFIX, BASE_URL, CORS_ORIGINS, RATE_LIMIT_PER_MIN, SITE_NAME, STATIC_PREFIX,
+from app.api import dns, http_check, lookingglass, pass_, portcheck, rdns, subnet, whois
+from app.core import config, turnstile
+from app.core.config import (API_PREFIX, BASE_URL, CALCULATORS, CATEGORIES, CORS_ORIGINS, EMBED_BASE_URL,
+                             EMBED_RATE_PER_MIN, RATE_LIMIT_PER_MIN, SITE_NAME, STATIC_PREFIX,
                              RDNS_GUIDE_PUBLISHED, RDNS_GUIDE_URL, TOOLS, TOOLS_HUB_LASTMOD, TOOLS_PREFIX, VERSION)
+from app.core.ratelimit import TokenBucket, client_ip
 
 ROOT = Path(__file__).resolve().parent
 log = logging.getLogger("bmh_tools")
+EMBED_PREFIX = f"{TOOLS_PREFIX}/embed/"
 if not log.handlers:
     _h = logging.StreamHandler()
     _h.setFormatter(logging.Formatter("%(levelname)s %(name)s %(message)s"))
@@ -40,9 +47,10 @@ app = FastAPI(
     servers=[{"url": BASE_URL}],
 )
 app.add_middleware(
-    CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["GET", "POST"], allow_headers=["Content-Type"],
+    CORSMiddleware, allow_origins=CORS_ORIGINS, allow_methods=["GET", "POST"], allow_headers=["Content-Type", "X-Tools-Pass", "X-Tools-Embed"],
     max_age=600,
 )
+app.include_router(pass_.router, prefix=API_PREFIX)
 app.include_router(dns.router, prefix=API_PREFIX)
 app.include_router(subnet.router, prefix=API_PREFIX)
 app.include_router(http_check.router, prefix=API_PREFIX)
@@ -51,6 +59,41 @@ for _r in (lookingglass.router, whois.router, rdns.router, portcheck.router):
 app.mount(STATIC_PREFIX, StaticFiles(directory=ROOT / "static"), name="static")
 
 templates = Jinja2Templates(directory=str(ROOT / "templates"))
+turnstile.warn_if_disabled()
+
+
+def _load_glossary() -> dict:
+    try:
+        return json.loads((ROOT / "data" / "glossary.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        log.warning("glossary.json missing or invalid")
+        return {}
+
+
+def _json_for_script(obj) -> str:
+    """JSON for a <script type="application/json"> block: "</" and "<!--" must never appear raw."""
+    return json.dumps(obj, ensure_ascii=False, separators=(",", ":")).replace("</", "<\\/").replace("<!--", "<\\!--")
+
+
+GLOSSARY_JSON = _json_for_script(_load_glossary())
+TOOLBOX_JSON = _json_for_script({
+    "prefix": TOOLS_PREFIX, "api": API_PREFIX,
+    "tools": [{k: t[k] for k in ("slug", "name", "category", "icon", "accepts", "heavy")} for t in TOOLS],
+})
+
+
+def _tool_groups() -> list[dict]:
+    """Tab-rail groups in CATEGORIES order; empty categories (Email until its tools ship) are hidden."""
+    groups = []
+    for c in CATEGORIES:
+        if c["key"] == "calc":
+            items = [{"name": x["name"], "href": x["url"], "icon": x["icon"], "external": True} for x in CALCULATORS]
+        else:
+            items = [{"name": t["name"], "href": f"{TOOLS_PREFIX}/{t['slug']}", "icon": t["icon"], "slug": t["slug"],
+                      "external": False} for t in TOOLS if t["category"] == c["key"]]
+        if items:
+            groups.append({"key": c["key"], "label": c["label"], "items": items})
+    return groups
 
 _static_versions: dict[str, str] = {}
 
@@ -66,15 +109,57 @@ def static_url(rel: str) -> str:
 
 
 templates.env.globals.update(site_name=SITE_NAME, base_url=BASE_URL, prefix=TOOLS_PREFIX, tools=TOOLS,
-                             api=API_PREFIX, static_url=static_url, rate_per_min=RATE_LIMIT_PER_MIN)
+                             api=API_PREFIX, static_url=static_url, rate_per_min=RATE_LIMIT_PER_MIN,
+                             glossary_json=GLOSSARY_JSON, toolbox_json=TOOLBOX_JSON, tool_groups=_tool_groups(),
+                             categories=CATEGORIES, calculators=CALCULATORS, embed_base=EMBED_BASE_URL)
 
-PAGE_CSP = ("default-src 'none'; script-src 'self' 'nonce-{nonce}'; style-src 'self'; style-src-attr 'unsafe-inline'; "
-            "img-src 'self' data:; font-src 'self'; connect-src 'self'; form-action 'self'; base-uri 'none'; "
-            "frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests")
+CF = "https://challenges.cloudflare.com"  # Turnstile
+PAGE_CSP = ("default-src 'none'; script-src 'self' 'nonce-{nonce}' " + CF + "; style-src 'self'; style-src-attr 'unsafe-inline'; "
+            "img-src 'self' data:; font-src 'self'; connect-src 'self' " + CF + "; frame-src 'self' " + CF + "; "
+            "form-action 'self'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'; upgrade-insecure-requests")
+# Only /tools/embed/* may be framed (by any site); every other path keeps frame-ancestors 'none' + X-Frame-Options DENY.
+EMBED_CSP = PAGE_CSP.replace("frame-ancestors 'none'", "frame-ancestors *")
 DOCS_CSP = ("default-src 'none'; script-src 'nonce-{nonce}' https://cdn.jsdelivr.net; "
             "style-src https://cdn.jsdelivr.net 'unsafe-inline'; img-src 'self' data: https://fastapi.tiangolo.com; "
             "connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; object-src 'none'")
 API_CSP = "default-src 'none'; frame-ancestors 'none'"
+
+
+_embed_bucket = TokenBucket(EMBED_RATE_PER_MIN)
+_embed_refs: Counter = Counter()  # referrer hostnames only (never IPs)
+_embed_flush_at = time.monotonic()
+_HOST_RE = re.compile(r"^[a-z0-9]([a-z0-9.-]{0,98}[a-z0-9])?$")
+
+
+def clean_host(value: str | None) -> str | None:
+    """Referer / X-Tools-Embed value -> bare lowercase hostname, or None if it does not look like one."""
+    v = (value or "").strip().lower()
+    if "//" in v:
+        v = urlparse(v).hostname or ""
+    else:
+        m = re.fullmatch(r"([^:/]+)(:\d{1,5})?(/.*)?", v)
+        v = m[1] if m else ""
+    return v if _HOST_RE.match(v) else None
+
+
+def note_embed_referrer(host: str | None) -> None:
+    """Count an embed page view by referrer host; one aggregate log line per hour."""
+    global _embed_flush_at
+    now = time.monotonic()
+    if now - _embed_flush_at >= 3600:
+        if _embed_refs:
+            log.info("embed referrers (last hour): %s", dict(_embed_refs.most_common(50)))
+        _embed_refs.clear()
+        _embed_flush_at = now
+    if host and (host in _embed_refs or len(_embed_refs) < 500):
+        _embed_refs[host] += 1
+    elif not host:
+        _embed_refs["(none)"] += 1
+
+
+@app.exception_handler(turnstile.PassRequired)
+async def _pass_required(request: Request, exc: turnstile.PassRequired):
+    return turnstile.pass_required_response()
 
 
 @app.middleware("http")
@@ -82,16 +167,28 @@ async def security_headers(request: Request, call_next):
     nonce = secrets.token_urlsafe(16)
     request.state.csp_nonce = nonce
     t0 = time.perf_counter()
+    path = request.url.path
+    early: Response | None = None
+    if path.startswith(API_PREFIX) and request.headers.get("x-tools-embed") is not None:
+        # Calls made from an embedded widget: own bucket per IP + embedding site, on top of the normal limits.
+        host = clean_host(request.headers.get("x-tools-embed")) or "unknown"
+        if not _embed_bucket.allow(f"{client_ip(request)}|{host}"):
+            early = JSONResponse({"detail": f"Rate limit exceeded: {EMBED_RATE_PER_MIN} widget requests per minute."},
+                                 status_code=429, headers={"Retry-After": "10"})
     try:
-        resp: Response = await call_next(request)
+        resp: Response = early or await call_next(request)
     except Exception:
         log.exception("unhandled %s %s", request.method, request.url.path)
         raise
-    path = request.url.path
     h = resp.headers
+    is_embed = path.startswith(EMBED_PREFIX)
     h.setdefault("X-Content-Type-Options", "nosniff")
     h.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
-    h.setdefault("X-Frame-Options", "DENY")
+    if is_embed:
+        if "x-frame-options" in h:
+            del h["x-frame-options"]
+    else:
+        h.setdefault("X-Frame-Options", "DENY")
     h.setdefault("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
     h.setdefault("Cross-Origin-Opener-Policy", "same-origin")
     if path.startswith(API_PREFIX) or path == f"{TOOLS_PREFIX}/healthz":
@@ -106,7 +203,7 @@ async def security_headers(request: Request, call_next):
             else "public, max-age=86400"
     else:
         h.setdefault("Cache-Control", "no-cache")
-        h["Content-Security-Policy"] = PAGE_CSP.format(nonce=nonce)
+        h["Content-Security-Policy"] = (EMBED_CSP if is_embed else PAGE_CSP).format(nonce=nonce)
     # Access log without query strings or bodies (journald / docker logs).
     if not path.startswith(STATIC_PREFIX + "/") and path != f"{TOOLS_PREFIX}/healthz":
         log.info("%s %s %s %.0fms", request.method, path[:200], resp.status_code, (time.perf_counter() - t0) * 1000)
@@ -138,7 +235,10 @@ def _render(request: Request, template: str, slug: str | None, faq: list[tuple[s
     # "</" must never appear raw inside the JSON-LD <script> block.
     schema_json = json.dumps(schema, ensure_ascii=False).replace("</", "<\\/")
     return templates.TemplateResponse(request, template, {
-        "tool": tool, "canonical": url, "faq": faq, "schema_json": schema_json,
+        "tool": tool, "canonical": url, "faq": faq, "schema_json": schema_json, "layout": "shell.html",
+        "embed": False, "noindex": bool(request.query_params.get("q")),
+        "turnstile_sitekey": config.TURNSTILE_SITEKEY if turnstile.enabled() else "",
+        "tool_url": f"{EMBED_BASE_URL}{TOOLS_PREFIX}/{slug}" if slug else "",
         "csp_nonce": request.state.csp_nonce, **ctx,
     })
 
@@ -288,6 +388,41 @@ async def page_ports(request: Request):
     return _render(request, "ports.html", "port-checker", faq,
                    title="Open Port Checker: Is My Port Open? (Your IP) | BookMyHost",
                    description="Free open port checker: test whether common TCP ports (22, 80, 443, 3306, 3389 and more) or any port 1-65535 are reachable on your own public IP address.")
+
+
+_ACCENT_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
+_EMBED_TEMPLATES = {
+    "dns-propagation-checker": "dns.html", "subnet-calculator": "subnet.html", "ttfb-ssl-checker": "ttfb.html",
+    "looking-glass": "lg.html", "whois-lookup": "whois.html", "reverse-dns-lookup": "rdns.html",
+    "port-checker": "ports.html"}
+
+
+@app.get(f"{TOOLS_PREFIX}/embed/{{slug}}", response_class=HTMLResponse, include_in_schema=False)
+async def embed_page(request: Request, slug: str, theme: str = "auto", accent: str | None = None,
+                     q: str | None = None, compact: str | None = None):
+    """Minimal-chrome tool for iframes. Frameable by any site (see security_headers); never indexed."""
+    tool = next((t for t in TOOLS if t["slug"] == slug and t.get("embeddable")), None)
+    if tool is None or slug not in _EMBED_TEMPLATES:
+        raise HTTPException(status_code=404, detail="Unknown or non-embeddable tool.")
+    theme = theme if theme in ("light", "dark", "auto") else "auto"
+    accent = accent if accent and _ACCENT_RE.match(accent) else None
+    host = clean_host(request.headers.get("referer"))
+    note_embed_referrer(host)
+    tool_url = f"{EMBED_BASE_URL}{TOOLS_PREFIX}/{slug}"
+    return templates.TemplateResponse(request, _EMBED_TEMPLATES[slug], {
+        "tool": tool, "canonical": f"{BASE_URL}{TOOLS_PREFIX}/{slug}", "faq": [], "layout": "embed.html", "embed": True,
+        "title": f"{tool['name']} | BookMyHost", "description": tool["short"], "schema_json": "[]",
+        "noindex": True, "theme": theme, "accent": accent, "compact": compact == "1", "embed_host": host or "",
+        "powered_href": f"{tool_url}?utm_source={host or 'embed'}&utm_medium=widget&utm_campaign=tools-embed",
+        "turnstile_sitekey": config.TURNSTILE_SITEKEY if turnstile.enabled() else "", "tool_url": tool_url,
+        "guide_url": RDNS_GUIDE_URL if RDNS_GUIDE_PUBLISHED else None, "csp_nonce": request.state.csp_nonce,
+    })
+
+
+@app.get(f"{TOOLS_PREFIX}/embed.js", include_in_schema=False)
+async def embed_js():
+    return FileResponse(ROOT / "static" / "embed.js", media_type="application/javascript",
+                        headers={"Cache-Control": "public, max-age=3600"})
 
 
 @app.get(f"{API_PREFIX}/docs", include_in_schema=False)

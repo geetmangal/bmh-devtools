@@ -1,8 +1,8 @@
 """Runtime configuration (env-driven, sane defaults)."""
 import os
 
-SITE_NAME = "BookMyHost Dev Tools"
-VERSION = "1.2.0"
+SITE_NAME = "BookMyHost Toolbox"
+VERSION = "1.3.0"
 BASE_URL = os.getenv("BMH_TOOLS_BASE_URL", "https://bookmyhost.com").rstrip("/")
 TOOLS_PREFIX = os.getenv("BMH_TOOLS_PREFIX", "/tools").rstrip("/")  # public path prefix
 # Everything (pages, static, JSON API, health) lives under TOOLS_PREFIX so the host site's own
@@ -63,50 +63,75 @@ BLOCKED_NETS = ALWAYS_BLOCKED_NETS + [n.strip() for n in os.getenv(
     "BMH_TOOLS_BLOCK_NETS", "160.22.109.1/32,160.22.109.2/32,160.22.109.9/32"
 ).split(",") if n.strip()]
 
+
+# --- Turnstile + tool pass (heavy tools). Enabled only when ALL THREE secrets are set; otherwise require_pass is a no-op. ---
+TURNSTILE_SITEKEY = os.getenv("TURNSTILE_SITEKEY", "").strip()
+TURNSTILE_SECRET = os.getenv("TURNSTILE_SECRET", "").strip()
+TOOLS_PASS_SECRET = os.getenv("TOOLS_PASS_SECRET", "").strip()
+TURNSTILE_BYPASS_IPS = [c.strip() for c in os.getenv("TURNSTILE_BYPASS_IPS", "").split(",") if c.strip()]  # CIDRs
+TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify"
+PASS_TTL = 15 * 60
+PASS_RATE_PER_MIN = 10
+# Embeds: separate bucket per IP + referer host.
+EMBED_BASE_URL = os.getenv("BMH_TOOLS_EMBED_BASE", "https://www.bookmyhost.com").rstrip("/")  # used in snippets
+EMBED_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_EMBED_RATE_PER_MIN", "12"))
+
 # W3C date (YYYY-MM-DD) per tool for <lastmod> in /tools/sitemap.xml: the day the page last changed.
 # Bump it when a tool's template or behaviour changes.
 TOOLS_HUB_LASTMOD = "2026-11-21"
+
+# Ordered tab-rail categories. Tools whose category has no tool yet are simply not shown as a tab group.
+CATEGORIES = [
+    {"key": "network", "label": "Network & BGP"},
+    {"key": "dns", "label": "DNS"},
+    {"key": "email", "label": "Email"},
+    {"key": "web", "label": "Web & SSL"},
+    {"key": "calc", "label": "Calculators"},
+]
+# External calculators (bookmyhost.com/free-tools): shown under "Calculators", not part of the sitemap.
+CALCULATORS = [
+    {"name": "Cloud cost and GST calculator", "icon": "calc", "url": "https://www.bookmyhost.com/free-tools/cloud-cost-gst-calculator",
+     "short": "Monthly cost of a server with 18% GST and the TDS and wallet maths."},
+    {"name": "VPS sizing calculator", "icon": "calc", "url": "https://www.bookmyhost.com/free-tools/vps-sizing-calculator",
+     "short": "vCPU, RAM and disk for your workload, with a plan to match."},
+    {"name": "Noida latency test", "icon": "gauge", "url": "https://www.bookmyhost.com/free-tools/noida-latency-test",
+     "short": "Measure round-trip time from your browser to our Noida data centre."},
+]
+
 TOOLS = [
     {
-        "slug": "dns-propagation-checker",
-        "lastmod": "2026-10-25",
-        "name": "DNS Propagation Checker",
+        "slug": "dns-propagation-checker", "lastmod": "2026-10-25", "name": "DNS Propagation Checker",
         "short": "Check whether your DNS record has propagated to public resolvers worldwide, including India.",
+        "category": "dns", "icon": "dns", "accepts": ["domain", "host"], "heavy": False, "embeddable": True,
     },
     {
-        "slug": "subnet-calculator",
-        "lastmod": "2026-10-25",
-        "name": "IPv4 / IPv6 Subnet Calculator",
+        "slug": "subnet-calculator", "lastmod": "2026-10-25", "name": "IPv4 / IPv6 Subnet Calculator",
         "short": "CIDR calculator with network, broadcast, usable range, wildcard, binary, split and supernet.",
+        "category": "network", "icon": "grid", "accepts": ["ip", "prefix"], "heavy": False, "embeddable": True,
     },
     {
-        "slug": "ttfb-ssl-checker",
-        "lastmod": "2026-10-25",
-        "name": "TTFB & SSL Checker",
+        "slug": "ttfb-ssl-checker", "lastmod": "2026-10-25", "name": "TTFB & SSL Checker",
         "short": "Measure DNS, TCP, TLS, time to first byte and inspect the SSL certificate of any site.",
+        "category": "web", "icon": "gauge", "accepts": ["url", "domain", "host"], "heavy": False, "embeddable": True,
     },
     {
-        "slug": "looking-glass",
-        "lastmod": "2026-11-21",
-        "name": "Looking Glass (Ping, Traceroute, BGP)",
+        "slug": "looking-glass", "lastmod": "2026-11-21", "name": "Looking Glass (Ping, Traceroute, BGP)",
         "short": "Ping, traceroute and BGP route lookup from our Noida network, AS152523.",
+        "category": "network", "icon": "route", "accepts": ["ip", "host", "domain"], "heavy": True, "embeddable": True,
     },
     {
-        "slug": "whois-lookup",
-        "lastmod": "2026-11-21",
-        "name": "WHOIS / RDAP Lookup",
+        "slug": "whois-lookup", "lastmod": "2026-11-21", "name": "WHOIS / RDAP Lookup",
         "short": "Domain and IP registration data via RDAP: registrar, dates, nameservers, network owner.",
+        "category": "dns", "icon": "search", "accepts": ["domain", "ip"], "heavy": False, "embeddable": True,
     },
     {
-        "slug": "reverse-dns-lookup",
-        "lastmod": "2026-11-21",
-        "name": "Reverse DNS (PTR) Lookup",
+        "slug": "reverse-dns-lookup", "lastmod": "2026-11-21", "name": "Reverse DNS (PTR) Lookup",
         "short": "PTR record for any IPv4 or IPv6 address with a forward-confirmed reverse DNS check.",
+        "category": "dns", "icon": "swap", "accepts": ["ip"], "heavy": False, "embeddable": True,
     },
     {
-        "slug": "port-checker",
-        "lastmod": "2026-11-21",
-        "name": "Open Port Checker",
+        "slug": "port-checker", "lastmod": "2026-11-21", "name": "Open Port Checker",
         "short": "Check which TCP ports are open on your own public IP address.",
+        "category": "network", "icon": "plug", "accepts": [], "heavy": True, "embeddable": True,
     },
 ]
