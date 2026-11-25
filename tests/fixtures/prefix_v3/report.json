@@ -1,0 +1,1724 @@
+{
+ "prefix": "160.22.108.0/24",
+ "queried": "160.22.108.0/24",
+ "is_ip": false,
+ "announced": true,
+ "status": "pass",
+ "summary": "160.22.108.0/24 is originated by AS152523 BLAZING BULLET PRIVATE LIMITED, RPKI valid, seen by 23 of 23 RIS collectors.",
+ "origins": [
+  {
+   "asn": 152523,
+   "holder": "BLAZING-AS-IN - BLAZING BULLET PRIVATE LIMITED",
+   "name": "BLAZING BULLET PRIVATE LIMITED",
+   "rpki": {
+    "asn": 152523,
+    "prefix": "160.22.108.0/24",
+    "state": "valid",
+    "reason": null,
+    "roas": [
+     {
+      "origin": 152523,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "valid"
+     },
+     {
+      "origin": 151734,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "invalid_asn"
+     }
+    ],
+    "validator": "routinator"
+   }
+  }
+ ],
+ "moas": false,
+ "visibility": {
+  "collectors": [
+   {
+    "id": "rrc00",
+    "name": "RIPE-NCC Multihop",
+    "city": "Amsterdam",
+    "country": "NL",
+    "lat": 52.3667,
+    "lon": 4.8833,
+    "approx": false,
+    "seen": 42,
+    "total": 42,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc01",
+    "name": "LINX / LONAP",
+    "city": "London",
+    "country": "GB",
+    "lat": 51.4969,
+    "lon": -0.0192,
+    "approx": false,
+    "seen": 29,
+    "total": 29,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc03",
+    "name": "AMS-IX / NL-IX",
+    "city": "Amsterdam",
+    "country": "NL",
+    "lat": 52.3563,
+    "lon": 4.9508,
+    "approx": false,
+    "seen": 27,
+    "total": 27,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc04",
+    "name": "CIXP",
+    "city": "Geneva",
+    "country": "CH",
+    "lat": 46.234,
+    "lon": 6.0526,
+    "approx": false,
+    "seen": 6,
+    "total": 6,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc05",
+    "name": "VIX",
+    "city": "Vienna",
+    "country": "AT",
+    "lat": 48.214,
+    "lon": 16.3575,
+    "approx": false,
+    "seen": 11,
+    "total": 11,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc06",
+    "name": "DIX-IE / JPIX",
+    "city": "Tokyo",
+    "country": "JP",
+    "lat": 35.6845,
+    "lon": 139.769,
+    "approx": false,
+    "seen": 5,
+    "total": 5,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc07",
+    "name": "Netnod",
+    "city": "Stockholm",
+    "country": "SE",
+    "lat": 59.3177,
+    "lon": 18.0657,
+    "approx": false,
+    "seen": 7,
+    "total": 7,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc10",
+    "name": "MIX-IT",
+    "city": "Milan",
+    "country": "IT",
+    "lat": 45.4786,
+    "lon": 9.1027,
+    "approx": false,
+    "seen": 13,
+    "total": 13,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc11",
+    "name": "NYIIX",
+    "city": "New York",
+    "country": "US",
+    "lat": 40.7058,
+    "lon": -74.0135,
+    "approx": false,
+    "seen": 7,
+    "total": 7,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc12",
+    "name": "DE-CIX",
+    "city": "Frankfurt",
+    "country": "DE",
+    "lat": 50.1124,
+    "lon": 8.704,
+    "approx": false,
+    "seen": 29,
+    "total": 29,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc13",
+    "name": "MSK-IX",
+    "city": "Moscow",
+    "country": "RU",
+    "lat": 55.7101,
+    "lon": 37.5949,
+    "approx": false,
+    "seen": 5,
+    "total": 5,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc14",
+    "name": "Equinix Palo Alto",
+    "city": "Palo Alto",
+    "country": "US",
+    "lat": 37.4457,
+    "lon": -122.161,
+    "approx": false,
+    "seen": 5,
+    "total": 5,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc15",
+    "name": "IX.br Sao Paulo",
+    "city": "Sao Paulo",
+    "country": "BR",
+    "lat": -23.6002,
+    "lon": -46.6947,
+    "approx": false,
+    "seen": 13,
+    "total": 13,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc16",
+    "name": "Equinix Miami",
+    "city": "Miami",
+    "country": "US",
+    "lat": 25.7748,
+    "lon": -80.1977,
+    "approx": false,
+    "seen": 3,
+    "total": 3,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc18",
+    "name": "CATNIX",
+    "city": "Barcelona",
+    "country": "ES",
+    "lat": 41.3825,
+    "lon": 2.1769,
+    "approx": false,
+    "seen": 1,
+    "total": 1,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc19",
+    "name": "NAPAfrica JB",
+    "city": "Johannesburg",
+    "country": "ZA",
+    "lat": -26.2044,
+    "lon": 28.0416,
+    "approx": false,
+    "seen": 8,
+    "total": 8,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc20",
+    "name": "SwissIX",
+    "city": "Zurich",
+    "country": "CH",
+    "lat": 47.3744,
+    "lon": 8.5411,
+    "approx": false,
+    "seen": 22,
+    "total": 22,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc21",
+    "name": "France-IX",
+    "city": "Paris",
+    "country": "FR",
+    "lat": 48.8566,
+    "lon": 2.3522,
+    "approx": true,
+    "seen": 21,
+    "total": 21,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc22",
+    "name": "InterLAN-IX",
+    "city": "Bucharest",
+    "country": "RO",
+    "lat": 44.4134,
+    "lon": 26.0978,
+    "approx": false,
+    "seen": 2,
+    "total": 2,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc23",
+    "name": "Equinix Singapore",
+    "city": "Singapore",
+    "country": "SG",
+    "lat": 1.3,
+    "lon": 103.8,
+    "approx": false,
+    "seen": 8,
+    "total": 8,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc24",
+    "name": "LACNIC Multihop",
+    "city": "Montevideo",
+    "country": "UY",
+    "lat": -34.9059,
+    "lon": -56.1913,
+    "approx": false,
+    "seen": 11,
+    "total": 11,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc25",
+    "name": "RIPE-NCC Multihop",
+    "city": "Amsterdam",
+    "country": "NL",
+    "lat": 52.3667,
+    "lon": 4.8833,
+    "approx": false,
+    "seen": 45,
+    "total": 45,
+    "is_seen": true,
+    "no_data": false
+   },
+   {
+    "id": "rrc26",
+    "name": "UAE-IX",
+    "city": "Dubai",
+    "country": "AE",
+    "lat": 25.2697,
+    "lon": 55.3094,
+    "approx": false,
+    "seen": 3,
+    "total": 3,
+    "is_seen": true,
+    "no_data": false
+   }
+  ],
+  "seen_collectors": 23,
+  "total_collectors": 23,
+  "seen_peers": 323,
+  "total_peers": 323,
+  "routing_status": {
+   "v4": {
+    "seeing": 323,
+    "total": 323,
+    "pct": 100.0
+   },
+   "v6": {
+    "seeing": 0,
+    "total": 0,
+    "pct": null
+   }
+  }
+ },
+ "less_specifics": [],
+ "more_specifics": [],
+ "more_specifics_total": 0,
+ "first_seen": {
+  "prefix": "160.22.108.0/24",
+  "origin": "152523",
+  "time": "2024-06-14T16:00:00"
+ },
+ "last_seen": {
+  "prefix": "160.22.108.0/24",
+  "origin": "152523",
+  "time": "2026-11-25T00:00:00"
+ },
+ "history": {
+  "days": 30,
+  "origins": [
+   {
+    "origin": 152523,
+    "first": "2026-10-26T00:00:00",
+    "last": "2026-11-25T00:00:00"
+   }
+  ],
+  "timeline": [
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-10-26T00:00:00",
+    "end": "2026-10-27T15:59:59",
+    "peers": 325
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-10-27T16:00:00",
+    "end": "2026-11-06T15:59:59",
+    "peers": 323
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-11-06T16:00:00",
+    "end": "2026-11-12T23:59:59",
+    "peers": 321
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-11-13T00:00:00",
+    "end": "2026-11-13T07:59:59",
+    "peers": 318
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-11-13T08:00:00",
+    "end": "2026-11-16T07:59:59",
+    "peers": 320
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-11-16T08:00:00",
+    "end": "2026-11-16T15:59:59",
+    "peers": 318
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-11-16T16:00:00",
+    "end": "2026-11-17T15:59:59",
+    "peers": 320
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-11-17T16:00:00",
+    "end": "2026-11-19T07:59:59",
+    "peers": 322
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-11-19T08:00:00",
+    "end": "2026-11-20T15:59:59",
+    "peers": 320
+   },
+   {
+    "origin": 152523,
+    "prefix": "160.22.108.0/24",
+    "start": "2026-11-20T16:00:00",
+    "end": "2026-11-25T00:00:00",
+    "peers": 322
+   }
+  ]
+ },
+ "as_paths": [
+  {
+   "path": [
+    24482,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 11,
+   "prepended": false,
+   "collectors": [
+    "rrc00",
+    "rrc01",
+    "rrc03",
+    "rrc07",
+    "rrc10",
+    "rrc11",
+    "rrc12",
+    "rrc13",
+    "rrc15",
+    "rrc20",
+    "rrc21"
+   ]
+  },
+  {
+   "path": [
+    199524,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 8,
+   "prepended": false,
+   "collectors": [
+    "rrc03",
+    "rrc11",
+    "rrc12",
+    "rrc14",
+    "rrc15",
+    "rrc16",
+    "rrc19",
+    "rrc23"
+   ]
+  },
+  {
+   "path": [
+    8218,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 6,
+   "prepended": false,
+   "collectors": [
+    "rrc01",
+    "rrc03",
+    "rrc12",
+    "rrc20",
+    "rrc21"
+   ]
+  },
+  {
+   "path": [
+    6461,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 5,
+   "prepended": false,
+   "collectors": [
+    "rrc01",
+    "rrc03",
+    "rrc12",
+    "rrc20",
+    "rrc21"
+   ]
+  },
+  {
+   "path": [
+    49544,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 5,
+   "prepended": false,
+   "collectors": [
+    "rrc03",
+    "rrc23",
+    "rrc24",
+    "rrc25",
+    "rrc26"
+   ]
+  },
+  {
+   "path": [
+    51185,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 5,
+   "prepended": false,
+   "collectors": [
+    "rrc01",
+    "rrc10",
+    "rrc11",
+    "rrc12",
+    "rrc25"
+   ]
+  },
+  {
+   "path": [
+    9002,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 4,
+   "prepended": false,
+   "collectors": [
+    "rrc01",
+    "rrc07",
+    "rrc11",
+    "rrc23"
+   ]
+  },
+  {
+   "path": [
+    12779,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 4,
+   "prepended": false,
+   "collectors": [
+    "rrc01",
+    "rrc10",
+    "rrc12",
+    "rrc21"
+   ]
+  },
+  {
+   "path": [
+    13030,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 4,
+   "prepended": false,
+   "collectors": [
+    "rrc01",
+    "rrc03",
+    "rrc05",
+    "rrc11"
+   ]
+  },
+  {
+   "path": [
+    14840,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 4,
+   "prepended": false,
+   "collectors": [
+    "rrc24",
+    "rrc25"
+   ]
+  }
+ ],
+ "block": "Administered by ARIN",
+ "overview": {
+  "rir": "APNIC",
+  "country": "IN",
+  "netname": "BLAZING",
+  "holder": "BLAZING BULLET PRIVATE LIMITED",
+  "inetnum": "160.22.108.0/23",
+  "reg_status": "ASSIGNED PORTABLE",
+  "reg_status_meaning": "APNIC: the block was given directly to an end user by APNIC or an NIR. It is provider-independent, so the holder can keep it when changing ISPs and announce it in BGP.",
+  "registered": null,
+  "age_days": null,
+  "size": {
+   "addresses": 256,
+   "slash24s": 1,
+   "slash48s": null
+  },
+  "abuse_email": "abuse@blazingbullet.com"
+ },
+ "connectivity": {
+  "graph": {
+   "nodes": [
+    {
+     "id": "AS152523",
+     "asn": 152523,
+     "name": "BLAZING BULLET PRIVATE LIMITED",
+     "role": "origin",
+     "tier1": false,
+     "depth": 0,
+     "paths": 365,
+     "share": 1.0
+    },
+    {
+     "id": "AS13335",
+     "asn": 13335,
+     "name": "Cloudflare",
+     "role": "upstream",
+     "tier1": false,
+     "depth": 1,
+     "paths": 365,
+     "share": 1.0
+    },
+    {
+     "id": "AS24482",
+     "asn": 24482,
+     "name": "SG.GS",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 11,
+     "share": 0.03
+    },
+    {
+     "id": "AS199524",
+     "asn": 199524,
+     "name": "Gcore",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 8,
+     "share": 0.022
+    },
+    {
+     "id": "AS1299",
+     "asn": 1299,
+     "name": "Arelion (Twelve99)",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 6,
+     "share": 0.016
+    },
+    {
+     "id": "AS2914",
+     "asn": 2914,
+     "name": "NTT Global IP Network",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 6,
+     "share": 0.016
+    },
+    {
+     "id": "AS6461",
+     "asn": 6461,
+     "name": "Zayo",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 6,
+     "share": 0.016
+    },
+    {
+     "id": "AS8218",
+     "asn": 8218,
+     "name": "Zayo Europe",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 6,
+     "share": 0.016
+    },
+    {
+     "id": "AS49544",
+     "asn": 49544,
+     "name": "i3D.net",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 6,
+     "share": 0.016
+    },
+    {
+     "id": "AS174",
+     "asn": 174,
+     "name": "Cogent Communications, Inc.",
+     "role": "transit",
+     "tier1": true,
+     "depth": 2,
+     "paths": 5,
+     "share": 0.014
+    },
+    {
+     "id": "AS9002",
+     "asn": 9002,
+     "name": "RETN",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 5,
+     "share": 0.014
+    },
+    {
+     "id": "AS14840",
+     "asn": 14840,
+     "name": "BR.Digital",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 5,
+     "share": 0.014
+    },
+    {
+     "id": "AS34927",
+     "asn": 34927,
+     "name": "FogNet - iFog GmbH",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 5,
+     "share": 0.014
+    },
+    {
+     "id": "AS47147",
+     "asn": 47147,
+     "name": "ANX",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 5,
+     "share": 0.014
+    },
+    {
+     "id": "AS51185",
+     "asn": 51185,
+     "name": "MainStreaming",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 5,
+     "share": 0.014
+    },
+    {
+     "id": "AS3257",
+     "asn": 3257,
+     "name": "GTT Communications (AS3257)",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 4,
+     "share": 0.011
+    },
+    {
+     "id": "AS12779",
+     "asn": 12779,
+     "name": "IT.Gate",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 4,
+     "share": 0.011
+    },
+    {
+     "id": "AS13030",
+     "asn": 13030,
+     "name": "Init7",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 4,
+     "share": 0.011
+    },
+    {
+     "id": "AS14907",
+     "asn": 14907,
+     "name": "Wikimedia Foundation",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 4,
+     "share": 0.011
+    },
+    {
+     "id": "AS34019",
+     "asn": 34019,
+     "name": "Hivane",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 4,
+     "share": 0.011
+    },
+    {
+     "id": "AS48362",
+     "asn": 48362,
+     "name": "Stadtwerke Feldkirch",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 4,
+     "share": 0.011
+    },
+    {
+     "id": "AS58057",
+     "asn": 58057,
+     "name": "Securebit AG",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 4,
+     "share": 0.011
+    },
+    {
+     "id": "AS3214",
+     "asn": 3214,
+     "name": "xTom GmbH",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS3491",
+     "asn": 3491,
+     "name": "PCCW Global",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS6424",
+     "asn": 6424,
+     "name": "EDGOO NETWORKS",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS6453",
+     "asn": 6453,
+     "name": "TATA Communications Ltd",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS6830",
+     "asn": 6830,
+     "name": "Liberty Global",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS25091",
+     "asn": 25091,
+     "name": "IP-Max SA",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS34549",
+     "asn": 34549,
+     "name": "meerfarbig GmbH & Co. KG",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS35280",
+     "asn": 35280,
+     "name": "F5 Inc.",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS48185",
+     "asn": 48185,
+     "name": "Team Blue",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 3,
+     "share": 0.008
+    },
+    {
+     "id": "AS917",
+     "asn": 917,
+     "name": "Misaka.io",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS2497",
+     "asn": 2497,
+     "name": "Internet Initiative Japan",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS3320",
+     "asn": 3320,
+     "name": "Deutsche Telekom",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS3356",
+     "asn": 3356,
+     "name": "Lumen AS3356",
+     "role": "transit",
+     "tier1": true,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS4755",
+     "asn": 4755,
+     "name": "Tata Communications AS4755",
+     "role": "transit",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS6057",
+     "asn": 6057,
+     "name": "ANTEL",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS6762",
+     "asn": 6762,
+     "name": "Telecom Italia Sparkle",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS8529",
+     "asn": 8529,
+     "name": "Zain Omantel International",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS9044",
+     "asn": 9044,
+     "name": "BSE Software GmbH / SolNet",
+     "role": "transit",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS12956",
+     "asn": 12956,
+     "name": "Telxius Cable",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS15547",
+     "asn": 15547,
+     "name": "netplus.ch",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS18041",
+     "asn": 18041,
+     "name": "Taiwan Digital Streaming Co.",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS19151",
+     "asn": 19151,
+     "name": "365 Data Centers (BroadbandONE)",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS20764",
+     "asn": 20764,
+     "name": "RASCOM",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS25160",
+     "asn": 25160,
+     "name": "Vorboss Limited",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS28634",
+     "asn": 28634,
+     "name": "Life Tecnologia",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS31027",
+     "asn": 31027,
+     "name": "GlobalConnect AS31027",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS35710",
+     "asn": 35710,
+     "name": "weber.cloud",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS38008",
+     "asn": 38008,
+     "name": "Aperture Network",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS42473",
+     "asn": 42473,
+     "name": "Anexia",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS47692",
+     "asn": 47692,
+     "name": "Nessus GmbH",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS50628",
+     "asn": 50628,
+     "name": "Leonix Telecom",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS51184",
+     "asn": 51184,
+     "name": "fonira Telekom",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS59890",
+     "asn": 59890,
+     "name": "Kabel-TV Lampert",
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS62167",
+     "asn": 62167,
+     "name": null,
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS202032",
+     "asn": 202032,
+     "name": null,
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS202365",
+     "asn": 202365,
+     "name": null,
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS271253",
+     "asn": 271253,
+     "name": null,
+     "role": "peer",
+     "tier1": false,
+     "depth": 2,
+     "paths": 2,
+     "share": 0.005
+    },
+    {
+     "id": "AS328840",
+     "asn": 328840,
+     "name": "ST Digital",
+     "role": "peer",
+     "tier1": false,
+     "depth": 3,
+     "paths": 3,
+     "share": 0.008
+    }
+   ],
+   "edges": [
+    {
+     "from": "AS13335",
+     "to": "AS152523",
+     "count": 365
+    },
+    {
+     "from": "AS24482",
+     "to": "AS13335",
+     "count": 11
+    },
+    {
+     "from": "AS199524",
+     "to": "AS13335",
+     "count": 8
+    },
+    {
+     "from": "AS1299",
+     "to": "AS13335",
+     "count": 6
+    },
+    {
+     "from": "AS2914",
+     "to": "AS13335",
+     "count": 6
+    },
+    {
+     "from": "AS6461",
+     "to": "AS13335",
+     "count": 6
+    },
+    {
+     "from": "AS8218",
+     "to": "AS13335",
+     "count": 6
+    },
+    {
+     "from": "AS174",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS9002",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS14840",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS34927",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS47147",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS49544",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS51185",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS3257",
+     "to": "AS13335",
+     "count": 4
+    },
+    {
+     "from": "AS12779",
+     "to": "AS13335",
+     "count": 4
+    },
+    {
+     "from": "AS13030",
+     "to": "AS13335",
+     "count": 4
+    },
+    {
+     "from": "AS14907",
+     "to": "AS13335",
+     "count": 4
+    },
+    {
+     "from": "AS34019",
+     "to": "AS13335",
+     "count": 4
+    },
+    {
+     "from": "AS48362",
+     "to": "AS13335",
+     "count": 4
+    },
+    {
+     "from": "AS3214",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS3491",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS6424",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS6453",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS6830",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS25091",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS34549",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS35280",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS48185",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS2497",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS3320",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS3356",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS4755",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS6057",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS6762",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS8529",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS9044",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS12956",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS15547",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS18041",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS19151",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS20764",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS25160",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS28634",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS31027",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS35710",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS38008",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS42473",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS47692",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS50628",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS51184",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS58057",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS59890",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS62167",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS202032",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS202365",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS271253",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS917",
+     "to": "AS13335",
+     "count": 1
+    },
+    {
+     "from": "AS49544",
+     "to": "AS12956",
+     "count": 1
+    },
+    {
+     "from": "AS58057",
+     "to": "AS34549",
+     "count": 1
+    }
+   ]
+  },
+  "upstreams": [
+   {
+    "asn": 13335,
+    "name": "Cloudflare",
+    "paths": 365,
+    "share": 1.0,
+    "tier1": false
+   }
+  ],
+  "paths_total": 365,
+  "collector_peers": 365,
+  "path_length": {
+   "min": 2,
+   "median": 3,
+   "max": 5,
+   "hist": {
+    "2": 1,
+    "3": 301,
+    "4": 55,
+    "5": 8
+   }
+  },
+  "prepending": [
+   {
+    "asn": 38008,
+    "max_repeat": 2,
+    "paths": 2
+   }
+  ]
+ },
+ "validation": {
+  "rpki": [
+   {
+    "asn": 152523,
+    "state": "valid",
+    "reason": null,
+    "roas": [
+     {
+      "origin": 152523,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "valid"
+     },
+     {
+      "origin": 151734,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "invalid_asn"
+     }
+    ],
+    "maxlength_loose": false
+   }
+  ],
+  "irr": {
+   "available": true,
+   "sources": [
+    "APNIC"
+   ],
+   "objects": [
+    {
+     "source": "APNIC",
+     "prefix": "160.22.108.0/24",
+     "asn": 151734,
+     "rpki_status": "VALID",
+     "exact": true,
+     "matches_bgp": false,
+     "rpsl": "route:          160.22.108.0/24\ndescr:          Route Object\ncountry:        IN\norigin:         AS151734\nmnt-by:         MAINT-IN-BLAZING\nmnt-by:         MAINT-IN-IRINN\nmnt-routes:     MAINT-IN-IRINN\nlast-modified:  2025-12-14T22:25:08Z\nsource:         APNIC\n"
+    },
+    {
+     "source": "APNIC",
+     "prefix": "160.22.108.0/24",
+     "asn": 152523,
+     "rpki_status": "VALID",
+     "exact": true,
+     "matches_bgp": true,
+     "rpsl": "route:          160.22.108.0/24\ndescr:          BLAZING BULLET PRIVATE LIMITED\norigin:         AS152523\nmnt-by:         MAINT-IN-BLAZING\nmnt-by:         MAINT-IN-IRINN\nmnt-routes:     MAINT-IN-IRINN\nmnt-routes:     MAINT-IN-BLAZING\nlast-modified:  2025-12-14T22:25:08Z\nsource:         APNIC\n"
+    },
+    {
+     "source": "APNIC",
+     "prefix": "160.22.108.0/23",
+     "asn": 151734,
+     "rpki_status": "VALID",
+     "exact": false,
+     "matches_bgp": false,
+     "rpsl": "route:          160.22.108.0/23\ndescr:          Route Object\ncountry:        IN\norigin:         AS151734\nmnt-by:         MAINT-IN-BLAZING\nmnt-by:         MAINT-IN-IRINN\nmnt-routes:     MAINT-IN-IRINN\nlast-modified:  2025-12-14T22:25:08Z\nsource:         APNIC\n"
+    },
+    {
+     "source": "APNIC",
+     "prefix": "160.22.108.0/23",
+     "asn": 152523,
+     "rpki_status": "VALID",
+     "exact": false,
+     "matches_bgp": true,
+     "rpsl": "route:          160.22.108.0/23\ndescr:          BLAZING BULLET PRIVATE LIMITED\norigin:         AS152523\nmnt-by:         MAINT-IN-BLAZING\nmnt-by:         MAINT-IN-IRINN\nmnt-routes:     MAINT-IN-IRINN\nmnt-routes:     MAINT-IN-BLAZING\nlast-modified:  2025-12-14T22:25:08Z\nsource:         APNIC\n"
+    }
+   ],
+   "rpki_routes": [
+    {
+     "prefix": "160.22.108.0/23",
+     "asn": 151734,
+     "max_length": 24
+    },
+    {
+     "prefix": "160.22.108.0/23",
+     "asn": 152523,
+     "max_length": 24
+    }
+   ],
+   "messages": [
+    {
+     "category": "warning",
+     "text": "Multiple route objects exist with different origins, but DFZ only has one"
+    }
+   ],
+   "category": "warning"
+  },
+  "summary": {
+   "rpki": "valid",
+   "irr": "match"
+  }
+ },
+ "findings": [
+  {
+   "id": "visibility",
+   "status": "pass",
+   "title": "Visible on 23 of 23 collectors",
+   "meaning": "RIPE RIS collectors on every continent see this route.",
+   "fix": "",
+   "details": {
+    "seen": 23,
+    "total": 23
+   }
+  },
+  {
+   "id": "rpki-AS152523",
+   "status": "pass",
+   "title": "RPKI valid for AS152523",
+   "meaning": "A ROA authorises this AS to originate the prefix.",
+   "fix": "",
+   "details": {
+    "roas": [
+     {
+      "origin": 152523,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "valid"
+     },
+     {
+      "origin": 151734,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "invalid_asn"
+     }
+    ]
+   }
+  },
+  {
+   "id": "irr-match",
+   "status": "pass",
+   "title": "IRR route object matches the announcing AS (AS152523)",
+   "meaning": "A route object in the IRR names the AS that announces this prefix, so IRR-based filters at your upstreams and IXPs will accept it.",
+   "fix": "",
+   "details": {
+    "sources": [
+     "APNIC"
+    ]
+   }
+  }
+ ],
+ "missing": [],
+ "errors": {},
+ "partial": false,
+ "elapsed_ms": 6994
+}

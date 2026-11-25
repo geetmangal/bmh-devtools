@@ -33,10 +33,9 @@ async def _guard(url: str) -> None:
         raise FetchError(f"upstream host refused: {exc}") from exc
 
 
-async def fetch_json(url: str, params: dict | None = None, timeout: float = 8.0, headers: dict | None = None):
-    """GET url (https only, public hosts only, <= 3 re-validated redirects, 768 KiB cap) and decode JSON."""
-    hdrs = {"Accept": "application/rdap+json, application/json", "User-Agent": "BookMyHost-DevTools/1.2 (+https://bookmyhost.com/tools/)"}
-    hdrs.update(headers or {})
+async def _fetch_bytes(url: str, params: dict | None, timeout: float, headers: dict, max_bytes: int) -> bytes:
+    """GET url (https only, public hosts only, <= 3 re-validated redirects, ``max_bytes`` cap) and return the body."""
+    hdrs = headers
     async with httpx.AsyncClient(timeout=timeout, follow_redirects=False, trust_env=False) as client:
         for _ in range(MAX_REDIRECTS + 1):
             await _guard(url)
@@ -52,12 +51,29 @@ async def fetch_json(url: str, params: dict | None = None, timeout: float = 8.0,
                     buf = bytearray()
                     async for chunk in r.aiter_bytes():
                         buf += chunk
-                        if len(buf) > MAX_BYTES:
+                        if len(buf) > max_bytes:
                             raise FetchError("upstream response too large")
             except httpx.HTTPError as exc:
                 raise FetchError(f"upstream request failed: {type(exc).__name__}") from exc
-            try:
-                return json.loads(bytes(buf))
-            except ValueError as exc:
-                raise FetchError("upstream returned invalid JSON") from exc
+            return bytes(buf)
     raise FetchError("too many redirects")
+
+
+async def fetch_json(url: str, params: dict | None = None, timeout: float = 8.0, headers: dict | None = None):
+    """GET url (https only, public hosts only, <= 3 re-validated redirects, 768 KiB cap) and decode JSON."""
+    hdrs = {"Accept": "application/rdap+json, application/json", "User-Agent": "BookMyHost-DevTools/1.2 (+https://bookmyhost.com/tools/)"}
+    hdrs.update(headers or {})
+    body = await _fetch_bytes(url, params, timeout, hdrs, MAX_BYTES)
+    try:
+        return json.loads(body)
+    except ValueError as exc:
+        raise FetchError("upstream returned invalid JSON") from exc
+
+
+async def fetch_text(url: str, params: dict | None = None, timeout: float = 5.0, headers: dict | None = None,
+                     max_bytes: int = 512 * 1024) -> str:
+    """Same guards as fetch_json, but returns the body as text (UTF-8, undecodable bytes replaced)."""
+    hdrs = {"Accept": "text/csv, text/plain, */*", "User-Agent": "BookMyHost-DevTools/1.2 (+https://bookmyhost.com/tools/)"}
+    hdrs.update(headers or {})
+    body = await _fetch_bytes(url, params, timeout, hdrs, max_bytes)
+    return body.decode("utf-8", "replace")

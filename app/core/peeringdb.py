@@ -97,6 +97,37 @@ async def net_by_asn(asn: Any, fetch: Fetch | None = None) -> dict:
     return res
 
 
+async def names_bulk(asns: list[int], fetch: Fetch | None = None) -> dict[int, str]:
+    """AS name (PeeringDB network name) for many ASNs in one request. Unknown ASNs are simply absent; a rate
+    limit returns whatever was cached."""
+    want = sorted({int(a) for a in asns})
+    out: dict[int, str] = {}
+    todo = []
+    for a in want:
+        hit = _cache.get(f"name|{a}")
+        if hit is not None:
+            if hit:
+                out[a] = hit
+        else:
+            todo.append(a)
+    if todo:
+        try:
+            rows = await _get("net", {"asn__in": ",".join(map(str, todo[:100])), "limit": 100, "fields": "asn,name"}, fetch)
+        except RateLimited:
+            return out
+        found = {}
+        for r in rows:
+            try:
+                found[int(r.get("asn"))] = str(r.get("name") or "")
+            except (TypeError, ValueError):
+                continue
+        for a in todo[:100]:
+            _cache.set(f"name|{a}", found.get(a, ""))
+            if found.get(a):
+                out[a] = found[a]
+    return out
+
+
 async def ix_presence(asn: Any, fetch: Fetch | None = None) -> dict:
     """netixlan rows (one per port). IX city/country need a second lookup (/ix); if that is
     rate-limited the ports are returned without cities and ``partial`` is set."""

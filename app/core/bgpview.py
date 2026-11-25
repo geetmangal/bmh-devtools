@@ -15,7 +15,8 @@ import time
 from pathlib import Path
 from typing import Any, Awaitable
 
-from app.core import peeringdb, ripestat
+from app.core import irr as irrmod
+from app.core import pathgraph, peeringdb, prefixwhois, ripestat
 from app.core.ripestat import RipeStatError, parse_asn
 from app.core.validate import is_public_ip
 
@@ -337,8 +338,65 @@ def top_paths(lg: dict | None, limit: int = MAX_PATHS) -> list[dict]:
     return [{**e, "collectors": sorted(e["collectors"])} for e in out]
 
 
+def _plen(prefix: str) -> int | None:
+    try:
+        return int(prefix.rsplit("/", 1)[1])
+    except (IndexError, ValueError):
+        return None
+
+
+def maxlength_loose(prefix: str, roas: list[dict]) -> int | None:
+    """Largest max-length of a VALID ROA that allows more-specifics than the announcement, else None."""
+    plen = _plen(prefix)
+    if plen is None:
+        return None
+    longest = [r["max_length"] for r in roas if r.get("validity") == "valid" and r.get("max_length") is not None]
+    top = max(longest, default=None)
+    return top if top is not None and top > plen else None
+
+
+def irr_findings(prefix: str, origins: list[dict], irr: dict | None, verdict: str) -> list[dict]:
+    out: list[dict] = []
+    if irr is None or not irr.get("available") or not origins:
+        return out
+    asns = [o["asn"] for o in origins]
+    listed = sorted({o["asn"] for o in irr["objects"] if o["exact"]} or {o["asn"] for o in irr["objects"]})
+    names = ", ".join(f"AS{a}" for a in asns)
+    if verdict == "missing":
+        out.append(finding("irr-missing", "warn", "No route object for this prefix in any IRR registry",
+                           "Many transit providers and IXP route servers build their prefix filters from IRR route objects. "
+                           "Without one your announcement can be filtered or need a manual exception.",
+                           "Create a route object (route/route6) for the prefix with your origin AS in your RIR's IRR (for example MyAPNIC for APNIC) "
+                           "and make sure your upstreams use that registry.", {"prefix": prefix}))
+    elif verdict == "mismatch":
+        missing = [a for a in asns if a not in listed]
+        out.append(finding("irr-mismatch", "warn",
+                           f"IRR route objects exist but none names the announcing AS ({', '.join(f'AS{a}' for a in missing) or names})",
+                           f"The IRR lists {', '.join(f'AS{a}' for a in listed)} as origin for this prefix, but BGP shows it announced by {names}. "
+                           "Networks that filter on IRR data may reject or deprioritise the route, and a stale object can also look like a hijack.",
+                           "Create a route object with the correct origin AS in the same registry and delete the outdated one. "
+                           "Keep the ROA and the route object consistent.",
+                           {"bgp_origins": asns, "irr_origins": listed, "sources": irr["sources"]}))
+    elif verdict == "match":
+        out.append(finding("irr-match", "pass", f"IRR route object matches the announcing AS ({names})",
+                           "A route object in the IRR names the AS that announces this prefix, so IRR-based filters at your upstreams and "
+                           "IXPs will accept it.", "", {"sources": sorted({o["source"] for o in irr["objects"] if o["matches_bgp"]})}))
+        rel = [o for o in irr["objects"] if o["exact"]] or irr["objects"]
+        stale = sorted({(o["source"], o["asn"]) for o in rel if o["asn"] not in asns})
+        if stale:
+            who = ", ".join(f"AS{a} in {s}" for s, a in stale)
+            out.append(finding("irr-stale", "warn", f"Outdated route object with a different origin also exists ({who})",
+                               "Besides the correct object, the IRR still holds a route object naming another AS for this prefix. "
+                               "Filters built from the IRR then also allow that AS to announce your space, and tools report "
+                               "\"multiple route objects with different origins\".",
+                               "If that AS should no longer announce the prefix, delete its route object in the registry "
+                               "(and remove its ROA too if one exists).", {"stale": [{"source": s, "asn": a} for s, a in stale]}))
+    return out
+
+
 def prefix_findings(prefix: str, origins: list[dict], moas: bool, announced: bool | None, vis: dict | None,
-                    status: dict | None, history: dict | None) -> list[dict]:
+                    status: dict | None, history: dict | None, irr: dict | None = None,
+                    irr_verdict: str = "unknown") -> list[dict]:
     out: list[dict] = []
     if announced is False or (status is not None and not origins and not status["origins"]):
         out.append(finding("announced", "fail", f"{prefix} is not announced",
@@ -371,6 +429,17 @@ def prefix_findings(prefix: str, origins: list[dict], moas: bool, announced: boo
             out.append(finding(f"rpki-AS{o['asn']}", "warn", f"No ROA covers this prefix (AS{o['asn']})",
                                "Without a ROA the origin cannot be validated and a hijack looks identical to the real route.",
                                "Create a ROA for the prefix in your RIR portal.", {"asn": o["asn"]}))
+    for o in origins:
+        loose = maxlength_loose(prefix, (o.get("rpki") or {}).get("roas") or [])
+        if loose is not None:
+            plen = _plen(prefix)
+            out.append(finding("roa-maxlength-loose", "warn" if loose - plen >= 2 else "info",
+                               f"ROA for AS{o['asn']} allows up to /{loose}, longer than the /{plen} announced",
+                               "A ROA with a max length above the announced length lets anyone announce a more-specific prefix with your AS "
+                               "as the origin (a forged-origin sub-prefix hijack) and still be RPKI-valid.",
+                               f"Set the ROA max length to /{plen}, or create separate ROAs for the more-specific prefixes you really announce.",
+                               {"asn": o["asn"], "max_length": loose, "announced_length": plen}))
+    out.extend(irr_findings(prefix, origins, irr, irr_verdict))
     if moas:
         out.append(finding("moas", "warn", "Announced by multiple origin ASes: " + ", ".join(f"AS{o['asn']}" for o in origins),
                            "Several ASes originate this exact prefix (MOAS). That is normal for anycast and multi-provider setups, but also what a hijack looks like.",
@@ -413,7 +482,8 @@ async def prefix_report(prefix_or_ip: str, *, fetch: ripestat.Fetch | None = Non
     r, errs = await gather_bounded({
         "routing_status": ripestat.routing_status(prefix, fetch), "visibility": ripestat.visibility(prefix, fetch),
         "overview": ripestat.prefix_overview(prefix, fetch), "looking_glass": ripestat.looking_glass(prefix, fetch),
-        "history": ripestat.routing_history(prefix, 30, fetch)}, deadline)
+        "history": ripestat.routing_history(prefix, 30, fetch), "whois": ripestat.whois_prefix(prefix, fetch),
+        "abuse": ripestat.abuse_contact(prefix, fetch), "irr": irrmod.lookup(prefix, fetch)}, deadline)
     errors.update(errs)
     status, vis, ov, lg, hist = (r.get(k) for k in ("routing_status", "visibility", "overview", "looking_glass", "history"))
 
@@ -431,14 +501,37 @@ async def prefix_report(prefix_or_ip: str, *, fetch: ripestat.Fetch | None = Non
         errors["rpki"] = "; ".join(f"{k[5:]}: {v}" for k, v in e2.items())
         missing.append("rpki")
     for k, part in (("routing_status", "routing_status"), ("visibility", "visibility"), ("overview", "overview"),
-                    ("looking_glass", "as_paths"), ("history", "history")):
+                    ("looking_glass", "as_paths"), ("history", "history"), ("whois", "whois"), ("irr", "irr")):
         if k in errs:
             missing.append(part)
+    whois, abuse, irr_entries = r.get("whois"), r.get("abuse"), r.get("irr")
+
+    # connectivity: AS names (PeeringDB in bulk, RIPEstat for the few that are still unknown)
+    names: dict[int, str | None] = {o["asn"]: o["name"] for o in origins if o["name"]}
+    if lg:
+        names.update(await _resolve_names(pathgraph.graph_asns(lg), names, fetch, deadline))
+    connectivity = pathgraph.build(lg, names) if lg else None
+
+    irr_block = irrmod.build(irr_entries, prefix, [o["asn"] for o in origins])
+    irr_verdict = irr_block.pop("verdict")
+    irr_rir = irr_block.pop("rir")
+    validation = None
+    if origins or irr_entries is not None:
+        rpki_rows = []
+        for o in origins:
+            rp = o.get("rpki")
+            if rp:
+                rpki_rows.append({"asn": o["asn"], "state": rp["state"], "reason": rp["reason"], "roas": rp["roas"],
+                                  "maxlength_loose": maxlength_loose(prefix, rp["roas"]) is not None})
+        states = {x["state"] for x in rpki_rows}
+        rpki_sum = "invalid" if "invalid" in states else "unknown" if (not states or "unknown" in states) else "valid"
+        validation = {"rpki": rpki_rows, "irr": irr_block, "summary": {"rpki": rpki_sum, "irr": irr_verdict}}
+    overview_block = prefixwhois.overview(prefix, whois, abuse, irr_rir)
 
     moas = len(asns) > 1
     joined = join_collectors(vis) if vis else None
     announced = ov["announced"] if ov else (bool(asns) if (status or lg) else None)
-    findings = prefix_findings(prefix, origins, moas, announced, joined, status, hist)
+    findings = prefix_findings(prefix, origins, moas, announced, joined, status, hist, irr_block, irr_verdict)
     st = worst(findings) if findings else "unknown"
     return {
         "prefix": prefix, "queried": queried_ip or prefix, "is_ip": is_ip, "announced": announced,
@@ -452,9 +545,26 @@ async def prefix_report(prefix_or_ip: str, *, fetch: ripestat.Fetch | None = Non
         "history": None if not hist else {"days": hist["days"], "origins": hist["origins"], "timeline": hist["timeline"]},
         "as_paths": top_paths(lg) if lg else None,
         "block": ov["block"] if ov else None,
+        "overview": overview_block, "connectivity": connectivity, "validation": validation,
         "findings": findings, "missing": missing, "errors": errors, "partial": bool(missing),
         "elapsed_ms": round((time.monotonic() - t0) * 1000),
     }
+
+
+async def _resolve_names(asns: list[int], known: dict[int, str | None], fetch, deadline: float) -> dict[int, str | None]:
+    """Names for ASNs on the graph: PeeringDB in one bulk call, then RIPEstat as-overview for at most 10 leftovers.
+    Cosmetic, so every failure is swallowed."""
+    todo = [a for a in asns if not known.get(a)]
+    if not todo:
+        return {}
+    r, _e = await gather_bounded({"pdb": peeringdb.names_bulk(todo, fetch)}, deadline)
+    names: dict[int, str | None] = dict(r.get("pdb") or {})
+    rest = [a for a in todo if not names.get(a)][:10]
+    if rest:
+        r2, _e2 = await gather_bounded({f"n:{a}": ripestat.as_overview(a, fetch) for a in rest}, deadline)
+        for k, v in r2.items():
+            names[int(k[2:])] = v.get("name") or v.get("holder")
+    return names
 
 
 def prefix_summary(prefix: str, origins: list[dict], moas: bool, vis: dict | None, announced: bool | None) -> str:

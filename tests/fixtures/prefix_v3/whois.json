@@ -1,0 +1,250 @@
+{
+ "prefix": "160.22.108.0/24",
+ "records": [
+  [
+   {
+    "key": "inetnum",
+    "value": "160.22.108.0/23",
+    "meaning": "The IPv4 address range this record describes."
+   },
+   {
+    "key": "netname",
+    "value": "BLAZING",
+    "meaning": "A short machine-friendly name the registry holder gave this block."
+   },
+   {
+    "key": "descr",
+    "value": "BLAZING BULLET PRIVATE LIMITED",
+    "meaning": "Free-text description, usually the organisation using the block."
+   },
+   {
+    "key": "admin-c",
+    "value": "GM924-AP",
+    "meaning": "Administrative contact handle: who is responsible for the block."
+   },
+   {
+    "key": "tech-c",
+    "value": "NH493-AP",
+    "meaning": "Technical contact handle: who to ask about the network."
+   },
+   {
+    "key": "country",
+    "value": "IN",
+    "meaning": "Country the holder registered for this block. It is not proof of where the servers are."
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-IRINN",
+    "meaning": "Maintainer that is allowed to change this record."
+   },
+   {
+    "key": "mnt-irt",
+    "value": "IRT-BLAZING-IN",
+    "meaning": "Incident-response team contact for this block."
+   },
+   {
+    "key": "mnt-routes",
+    "value": "MAINT-IN-BLAZING",
+    "meaning": "Maintainer that may create route objects for this block."
+   },
+   {
+    "key": "mnt-routes",
+    "value": "MAINT-IN-IRINN",
+    "meaning": "Maintainer that may create route objects for this block."
+   },
+   {
+    "key": "status",
+    "value": "ASSIGNED PORTABLE",
+    "meaning": "APNIC: the block was given directly to an end user by APNIC or an NIR. It is provider-independent, so the holder can keep it when changing ISPs and announce it in BGP."
+   },
+   {
+    "key": "last-modified",
+    "value": "2026-09-25T11:11:36Z",
+    "meaning": "When the record was last changed."
+   },
+   {
+    "key": "geofeed",
+    "value": "https://blazingbullet.com/geofeed.csv",
+    "meaning": "URL of a geolocation feed (RFC 8805) where the holder publishes where each prefix is used."
+   },
+   {
+    "key": "source",
+    "value": "APNIC",
+    "meaning": "Which registry database this record came from."
+   }
+  ]
+ ],
+ "irr_records": [
+  [
+   {
+    "key": "route",
+    "value": "160.22.108.0/23"
+   },
+   {
+    "key": "descr",
+    "value": "BLAZING BULLET PRIVATE LIMITED"
+   },
+   {
+    "key": "origin",
+    "value": "152523"
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-BLAZING"
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-IRINN"
+   },
+   {
+    "key": "mnt-routes",
+    "value": "MAINT-IN-IRINN"
+   },
+   {
+    "key": "mnt-routes",
+    "value": "MAINT-IN-BLAZING"
+   },
+   {
+    "key": "last-modified",
+    "value": "2025-12-14T22:25:08Z"
+   },
+   {
+    "key": "source",
+    "value": "APNIC"
+   }
+  ],
+  [
+   {
+    "key": "route",
+    "value": "160.22.108.0/23"
+   },
+   {
+    "key": "descr",
+    "value": "Route Object"
+   },
+   {
+    "key": "country",
+    "value": "IN"
+   },
+   {
+    "key": "origin",
+    "value": "151734"
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-BLAZING"
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-IRINN"
+   },
+   {
+    "key": "mnt-routes",
+    "value": "MAINT-IN-IRINN"
+   },
+   {
+    "key": "last-modified",
+    "value": "2025-12-14T22:25:08Z"
+   },
+   {
+    "key": "source",
+    "value": "APNIC"
+   }
+  ],
+  [
+   {
+    "key": "route",
+    "value": "160.22.108.0/24"
+   },
+   {
+    "key": "descr",
+    "value": "BLAZING BULLET PRIVATE LIMITED"
+   },
+   {
+    "key": "origin",
+    "value": "152523"
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-BLAZING"
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-IRINN"
+   },
+   {
+    "key": "mnt-routes",
+    "value": "MAINT-IN-IRINN"
+   },
+   {
+    "key": "mnt-routes",
+    "value": "MAINT-IN-BLAZING"
+   },
+   {
+    "key": "last-modified",
+    "value": "2025-12-14T22:25:08Z"
+   },
+   {
+    "key": "source",
+    "value": "APNIC"
+   }
+  ],
+  [
+   {
+    "key": "route",
+    "value": "160.22.108.0/24"
+   },
+   {
+    "key": "descr",
+    "value": "Route Object"
+   },
+   {
+    "key": "country",
+    "value": "IN"
+   },
+   {
+    "key": "origin",
+    "value": "151734"
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-BLAZING"
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-IRINN"
+   },
+   {
+    "key": "mnt-routes",
+    "value": "MAINT-IN-IRINN"
+   },
+   {
+    "key": "last-modified",
+    "value": "2025-12-14T22:25:08Z"
+   },
+   {
+    "key": "source",
+    "value": "APNIC"
+   }
+  ]
+ ],
+ "authorities": [
+  "apnic"
+ ],
+ "abuse_email": "abuse@blazingbullet.com",
+ "geofeed": {
+  "url": "https://blazingbullet.com/geofeed.csv",
+  "rows": [
+   {
+    "prefix": "160.22.108.0/24",
+    "country": "IN",
+    "region": "IN-UP",
+    "city": "Noida",
+    "zip": "201305"
+   }
+  ],
+  "error": null
+ },
+ "raw": "inetnum: 160.22.108.0/23\nnetname: BLAZING\ndescr: BLAZING BULLET PRIVATE LIMITED\nadmin-c: GM924-AP\ntech-c: NH493-AP\ncountry: IN\nmnt-by: MAINT-IN-IRINN\nmnt-irt: IRT-BLAZING-IN\nmnt-routes: MAINT-IN-BLAZING\nmnt-routes: MAINT-IN-IRINN\nstatus: ASSIGNED PORTABLE\nlast-modified: 2026-09-25T11:11:36Z\ngeofeed: https://blazingbullet.com/geofeed.csv\nsource: APNIC\n\nroute: 160.22.108.0/23\ndescr: BLAZING BULLET PRIVATE LIMITED\norigin: 152523\nmnt-by: MAINT-IN-BLAZING\nmnt-by: MAINT-IN-IRINN\nmnt-routes: MAINT-IN-IRINN\nmnt-routes: MAINT-IN-BLAZING\nlast-modified: 2025-12-14T22:25:08Z\nsource: APNIC\n\nroute: 160.22.108.0/23\ndescr: Route Object\ncountry: IN\norigin: 151734\nmnt-by: MAINT-IN-BLAZING\nmnt-by: MAINT-IN-IRINN\nmnt-routes: MAINT-IN-IRINN\nlast-modified: 2025-12-14T22:25:08Z\nsource: APNIC\n\nroute: 160.22.108.0/24\ndescr: BLAZING BULLET PRIVATE LIMITED\norigin: 152523\nmnt-by: MAINT-IN-BLAZING\nmnt-by: MAINT-IN-IRINN\nmnt-routes: MAINT-IN-IRINN\nmnt-routes: MAINT-IN-BLAZING\nlast-modified: 2025-12-14T22:25:08Z\nsource: APNIC\n\nroute: 160.22.108.0/24\ndescr: Route Object\ncountry: IN\norigin: 151734\nmnt-by: MAINT-IN-BLAZING\nmnt-by: MAINT-IN-IRINN\nmnt-routes: MAINT-IN-IRINN\nlast-modified: 2025-12-14T22:25:08Z\nsource: APNIC",
+ "fetched_at": "2026-11-25T04:58:36Z"
+}
