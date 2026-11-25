@@ -51,7 +51,7 @@ async def test_generator_page_renders_builder_and_says_nothing_leaves_the_browse
     assert r.status_code == 200
     t = r.text
     for needle in ('id="gen-form"', 'id="gen-domain"', 'data-include="_spf.google.com"', 'data-include="spf.protection.outlook.com"',
-                   'data-include="zoho.in"', 'data-include="zoho.com"', 'data-include="amazonses.com"', 'data-include="sendgrid.net"',
+                   'data-include="zohomail.com"', 'data-include="amazonses.com"', 'data-include="sendgrid.net"',
                    'data-include="mailgun.org"', 'data-include="spf.brevo.com"', 'id="spf-ip4"', 'id="spf-ip6"', 'id="spf-include"',
                    'id="spf-all"', 'id="dm-p"', 'id="dm-sp"', 'id="dm-pct"', 'id="dm-rua"', 'id="dm-ruf"', 'id="dm-adkim"', 'id="dm-aspf"', 'id="dm-fo"',
                    'js/tools/spf-dmarc-generator.js'):
@@ -158,3 +158,11 @@ def test_generator_run_builds_records():
     src = (JS / "tools" / "spf-dmarc-generator.js").read_text(encoding="utf-8")
     run_line = next(l for l in src.splitlines() if l.strip().startswith("run:"))
     assert "buildSpf(" in run_line and "buildDmarc(" in run_line
+
+
+def test_zoho_uses_documented_include():
+    """Zoho's SPF guide gives include:zohomail.com for every data centre; the generator and the SPF checker agree."""
+    from app.core.mailcheck import spf
+    html = (Path(__file__).resolve().parents[1] / "app" / "templates" / "generator.html").read_text(encoding="utf-8")
+    assert 'data-include="zohomail.com"' in html and 'data-include="zoho.in"' not in html and 'data-include="zoho.com"' not in html
+    assert spf._provider_suggestion(["10 mx.zoho.in."], "example.in") == "v=spf1 include:zohomail.com ~all"

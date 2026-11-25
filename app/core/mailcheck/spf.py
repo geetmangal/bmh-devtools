@@ -33,6 +33,7 @@ PROVIDER_INCLUDES = {
     "Proton Mail": "include:_spf.protonmail.ch",
     "Fastmail": "include:spf.messagingengine.com",
     "Amazon SES (inbound)": "include:amazonses.com",
+    "Zoho Mail": "include:zohomail.com",  # Zoho's SPF guide: one include for every data centre (checked 2026-11-25)
 }
 
 
@@ -361,10 +362,6 @@ def _provider_suggestion(mx_records: list[str], domain: str) -> str:
         if not p:
             continue
         prov = detect_provider(p[1], domain)
-        if prov == "Zoho Mail":
-            m = re.search(r"(zoho\.[a-z.]+)$", p[1])
-            if m:
-                return f"v=spf1 include:{m.group(1)} ~all"
         if prov in PROVIDER_INCLUDES:
             return f"v=spf1 {PROVIDER_INCLUDES[prov]} ~all"
     return "v=spf1 mx ~all"

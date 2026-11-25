@@ -17,7 +17,7 @@
     {
       "h": "Building the SPF record",
       "p": [
-        "Tick every service that sends mail with your address. The generator adds one include for each: Google Workspace, Microsoft 365, Zoho Mail (the India data centre uses zoho.in, accounts on the global data centre use zoho.com), Amazon SES, SendGrid, Mailgun and Brevo. Add your own servers as ip4 or ip6 addresses or ranges, and use a or mx only if the mail really leaves from those hosts.",
+        "Tick every service that sends mail with your address. The generator adds one include for each: Google Workspace, Microsoft 365, Zoho Mail (zohomail.com, the include Zoho documents for every data centre), Amazon SES, SendGrid, Mailgun and Brevo. Add your own servers as ip4 or ip6 addresses or ranges, and use a or mx only if the mail really leaves from those hosts.",
         "The record ends with an all rule. Start with ~all, which marks mail from unlisted servers as suspicious. Move to -all, which asks receivers to reject it, after the DMARC reports show that every legitimate sender is covered.",
         "SPF allows at most 10 DNS lookups. Each include, a and mx counts as one, while ip4 and ip6 are free. The generator counts these for you. Because every included record can contain includes of its own, the number shown is a lower bound whenever you use an include; publish the record and run it through the SPF checker for the exact total."
       ]
@@ -55,7 +55,7 @@
     ],
     [
       "Which Zoho include do I need?",
-      "Use zoho.in if your Zoho account is in the India data centre and zoho.com if it is on the global one. Zoho publishes a separate include for each region, so tick the one that matches your account."
+      "Use include:zohomail.com. Zoho's SPF guide gives this one record for every data centre, India included. Older records often use zoho.in or zoho.com. They still work, but zoho.com alone costs about five of the ten allowed DNS lookups, so switch to zohomail.com the next time you edit the record."
     ],
     [
       "Why does the lookup count say at least?",
