@@ -69,6 +69,13 @@ PAGES: dict[str, dict] = {
         "intro": "Look up any autonomous system number to see who runs it, which prefixes it announces, how many are protected by RPKI, which networks sit upstream and downstream of it on a graph, and where it connects (internet exchanges and facilities from PeeringDB).",
         "about": [f"API: GET {API}/asn/13335."],
     },
+    "http-headers-checker": {
+        "input": "url", "label": "Website address", "placeholder": "example.com or https://example.com/page", "button": "Check headers",
+        "h1": "HTTP Headers & Redirect Checker",
+        "intro": "Follow the redirects of a web address one request at a time, then grade the security headers of the final page from A to F: HSTS, Content-Security-Policy, X-Content-Type-Options, clickjacking protection, Referrer-Policy and Permissions-Policy. Each problem comes with the line to add for nginx, Apache or LiteSpeed.",
+        "about": ["A domain without a scheme is requested on plain HTTP first, so you can see whether it redirects to HTTPS. Type the full https:// address to start on HTTPS. At most 8 requests are made, and every redirect target must be a public web address on port 80, 443, 8080 or 8443.",
+                  f"API: POST {API}/http/headers with {{\"url\": \"example.com\"}} returns the hops, flags, headers, grade and findings as JSON."],
+    },
     "bgp-prefix-lookup": {
         "input": "prefix", "label": "IP prefix or address", "placeholder": "1.1.1.0/24 or 1.1.1.1", "button": "Look up prefix",
         "h1": "BGP Prefix Lookup",

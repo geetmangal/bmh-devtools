@@ -100,7 +100,7 @@ def test_content_files_are_complete(slug):
         assert r["slug"] in SLUGS and r["slug"] != slug and len(r["anchor"].split()) >= 3, r
     assert c["og_line"] and not re.search(r"@(API|BASE|RATE)@", json.dumps(c))  # no unfilled tokens
     if slug != "hub":
-        assert c["inputs"] and c["outputs"] and (c["curl"] is None) == (slug == "email-header-analyzer")
+        assert c["inputs"] and c["outputs"] and (c["curl"] is None) == (slug in ("email-header-analyzer", "spf-dmarc-generator"))
 
 
 @pytest.mark.parametrize("slug", SLUGS)
