@@ -1,3 +1,4 @@
+@import "./hub.css";
 /* Source for app/static/css/tools.css (built at image build time by the Tailwind standalone CLI, minified).
    Theming: CSS variables. Light is the default; dark follows prefers-color-scheme unless the visitor chose a
    theme (html[data-theme]). Brand accent is --accent so embeds can override it (?accent=#hex). */

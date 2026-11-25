@@ -1,0 +1,32 @@
+/* Hub page components (slice B). Imported from tools.css. */
+.hub-h2 { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--mute); margin-bottom: .75rem; }
+.hub-h3 { font-size: .8rem; font-weight: 600; color: var(--mute); margin: .25rem 0 .5rem; }
+.hub-sub { margin-bottom: 1rem; }
+.hub-sec-count { font-weight: 500; opacity: .7; margin-left: .25rem; }
+.qs-grid, .tool-grid { display: grid; gap: .75rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1024px) { .qs-grid, .tool-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; } }
+@media (max-width: 479px) { .tool-grid { grid-template-columns: minmax(0, 1fr); } }
+.qs-card, .tool-card { display: flex; flex-direction: column; gap: .25rem; padding: 1rem; text-decoration: none; color: var(--ink); }
+.qs-card:hover, .tool-card:hover { text-decoration: none; border-color: var(--accent); }
+.qs-card:focus-visible, .tool-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.qs-icon, .tool-card-icon { color: var(--accent); display: inline-flex; }
+.qs-label { font-weight: 600; font-size: .95rem; }
+.qs-hint, .tool-card-short { font-size: .85rem; color: var(--mute); }
+.tool-card-head { display: flex; align-items: center; gap: .5rem; }
+.tool-card-name { font-weight: 600; font-size: 1rem; }
+.tool-card-pills { display: flex; flex-wrap: wrap; gap: .35rem; margin-top: .35rem; }
+.pill-new, .pill-pop, .pill-meta { font-size: .7rem; line-height: 1; padding: .25rem .5rem; border-radius: 999px; border: 1px solid var(--line); }
+.pill-new { background: var(--ok-bg); color: var(--ok); border-color: transparent; font-weight: 600; }
+.pill-pop { background: var(--accent-soft); color: var(--accent); border-color: transparent; font-weight: 600; }
+.pill-meta { background: var(--surface2); color: var(--mute); }
+.hub-filter { background: var(--bg); padding: .75rem 0; margin-bottom: 1rem; display: flex; flex-direction: column; gap: .5rem; z-index: 10; }
+@media (min-width: 1024px) { .hub-filter { position: sticky; top: 0; } }
+.hub-filter-input { width: 100%; padding: .6rem .8rem; border: 1px solid var(--line); border-radius: .6rem; background: var(--surface); color: var(--ink); }
+.hub-filter-input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.hub-chips { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chip-cat, .chip-link { font-size: .8rem; padding: .35rem .75rem; border-radius: 999px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; text-decoration: none; }
+.chip-cat:hover, .chip-link:hover { border-color: var(--accent); text-decoration: none; }
+.chip-cat[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.chip-cat:focus-visible, .chip-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hub-count { font-size: .8rem; color: var(--mute); }
+.hub-sec[hidden], .hub-sub[hidden], .tool-card[hidden], #hub-empty[hidden], #hub-recent[hidden] { display: none; }
