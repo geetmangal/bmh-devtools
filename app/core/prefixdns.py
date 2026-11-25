@@ -89,8 +89,25 @@ async def delegation(resolver: Resolver, zones: list[str]) -> list[dict]:
         if ns.ok:
             ds = await resolver.query(zone, "DS")
             ds_state = True if ds.ok else (False if ds.status in ("noanswer", "nxdomain") else None)
-            return [{"zone": zone, "ns": sorted(set(ns.records))[:10], "ds": ds_state}]
+            names = sorted(set(ns.records))[:10]
+            return [{"zone": zone, "ns": names, "ds": ds_state, "ns_problems": await ns_problems(resolver, names)}]
     return []
+
+
+async def ns_problems(resolver: Resolver, names: list[str]) -> list[dict]:
+    """Name servers outside resolvers cannot reach: a bare host name such as ``win-8h6jmqbvgp2`` (``not_fqdn``) or a
+    name with neither an A nor an AAAA record (``no_address``). Timeouts and SERVFAILs are not flagged (unknown)."""
+    async def one(name: str) -> dict | None:
+        host = name.strip().rstrip(".")
+        if "." not in host:
+            return {"ns": name, "problem": "not_fqdn"}
+        a, aaaa = await asyncio.gather(resolver.query(host, "A"), resolver.query(host, "AAAA"))
+        if a.ok or aaaa.ok:
+            return None
+        if all(r.status in ("noanswer", "nxdomain") for r in (a, aaaa)):
+            return {"ns": name, "problem": "no_address"}
+        return None
+    return [r for r in await asyncio.gather(*(one(n) for n in names)) if r]
 
 
 # --- PTR sweep --------------------------------------------------------------------------------------

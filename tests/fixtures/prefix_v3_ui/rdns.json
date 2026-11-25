@@ -9,9 +9,12 @@
    "zone": "108.22.160.in-addr.arpa",
    "ns": [
     "ns1.blazingbullet.example",
-    "ns2.blazingbullet.example"
+    "win-8h6jmqbvgp2"
    ],
-   "ds": false
+   "ds": false,
+   "ns_problems": [
+    {"ns": "win-8h6jmqbvgp2", "problem": "not_fqdn"}
+   ]
   }
  ],
  "rows": [

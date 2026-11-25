@@ -115,12 +115,23 @@ function nesting(res) {
     meaning: 'Each box is a block that contains the one inside it. Traffic always follows the most specific route, so a smaller block announced by another network can steal part of a range.' });
 }
 
-const VALIDATION_ID = /^(irr|roa|rpki)/;
+// Which tab shows a report finding. Unknown ids land in Overview so nothing is lost.
+const tabOf = (id) => (/^(rpki|irr|roa)(-|$)/.test(id || '') ? 'validation' : /^(visibility|moas|more-specific-other-as|origin-change)$/.test(id || '') ? 'connectivity' : 'overview');
+const findingsFor = (res, tab) => (res.findings || []).filter((f) => tabOf(f.id) === tab);
+const F_ST = { fail: 'bad', warn: 'warn', pass: 'ok', info: 'info' };
+const SEV = { bad: 4, warn: 3, ok: 2, info: 1, mute: 0 };
+const worstOf = (list) => list.reduce((a, b) => ((SEV[b] ?? 0) > (SEV[a] ?? 0) ? b : a), 'mute');
+// Badge from the statuses of everything a tab renders (cards + findings). Text counts the items at the worst level.
+function tabBadge(cardSts, findSts, okText) {
+  const all = [...cardSts, ...findSts], st = worstOf(all);
+  if (st === 'bad' || st === 'warn') { const n = Math.max(cardSts.filter((x) => x === st).length, findSts.filter((x) => x === st).length, 1); return { status: st, text: plural(n, st === 'bad' ? 'problem' : 'warning') }; }
+  return { status: st, text: st === 'mute' ? 'n/a' : okText };
+}
 
 function overviewPanel(res, dnsRow) {
   const out = [passport(res), healthList(res, dnsRow)];
   const n = nesting(res); if (n) out.push(n);
-  out.push(...findingCards((res.findings || []).filter((f) => !VALIDATION_ID.test(f.id || ''))));
+  out.push(...findingCards(findingsFor(res, 'overview')));
   return out;
 }
 
@@ -215,6 +226,7 @@ function connectivityPanel(res) {
   if (res.visibility && (res.visibility.collectors || []).length) out.push(visibility(res.visibility));
   const hist = history(res.history); if (hist) out.push(hist);
   const ap = asPaths(res.as_paths); if (ap) out.push(ap);
+  out.push(...findingCards(findingsFor(res, 'connectivity')));
   return out;
 }
 
@@ -233,7 +245,8 @@ function whoisPanel(d, setBadge) {
   const out = [];
   const records = d.records || [], irr = d.irr_records || [];
   const n = records.reduce((a, b) => a + (b || []).length, 0);
-  setBadge({ status: records.length ? 'ok' : 'warn', text: records.length ? plural(records.length, 'object') : 'none' });
+  const g0 = d.geofeed, wsts = [d.abuse_email ? 'ok' : 'warn', records.length ? 'ok' : 'warn', g0 ? (g0.error ? 'warn' : (g0.rows || []).length ? 'ok' : 'info') : 'info'];
+  setBadge(worstOf(wsts) === 'warn' ? { status: 'warn', text: plural(wsts.filter((x) => x === 'warn').length, 'warning') } : { status: worstOf(wsts), text: plural(records.length, 'object') });
   out.push(d.abuse_email
     ? h('section', { class: 'card p-4 flex flex-wrap items-center gap-3' }, h('span', { class: 'st-ok' }, icon('shield', 22)),
       h('div', { class: 'min-w-0 flex-1' }, h('div', { class: 'text-xs uppercase tracking-wide text-mute font-bold' }, 'Abuse contact'), h('a', { href: `mailto:${d.abuse_email}`, class: 'font-semibold mono break-all' }, d.abuse_email),
@@ -266,14 +279,28 @@ function blockLabel(prefix, i, blocks) {
   return `${o.join('.')}/24 (block ${i + 1} of ${blocks})`;
 }
 
-const dnsBadge = (d) => { const s = d.stats || {}; return !(d.rows || []).length ? { status: 'info', text: 'zones' } : !s.with_ptr ? { status: 'warn', text: 'no PTR' } : (s.fcrdns_ok || 0) < s.with_ptr ? { status: 'warn', text: `${s.with_ptr} PTR` } : { status: 'ok', text: `${s.with_ptr} PTR` }; };
+// Worst of the cards the DNS tab renders: delegation (missing or with unreachable name servers) and the PTR scan.
+function dnsBadge(d) {
+  const s = d.stats || {}, dl = d.delegations || [], sts = [];
+  sts.push(!dl.length ? 'warn' : dl.some((z) => (z.ns_problems || []).length) ? 'warn' : 'info');
+  if ((d.rows || []).length) sts.push(!s.with_ptr || (s.fcrdns_ok || 0) < s.with_ptr ? 'warn' : 'ok');
+  const st = worstOf(sts);
+  if (st === 'warn') return { status: 'warn', text: plural(sts.filter((x) => x === 'warn').length, 'warning') };
+  return (d.rows || []).length ? { status: st, text: `${s.with_ptr} PTR` } : { status: st, text: 'zones' };
+}
+
+const NS_PROBLEM = { not_fqdn: 'not a full hostname', no_address: 'has no A or AAAA record' };
 
 function delegationCard(d) {
   const dl = d.delegations || [];
   if (!dl.length) return checkCard({ status: 'warn', title: 'No reverse DNS delegation found', meaning: 'Reverse DNS (in-addr.arpa or ip6.arpa) tells the internet which name belongs to an IP. No name servers are delegated for this block, so nobody can publish PTR records for it.', fix: { steps: ['Ask your upstream provider or RIR to delegate the reverse zone to your DNS servers, or ask them to set the PTR records for you.'] } });
-  return checkCard({ status: 'info', title: `Reverse zone delegation (${dl.length})`,
-    body: dataTable(['Zone', 'Name servers', 'DNSSEC'], dl.map((z) => [z.zone, (z.ns || []).length ? h('span', null, ...z.ns.flatMap((x, i) => (i ? [h('br'), x] : [x]))) : h('span', { class: 'text-mute' }, 'none'), z.ds === true ? pill('ok', 'Signed (DS)') : z.ds === false ? pill('mute', 'Not signed') : pill('mute', 'Unknown')]), { mono: [0, 1] }),
-    meaning: 'The registry hands the reverse zone to these name servers, and they answer for every PTR in it. A DS record means the zone is DNSSEC-signed, which stops forged answers.' });
+  const bad = dl.flatMap((z) => (z.ns_problems || []).map((p) => ({ zone: z.zone, ...p })));
+  const nsCell = (z) => { const probs = new Map((z.ns_problems || []).map((p) => [p.ns, p.problem])); return (z.ns || []).length ? h('span', null, ...z.ns.flatMap((x, i) => [i ? h('br') : null, x, probs.has(x) ? h('span', { class: 'text-xs st-warn font-sans' }, ` (${NS_PROBLEM[probs.get(x)] || 'problem'})`) : null])) : h('span', { class: 'text-mute' }, 'none'); };
+  return checkCard({ status: bad.length ? 'warn' : 'info', title: bad.length ? `Reverse zone delegation (${dl.length}): ${plural(bad.length, 'name server')} cannot be reached from outside` : `Reverse zone delegation (${dl.length})`,
+    body: dataTable(['Zone', 'Name servers', 'DNSSEC'], dl.map((z) => [z.zone, nsCell(z), z.ds === true ? pill('ok', 'Signed (DS)') : z.ds === false ? pill('mute', 'Not signed') : pill('mute', 'Unknown')]), { mono: [0, 1] }),
+    meaning: bad.length ? 'This name server name is not a full hostname, so resolvers outside your network cannot reach it; reverse lookups then fail or depend on caches. (A name server with no address record has the same effect.) The registry hands the reverse zone to these name servers, and they answer for every PTR in it.'
+      : 'The registry hands the reverse zone to these name servers, and they answer for every PTR in it. A DS record means the zone is DNSSEC-signed, which stops forged answers.',
+    fix: bad.length ? { steps: ['At your RIR (MyAPNIC / IRINN) set the reverse DNS name servers to fully-qualified names like ns1.example.com that answer for the zone.', `Make sure each name server has an A or AAAA record: ${bad.map((b) => b.ns).join(', ')}.`] } : null });
 }
 
 function dnsPanel(ctx, prefix, setBadge, done) {
@@ -311,15 +338,15 @@ function dnsPanel(ctx, prefix, setBadge, done) {
 
 /* ------------------------------------------------------------------ Validation */
 
-function lengthRule(roaLen, maxLen, annLen, bits) {
+function lengthRule(roaLen, maxLen, annLen, bits, label) {
   if (roaLen == null || maxLen == null) return null;
   const lo = Math.max(0, Math.min(roaLen, annLen ?? roaLen) - 2), hi = Math.min(bits, Math.max(maxLen, annLen ?? maxLen) + 2);
   const cells = []; for (let n = lo; n <= hi && cells.length < 40; n++) {
     const allowed = n >= roaLen && n <= maxLen, longer = annLen != null && n > annLen && allowed;
     cells.push(h('span', { class: `${allowed ? (longer ? 'len-max' : 'len-roa') : ''}${n === annLen ? ' len-now' : ''}`.trim(), title: `/${n}${allowed ? ' allowed by the ROA' : ' not covered by the ROA'}${n === annLen ? ' (announced)' : ''}` }, `/${n}`));
   }
-  return h('div', null, h('div', { class: 'lenrule', role: 'img', 'aria-label': `ROA allows /${roaLen} to /${maxLen}; announced /${annLen ?? '?'}` }, cells),
-    h('p', { class: 'text-xs text-mute mt-1' }, `Green: lengths the ROA allows. Outlined: what is announced (/${annLen ?? '?'}). Amber: longer lengths the ROA allows beyond what is announced.`));
+  return h('div', null, label ? h('div', { class: 'text-xs font-semibold mono mb-1' }, label) : null,
+    h('div', { class: 'lenrule', role: 'img', 'aria-label': `${label ? label + ': ' : ''}ROA allows /${roaLen} to /${maxLen}; announced /${annLen ?? '?'}` }, cells));
 }
 
 function rpkiCard(r, res) {
@@ -327,12 +354,14 @@ function rpkiCard(r, res) {
   const ann = lenOf(res.prefix || res.queried), bits = /:/.test(res.prefix || '') ? 128 : 32;
   const origin = (res.origins || []).find((o) => o.asn === r.asn);
   const roas = r.roas || [];
+  const bars = roas.slice(0, 4).map((x) => lengthRule(lenOf(x.prefix), x.max_length, ann, bits, `AS${x.origin} · ${x.prefix}${x.max_length != null ? ` max /${x.max_length}` : ''}`));
   return checkCard({
     status: s, title: `Origin AS${r.asn}${origin?.holder || origin?.name ? ' - ' + (origin.holder || origin.name) : ''}: route validation ${w}`,
     body: h('div', { class: 'space-y-3' }, h('div', { class: 'flex flex-wrap items-center gap-2' }, pill(s, `RPKI ${w}`), r.maxlength_loose ? pill('warn', 'Loose max length') : null),
       r.reason ? h('p', { class: 'text-sm' }, r.reason) : null,
       roas.length ? dataTable(['ROA origin', 'Prefix', 'Max length', 'Result'], roas.map((x) => [`AS${x.origin}`, x.prefix, x.max_length != null ? `/${x.max_length}` : '', x.validity]), { mono: [0, 1] }) : null,
-      ...roas.slice(0, 4).map((x) => lengthRule(lenOf(x.prefix), x.max_length, ann, bits))),
+      ...bars,
+      bars.some(Boolean) ? h('p', { class: 'text-xs text-mute' }, `Green: lengths the ROA allows. Outlined: what is announced (/${ann ?? '?'}). Amber: longer lengths the ROA allows beyond what is announced.`) : null),
     meaning: 'RPKI lets the owner of an IP block publish a signed record (a ROA) saying which AS may announce it and how long a prefix it may use (max length). "Valid" means the announcement matches a ROA, "Invalid" means it conflicts with one, and "No ROA" means nothing is published, so networks cannot tell a hijack from the real thing.',
     fix: r.state === 'invalid' ? { steps: ['Check that the origin AS and the announced length match your ROA, or create or update the ROA at your RIR portal.'] }
       : r.state === 'unknown' || r.state === 'not-found' ? { steps: ['Create a ROA for this prefix at your regional registry (ARIN, RIPE, APNIC, LACNIC or AFRINIC).'] }
@@ -389,7 +418,7 @@ function validationPanel(res) {
   if (!rp.length) out.push(notAvailable('RPKI result not available', 'No origin was found to validate, or the RPKI service did not answer.'));
   rp.forEach((r) => out.push(rpkiCard(r, res)));
   if (v) out.push(...irrCards(res)); else out.push(notAvailable('IRR comparison not available', 'The IRR route-object check did not run for this report.'));
-  out.push(...findingCards((res.findings || []).filter((f) => VALIDATION_ID.test(f.id || ''))));
+  out.push(...findingCards(findingsFor(res, 'validation')));
   return out;
 }
 
@@ -398,13 +427,21 @@ function validationPanel(res) {
 function badges(res) {
   const rk = rpkiSummary(res), irr = res.validation?.summary?.irr;
   const vis = res.visibility, tot = vis?.total_collectors ?? (vis?.collectors || []).length, seen = vis?.seen_collectors ?? (vis?.collectors || []).filter((c) => c.is_seen).length;
-  const worst = rk === 'invalid' ? 'bad' : (irr === 'mismatch' || irr === 'missing' || (rk && rk !== 'valid')) ? 'warn' : rk || irr ? 'ok' : 'mute';
-  const up = res.connectivity?.upstreams;
+  const up = res.connectivity?.upstreams, fs = (tab) => findingsFor(res, tab).map((f) => F_ST[f.status] || 'info');
+  // Validation: RPKI card(s), IRR card (+ IRR Explorer messages) and the rpki-/irr-/roa- findings.
+  const v = res.validation, rpkiSts = (v?.rpki?.length ? v.rpki.map((r) => r.state) : (res.origins || []).filter((o) => o.rpki).map((o) => o.rpki.state)).map((k) => (RPKI[k] || ['mute'])[0]);
+  const irrMsg = { success: 'ok', warning: 'warn', danger: 'bad', error: 'bad' }, msgSts = (v?.irr?.messages || []).map((m) => irrMsg[m.category] || 'info');
+  const valCards = [...rpkiSts, ...(v ? [(IRR_WORD[irr] || IRR_WORD.unknown)[0], ...(msgSts.length ? [worstOf(msgSts)] : [])] : [])];
+  const validation = tabBadge(valCards, fs('validation'), rk === 'valid' ? 'RPKI valid' : 'OK');
+  // Connectivity: visibility gauge, upstream card, origin-history card + connectivity findings.
+  const pct = tot ? seen / tot : null, hs = res.history?.timeline || [];
+  const conCards = [...(pct == null ? [] : [pct >= 0.8 ? 'ok' : pct >= 0.4 ? 'warn' : 'bad']), ...(up && up.length ? [up.length === 1 ? 'warn' : 'info'] : []), ...(hs.length ? [new Set(hs.map((x) => x.origin)).size > 1 ? 'warn' : 'info'] : [])];
+  const connectivity = tabBadge(conCards, fs('connectivity'), up && up.length ? plural(up.length, 'upstream') : `${seen}/${tot} seen`);
+  const ovSt = res.status === 'fail' ? 'bad' : res.status === 'warn' ? 'warn' : res.status === 'pass' ? 'ok' : 'info';
+  const ov = worstOf([ovSt, validation.status === 'mute' ? 'info' : validation.status, connectivity.status === 'mute' ? 'info' : connectivity.status, ...fs('overview')]);
   return {
-    overview: { status: res.status === 'fail' ? 'bad' : res.status === 'warn' ? 'warn' : res.status === 'pass' ? 'ok' : 'info', text: res.announced === false ? 'not announced' : res.status === 'pass' ? 'OK' : res.status === 'warn' ? 'check' : res.status === 'fail' ? 'issues' : '' },
-    connectivity: up ? { status: up.length > 1 ? 'ok' : up.length === 1 ? 'warn' : 'mute', text: plural(up.length, 'upstream') } : tot ? { status: seen / tot >= 0.8 ? 'ok' : seen / tot >= 0.4 ? 'warn' : 'bad', text: `${seen}/${tot} seen` } : { status: 'mute', text: 'n/a' },
-    whois: { status: 'mute', text: '' }, dns: { status: 'mute', text: '' },
-    validation: { status: worst, text: rk === 'invalid' ? 'RPKI invalid' : irr === 'mismatch' ? 'IRR mismatch' : irr === 'missing' ? 'no IRR' : rk && rk !== 'valid' ? 'no ROA' : rk === 'valid' ? 'valid' : 'n/a' },
+    overview: { status: ov, text: res.announced === false ? 'not announced' : ov === 'ok' ? 'OK' : ov === 'warn' ? 'check' : ov === 'bad' ? 'issues' : '' },
+    connectivity, whois: { status: 'mute', text: '' }, dns: { status: 'mute', text: '' }, validation,
   };
 }
 

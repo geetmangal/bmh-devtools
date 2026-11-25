@@ -5,7 +5,7 @@
 import { h, svg, srOnly, plural } from '../ui/dom.js';
 import { config } from '../ui/tool.js';
 
-const COLW = 178, ROW = 56, PADX = 70, PADT = 34, TOP_NODES = 14;
+const MINCOL = 150, ROW = 56, PADL = 84, PADR = 84, PADT = 34, TOP_NODES = 14, LABEL_CH = 22;
 const trunc = (s, n) => (s && s.length > n ? s.slice(0, n - 1) + '…' : s || '');
 const ROLE_WORD = { origin: 'Origin', upstream: 'Upstream', transit: 'Transit', peer: 'Collector peer' };
 const FILL = { origin: 'var(--ink)', upstream: 'var(--accent)', transit: 'var(--mute)', peer: 'var(--surface)' };
@@ -56,15 +56,20 @@ export function pathGraph({ graph, pathsTotal } = {}) {
     return { nodes, edges };
   }
 
+  let lastW = 0;
   function draw() {
     const { nodes, edges } = compute();
     const maxD = Math.max(1, ...nodes.map((n) => n.depth || 0));
     const maxPaths = Math.max(1, ...nodes.map((n) => n.paths || 0)), maxCount = Math.max(1, ...edges.map((e) => e.count || 0));
     const cols = Array.from({ length: maxD + 1 }, () => []);
     nodes.forEach((n) => cols[Math.min(n.depth || 0, maxD)].push(n));
-    const x = (d) => PADX + (maxD - d) * COLW;
+    // Spread the columns over the whole card: origin at the right edge (with padding), never narrower than MINCOL per column
+    // (then the card scrolls sideways, e.g. at 375px).
+    const avail = Math.floor(wrap.clientWidth || lastW || 760);
+    const W = Math.max(avail, PADL + PADR + maxD * MINCOL), colw = maxD ? (W - PADL - PADR) / maxD : 0;
+    const x = (d) => (maxD ? W - PADR - d * colw : W / 2);
     const radius = (n) => (n.id === origin.id ? 20 : 5 + 9 * Math.sqrt((n.paths || 0) / maxPaths));
-    const rows = Math.max(...cols.map((c) => c.length), 1), H = PADT + rows * ROW + 16, W = PADX * 2 + maxD * COLW + 60;
+    const rows = Math.max(...cols.map((c) => c.length), 1), H = PADT + rows * ROW + 16;
     const pos = new Map();
     // Column 0 (origin) centred; the other columns are ordered by the weighted y of the nodes they feed, which untangles most edges.
     const place = (list, d) => list.forEach((n, i) => pos.set(n.id, [x(d), PADT + (H - PADT - 16) / 2 + (i - (list.length - 1) / 2) * ROW]));
@@ -105,7 +110,7 @@ export function pathGraph({ graph, pathsTotal } = {}) {
         svg('circle', { class: 'pg-c', cx: cx.toFixed(1), cy: cy.toFixed(1), r: r.toFixed(1), fill: FILL[role], stroke: role === 'peer' ? 'var(--mute)' : null, 'stroke-dasharray': role === 'peer' ? '3 2' : null }),
         role === 'origin' ? svg('text', { x: cx, y: cy + 3.5, 'text-anchor': 'middle', 'font-size': 10, 'font-weight': 700, fill: 'var(--bg)', 'pointer-events': 'none' }, 'ORIGIN') : null,
         svg('text', { class: 'pg-label', x: cx, y: cy + r + 12, 'text-anchor': 'middle' }, trunc(`AS${n.asn} ${n.name || ''}`.trim(), 22)),
-        n.tier1 ? svg('g', { class: 'pg-t1', transform: `translate(${(cx + r - 6).toFixed(1)} ${(cy - r - 8).toFixed(1)})` }, svg('rect', { width: 20, height: 11, rx: 5.5 }), svg('text', { x: 10, y: 8.3, 'text-anchor': 'middle' }, 'T1')) : null,
+        n.tier1 ? svg('g', { class: 'pg-t1', 'data-lx': cx.toFixed(1), 'data-ly': (cy + r + 12).toFixed(1), 'data-ch': String(Math.min(LABEL_CH, `AS${n.asn} ${n.name || ''}`.trim().length)), transform: `translate(${(cx + Math.min(LABEL_CH, `AS${n.asn} ${n.name || ''}`.trim().length) * 3 + 4).toFixed(1)} ${(cy + r + 3).toFixed(1)})` }, svg('rect', { width: 20, height: 11, rx: 5.5 }), svg('text', { x: 10, y: 8.3, 'text-anchor': 'middle' }, 'T1')) : null,
         svg('title', null, sum));
       const show = () => { light(n); tip.textContent = sum + '.'; };
       a.addEventListener('mouseenter', show); a.addEventListener('focus', show);
@@ -117,6 +122,13 @@ export function pathGraph({ graph, pathsTotal } = {}) {
     for (let d = 0; d <= maxD; d++) if (cols[d].length) gHead.append(svg('text', { class: 'pg-head', x: x(d), y: 16, 'text-anchor': 'middle' }, headWord(d)));
 
     wrap.replaceChildren(svg('svg', { viewBox: `0 0 ${W} ${H}`, width: W, height: H, role: 'group', 'aria-label': `Graph of ${nodes.length} networks between route collectors and AS${origin.asn}. The same information is in the list below.` }, gHead, gEdges, gNodes));
+    lastW = wrap.clientWidth || lastW;
+    // Seat each Tier-1 badge right after its label (measured when the text is laid out, estimated otherwise).
+    wrap.querySelectorAll('.pg-t1').forEach((g) => {
+      const t = g.parentNode.querySelector('.pg-label'); let len = 0;
+      try { len = t.getComputedTextLength(); } catch { len = 0; }
+      if (len > 0) g.setAttribute('transform', `translate(${(Number(g.dataset.lx) + len / 2 + 4).toFixed(1)} ${(Number(g.dataset.ly) - 9.5).toFixed(1)})`);
+    });
 
     // Text equivalent: every link towards the origin, strongest first.
     const byId = new Map(nodes.map((n) => [n.id, n]));
@@ -154,5 +166,14 @@ export function pathGraph({ graph, pathsTotal } = {}) {
       h('li', { class: 'text-mute' }, 'Bigger circle = more paths through it. Thicker line = more paths use that link.')),
     listBox);
   draw();
+  // The card has no width until it is on the page, and it changes with the window: redraw when it moves by more than a few px.
+  if (typeof ResizeObserver === 'function') {
+    let raf = 0;
+    new ResizeObserver(() => {
+      const w = wrap.clientWidth;
+      if (!w || Math.abs(w - lastW) < 12) return;
+      cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (wrap.isConnected) draw(); });
+    }).observe(wrap);
+  }
   return fig;
 }
