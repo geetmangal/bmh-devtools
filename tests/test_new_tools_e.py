@@ -151,3 +151,10 @@ def test_dmarc_builder_validation():
     assert any("No aggregate report address" in w["title"] for w in noRua["warnings"])
     bad = run_js("m.buildDmarc({p:'none', pct:'50', rua:'a@example.com'})")
     assert any("pct has no effect" in w["title"] for w in bad["warnings"])
+
+
+def test_generator_run_builds_records():
+    """Regression: run() must return built records (render reads spf.warnings), not the raw form inputs."""
+    src = (JS / "tools" / "spf-dmarc-generator.js").read_text(encoding="utf-8")
+    run_line = next(l for l in src.splitlines() if l.strip().startswith("run:"))
+    assert "buildSpf(" in run_line and "buildDmarc(" in run_line

@@ -54,7 +54,7 @@ function render(d) {
 
 const tool = initTool({
   form: '#gen-form',
-  run: async () => read(),
+  run: async () => { const i = read(); return { domain: i.domain, spf: buildSpf(i.spf), dmarc: buildDmarc(i.dmarc) }; },
   render,
   state: (d) => (d.domain ? { q: d.domain } : {}),
   prefill: (p) => { const q = qParam(p, 'domain'); if (q) domainEl.value = bareDomain(q); return !!q; },
