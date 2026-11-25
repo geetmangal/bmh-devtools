@@ -47,6 +47,7 @@ function render(d) {
 }
 
 const tool = initTool({
+  heavy: true, // Turnstile: prefill only, the visitor presses the button
   form: '#port-form', buttons: ['#port-common'],
   run(ctx) {
     const port = parseInt(numEl.value, 10);

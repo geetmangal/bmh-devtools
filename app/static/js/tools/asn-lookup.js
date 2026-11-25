@@ -87,6 +87,7 @@ function render(res) {
 }
 
 const tool = initTool({
+  heavy: true, // Turnstile: prefill only, the visitor presses the button
   form: '#tool-form',
   run: (ctx) => { const n = asnOf(input.value); if (!n) throw new Error('Enter an AS number such as AS13335 or 13335.'); return ctx.api(`/asn/${n}`, null, { heavy: true }); },
   render,

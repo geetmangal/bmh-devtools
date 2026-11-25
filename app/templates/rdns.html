@@ -1,7 +1,7 @@
 {% extends layout %}
 {% block intro %}
-<h1 class="text-3xl font-bold mb-2">Reverse DNS (PTR) Lookup</h1>
-<p class="text-mute max-w-3xl mb-5">Find the PTR record of any public IPv4 or IPv6 address and check that it is forward-confirmed (FCrDNS): the hostname must resolve back to the same IP. Mail servers use this check when deciding whether to accept your email.</p>
+<h1 class="text-2xl sm:text-3xl font-bold mb-1">Reverse DNS (PTR) Lookup</h1>
+<p class="text-mute max-w-3xl mb-3 text-sm sm:text-base">Find the PTR record of any public IPv4 or IPv6 address and check it is forward-confirmed.</p>
 {% endblock %}
 {% block content %}
 <form id="rdns-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end" method="post" action="{{ api }}/rdns/lookup">
@@ -13,7 +13,8 @@
 {% block about %}
 <section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
   <h2 class="text-xl font-bold text-ink mb-2">PTR records and email delivery</h2>
-  <p>A PTR record is the reverse of an A or AAAA record. It is published in the <span class="mono">in-addr.arpa</span> or <span class="mono">ip6.arpa</span> zone by whoever owns the address block, so on a VPS you set it in the control panel or through your provider. For a mail server, use the same hostname as the SMTP HELO name and make sure its A record points to the IP.</p>
+  <p>Forward-confirmed reverse DNS (FCrDNS) means the hostname must resolve back to the same IP. Mail servers use this check when deciding whether to accept your email.</p>
+  <p class="mt-2">A PTR record is the reverse of an A or AAAA record. It is published in the <span class="mono">in-addr.arpa</span> or <span class="mono">ip6.arpa</span> zone by whoever owns the address block, so on a VPS you set it in the control panel or through your provider. For a mail server, use the same hostname as the SMTP HELO name and make sure its A record points to the IP.</p>
   {% if guide_url %}<p class="mt-2">Step by step: <a href="{{ guide_url }}">how to set an rDNS / PTR record on a VPS</a>.</p>{% endif %}
   <p class="mt-2">Need an IP with a proper PTR for outgoing mail? A <a href="https://bookmyhost.com">cloud server in India</a> from BookMyHost lets you set it yourself. Related tools: <a href="{{ prefix }}/whois-lookup">WHOIS / RDAP lookup</a> and the <a href="{{ prefix }}/dns-propagation-checker">DNS propagation checker</a>.</p>
 </section>

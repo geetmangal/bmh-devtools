@@ -23,7 +23,7 @@ function ring({ status, grade, score }) {
  */
 export function verdict({ status = 'info', grade, score, title, summary, meta } = {}) {
   const s = statusOf(status);
-  return h('section', { class: 'card verdict', role: 'group', 'aria-label': 'Result summary' },
+  return h('section', { class: 'card verdict', 'data-status': status, role: 'group', 'aria-label': 'Result summary' },
     ring({ status, grade, score }),
     h('div', { class: 'min-w-0' },
       h('div', { class: `flex items-center gap-2 font-bold text-lg ${s.cls}` }, icon(status, 18), h('span', null, title || s.word)),

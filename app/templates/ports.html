@@ -1,7 +1,7 @@
 {% extends layout %}
 {% block intro %}
-<h1 class="text-3xl font-bold mb-2">Open Port Checker</h1>
-<p class="text-mute max-w-3xl mb-5">Check whether TCP ports are reachable on <strong>your own public IP address</strong>: handy after opening a firewall rule, forwarding a router port or starting a service. For safety only your own IP can be tested; the address is taken from your connection and cannot be changed.</p>
+<h1 class="text-2xl sm:text-3xl font-bold mb-1">Open Port Checker</h1>
+<p class="text-mute max-w-3xl mb-3 text-sm sm:text-base">Check whether TCP ports are reachable on <strong>your own public IP address</strong>.</p>
 {% endblock %}
 {% block content %}
 <form id="port-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto_auto] items-end" method="post" action="{{ api }}/ports/check">
@@ -17,7 +17,8 @@
 {% block about %}
 <section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
   <h2 class="text-xl font-bold text-ink mb-2">Open, closed or filtered</h2>
-  <p><strong>Open</strong> means a service accepted the connection. <strong>Closed</strong> means the machine answered that nothing listens on that port. <strong>Filtered</strong> means no answer within 3 seconds, which is what a firewall that silently drops packets looks like. The test runs from our Noida server over IPv4 or IPv6, whichever your connection uses.</p>
+  <p>Handy after opening a firewall rule, forwarding a router port or starting a service. For safety only your own IP can be tested; the address is taken from your connection and cannot be changed.</p>
+  <p class="mt-2"><strong>Open</strong> means a service accepted the connection. <strong>Closed</strong> means the machine answered that nothing listens on that port. <strong>Filtered</strong> means no answer within 3 seconds, which is what a firewall that silently drops packets looks like. The test runs from our Noida server over IPv4 or IPv6, whichever your connection uses.</p>
   <p class="mt-2">Running a service on a <a href="https://bookmyhost.com">cloud server</a>? Open only the ports you need and keep SSH and database ports restricted. To check your server's name resolution use the <a href="{{ prefix }}/dns-propagation-checker">DNS propagation checker</a>, and to see the route to it use the <a href="{{ prefix }}/looking-glass">looking glass</a>.</p>
 </section>
 {% endblock %}
