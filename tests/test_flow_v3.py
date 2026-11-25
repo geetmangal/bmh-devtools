@@ -62,8 +62,15 @@ def test_nextsteps_exists_with_relative_imports_only():
 def test_heavy_tools_do_not_autorun():
     t = (JS / "ui" / "tool.js").read_text()
     assert "heavy" in t and "focus(" in t
-    for name in ("asn-lookup", "bgp-prefix-lookup", "looking-glass", "smtp-test", "port-checker"):
+    for name in ("asn-lookup", "looking-glass", "smtp-test", "port-checker"):
         assert "heavy: true" in (JS / "tools" / f"{name}.js").read_text().split("initTool(", 1)[1][:80], name
+
+
+def test_prefix_lookup_autoruns_shared_links_behind_turnstile():
+    # Shared ?q= links run on load; the request itself stays heavy, so the inline human check shows first.
+    init = (JS / "tools" / "bgp-prefix-lookup.js").read_text().split("initTool(", 1)[1]
+    assert "heavy: false" in init[:200]
+    assert "{ heavy: true }" in init
 
 
 def test_header_analyzer_still_has_no_network_call():

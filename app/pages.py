@@ -79,7 +79,7 @@ PAGES: dict[str, dict] = {
     "bgp-prefix-lookup": {
         "input": "prefix", "label": "IP prefix or address", "placeholder": "1.1.1.0/24 or 1.1.1.1", "button": "Look up prefix",
         "h1": "BGP Prefix Lookup",
-        "intro": "Enter an IP prefix or a single address to see which AS originates it, whether RPKI validates the announcement, how widely it is visible around the world, how the origin changed over the last 30 days and the AS paths collectors use to reach it.",
+        "intro": "Enter an IP prefix or a single address. The report opens in five tabs: Overview (who holds it, origin AS, health checklist), Connectivity (AS path graph, upstreams, visibility map, 30-day origin history), Whois (registry record, abuse contact, geofeed), DNS (reverse DNS map of every address and the in-addr.arpa delegation) and Validation (RPKI and route objects in every IRR compared with the live BGP origin).",
         "about": [f"API: GET {API}/prefix/1.1.1.0/24."],
     },
     "mta-sts-checker": {

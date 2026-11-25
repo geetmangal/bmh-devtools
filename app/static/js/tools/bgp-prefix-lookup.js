@@ -472,7 +472,8 @@ function render(res, ctx) {
 }
 
 initTool({
-  heavy: true, // Turnstile: prefill only, the visitor presses the button
+  // Shared ?q= links run on load: the api call shows the inline human check first when there is no pass yet.
+  heavy: false,
   form: '#tool-form',
   run: (ctx) => { const q = input.value.trim(); if (!q) throw new Error('Enter an IP address or prefix such as 1.1.1.0/24.'); return ctx.api(`/prefix/${pfxPath(q)}`, null, { heavy: true }); },
   render,
