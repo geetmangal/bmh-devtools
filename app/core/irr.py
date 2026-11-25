@@ -11,12 +11,13 @@ import os
 from typing import Any, Awaitable, Callable
 
 from app.core.cache import TTLCache
+from app.core.config import RESULT_CACHE_TTL
 from app.core.httpjson import FetchError, fetch_json
 
 Fetch = Callable[..., Awaitable[Any]]
 
 BASE = os.environ.get("BMH_TOOLS_IRREXPLORER_URL", "https://irrexplorer.nlnog.net/api/prefixes/prefix").rstrip("/")
-TTL = 1800.0
+TTL = min(1800.0, float(RESULT_CACHE_TTL))
 TIMEOUT = 8.0
 MAX_OBJECTS = 40
 MAX_MESSAGES = 10

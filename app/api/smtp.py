@@ -11,9 +11,10 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from app.api._common import with_cache
 from app.core import cooldown, smtpcheck
 from app.core.cache import TTLCache
-from app.core.config import HEAVY_RATE_PER_MIN, MAX_CONCURRENT_NET
+from app.core.config import HEAVY_RATE_PER_MIN, MAX_CONCURRENT_NET, RESULT_CACHE_TTL
 from app.core.ratelimit import Gate, TokenBucket, client_ip, limiter
 from app.core.target import TargetError, parse_target
 from app.core.turnstile import network_of, require_fresh_token, require_pass
@@ -23,7 +24,7 @@ router = APIRouter(prefix="/smtp", tags=["smtp"])
 _gate = Gate(max(2, MAX_CONCURRENT_NET // 2), "SMTP test")
 _bucket = TokenBucket(HEAVY_RATE_PER_MIN, 3)
 _dep = limiter(lambda: _bucket, "SMTP test", HEAVY_RATE_PER_MIN)
-_cache = TTLCache(60)
+_cache = TTLCache(RESULT_CACHE_TTL)
 # Strict per-client cap for real runs: 5 per 10 minutes per /24 (v4) or /48 (v6).
 STRICT_RUNS, STRICT_WINDOW_MIN = 5, 10
 _strict = TokenBucket(STRICT_RUNS / STRICT_WINDOW_MIN, STRICT_RUNS)
@@ -55,7 +56,9 @@ async def check(req: SmtpRequest, request: Request) -> dict:
     _strict_limit(request)
     await require_fresh_token(request)
     key = f"{host}|{req.port}"
-    hit = _cache.get(key)
+    hit, age = _cache.get_with_age(key)
+    if hit is not None:
+        return with_cache(hit, True, age)
     if hit is None:
         cooldown.check(host)
         async with _gate.slot():
@@ -66,4 +69,4 @@ async def check(req: SmtpRequest, request: Request) -> dict:
         hit = res.to_dict()
         if hit["status"] != "error":
             _cache.set(key, hit)
-    return hit
+    return with_cache(hit, False)

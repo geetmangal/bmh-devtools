@@ -44,14 +44,14 @@ const tool = initTool({
   form: '#tool-form',
   async run(ctx) {
     const lv = live();
-    let summary = null;
+    let summary = null, cache = null;
     await ctx.stream('/dnsbl/check', { target: input.value.trim() }, {
       onStart: () => clear(ctx.out).append(lv.el),
-      onItem: (o) => { if (o.type === 'list') lv.add(o); else if (o.type === 'summary') summary = o.result; },
+      onItem: (o) => { if (o.type === 'list') lv.add(o); else if (o.type === 'summary') { summary = o.result; cache = o.cache; } },
     });
     if (!summary) throw new Error('The check ended before it finished. Please try again.');
     lv.finish();
-    const res = { ...summary };
+    const res = { ...summary, cache };
     Object.defineProperty(res, '_live', { value: lv, enumerable: false });
     return res;
   },

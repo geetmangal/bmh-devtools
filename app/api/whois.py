@@ -11,8 +11,9 @@ from urllib.parse import quote
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api._common import with_cache
 from app.core.cache import TTLCache
-from app.core.config import MAX_CONCURRENT_NET, NET_RATE_PER_MIN, RDAP_BOOTSTRAP_URL, RDAP_TIMEOUT
+from app.core.config import MAX_CONCURRENT_NET, NET_RATE_PER_MIN, RDAP_BOOTSTRAP_URL, RDAP_TIMEOUT, RESULT_CACHE_TTL
 from app.core.httpjson import FetchError, fetch_json
 from app.core.ratelimit import Gate, TokenBucket, limiter
 from app.core.target import TargetError, parse_target, resolve_public
@@ -21,7 +22,7 @@ router = APIRouter(prefix="/whois", tags=["whois"])
 _gate = Gate(MAX_CONCURRENT_NET, "WHOIS")
 _bucket = TokenBucket(NET_RATE_PER_MIN)
 _dep = limiter(lambda: _bucket, "WHOIS/rDNS", NET_RATE_PER_MIN)
-_cache = TTLCache(300)
+_cache = TTLCache(RESULT_CACHE_TTL)
 _bootstrap = TTLCache(86400, 8)
 WHOIS_MAX = 16 * 1024
 
@@ -203,9 +204,9 @@ async def whois_lookup(req: WhoisRequest) -> dict:
     except TargetError as exc:
         raise HTTPException(status_code=exc.status, detail=str(exc))
     key = req.query.strip().lower()
-    hit = _cache.get(key)
+    hit, age = _cache.get_with_age(key)
     if hit is not None:
-        return hit
+        return with_cache(hit, True, age)
     try:
         async with _gate.slot():
             res = await lookup(req.query)
@@ -214,4 +215,4 @@ async def whois_lookup(req: WhoisRequest) -> dict:
     except FetchError as exc:
         raise HTTPException(status_code=502, detail=f"lookup failed: {exc}")
     _cache.set(key, res)
-    return res
+    return with_cache(res, False)

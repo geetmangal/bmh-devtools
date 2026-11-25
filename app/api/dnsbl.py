@@ -10,10 +10,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.api._common import guarded_stream, ndjson_response
+from app.api._common import cache_info, guarded_stream, ndjson_response
 from app.core import cooldown, dnsbl
 from app.core.cache import TTLCache
-from app.core.config import HEAVY_RATE_PER_MIN, MAX_CONCURRENT_NET
+from app.core.config import HEAVY_RATE_PER_MIN, MAX_CONCURRENT_NET, RESULT_CACHE_TTL
 from app.core.ratelimit import Gate, TokenBucket, limiter
 from app.core.turnstile import require_pass
 from app.core.validate import ValidationError
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/dnsbl", tags=["blacklist"])
 _gate = Gate(MAX_CONCURRENT_NET, "Blocklist")
 _bucket = TokenBucket(HEAVY_RATE_PER_MIN, 3)
 _dep = limiter(lambda: _bucket, "blocklist", HEAVY_RATE_PER_MIN)
-_cache = TTLCache(180)
+_cache = TTLCache(RESULT_CACHE_TTL)
 
 
 class DnsblRequest(BaseModel):
@@ -40,7 +40,8 @@ async def check(req: DnsblRequest, request: Request):
     total = sum(1 for e in dnsbl.load_lists() if e["type"] == kind)
 
     async def produce():
-        rows = _cache.get(target)
+        rows, age = _cache.get_with_age(target)
+        was_hit = rows is not None
         if rows is not None:
             for i, row in enumerate(rows, 1):
                 yield {"type": "list", "row": row, "done": i, "total": len(rows), "cached": True}
@@ -50,6 +51,6 @@ async def check(req: DnsblRequest, request: Request):
                 rows.append(row)
                 yield {"type": "list", "row": row, "done": len(rows), "total": total}
             _cache.set(target, rows)
-        yield {"type": "summary", "result": dnsbl.summarize(target, kind, rows).to_dict()}
+        yield {"type": "summary", "result": dnsbl.summarize(target, kind, rows).to_dict(), "cache": cache_info(was_hit, age)}
 
     return ndjson_response(guarded_stream(_gate, produce))

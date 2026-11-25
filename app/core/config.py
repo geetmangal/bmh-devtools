@@ -59,6 +59,17 @@ MAX_CONCURRENT_HEALTH = int(os.getenv("BMH_TOOLS_MAX_HEALTH", "3"))
 # One shared limiter per TARGET (domain / IP / ASN) across all clients and all heavy endpoints, so a single
 # victim cannot be hammered from many addresses. Over the limit: 429 {"error": "target_busy"}.
 TARGET_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_TARGET_RATE_PER_MIN", "20"))
+# Every user-facing tool result (and the upstream data behind it) is cached for at most this many seconds
+# (0 = no caching, max 300). The public tools sit behind Turnstile, so a short cache is enough.
+def _result_ttl() -> int:
+    try:
+        v = int(os.getenv("BMH_TOOLS_RESULT_TTL", "60"))
+    except ValueError:
+        v = 60
+    return max(0, min(300, v))
+
+
+RESULT_CACHE_TTL = _result_ttl()
 
 # SSRF: networks the checkers must never connect to, on top of every non-global range.
 # Defaults = the hosting network of the production box (public-direct 160.22.109.0/24):

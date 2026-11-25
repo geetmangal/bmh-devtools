@@ -13,6 +13,7 @@ import { worldMap } from '../viz/worldmap.js';
 import { pathGraph, asnHref } from '../viz/pathgraph.js';
 import { ptrGrid } from '../viz/ptrgrid.js';
 import { tabs } from '../ui/tabs.js';
+import { cacheNote } from '../ui/cachenote.js';
 
 const input = $('#tool-input');
 const RPKI = { valid: ['ok', 'Valid'], invalid: ['bad', 'Invalid'], unknown: ['warn', 'No ROA'], 'not-found': ['warn', 'No ROA'] };
@@ -264,8 +265,9 @@ function whoisPanel(d, setBadge) {
       meaning: 'A geofeed (RFC 8805) is a public file in which the network owner says in which country and city each block is used. Geolocation databases read it, so a wrong or missing entry is why a site shows the wrong location for your IPs.' })
     : checkCard({ status: 'info', title: 'No geofeed published', meaning: 'This block has no geofeed link in its registry record, so geolocation databases guess the location. Publishing one lets you set the country and city yourself.' }));
   if (d.raw) out.push(h('details', { class: 'card p-4' }, h('summary', { class: 'font-semibold' }, `Raw WHOIS text (${n} fields)`), h('div', { class: 'mt-3' }, codeBlock(d.raw, 'Copy raw'))));
-  out.push(h('p', { class: 'text-xs text-mute' }, `Authorities: ${(d.authorities || []).join(', ') || 'n/a'}${d.fetched_at ? ` · fetched ${d.fetched_at.slice(0, 19).replace('T', ' ')} UTC (cached up to 1 hour)` : ''}.`));
-  return out;
+  out.push(h('p', { class: 'text-xs text-mute' }, `Authorities: ${(d.authorities || []).join(', ') || 'n/a'}${d.fetched_at ? ` · fetched ${d.fetched_at.slice(0, 19).replace('T', ' ')} UTC` : ''}.`));
+  out.push(cacheNote(d.cache));
+  return out.filter(Boolean);
 }
 
 /* ------------------------------------------------------------------ DNS (lazy heavy POST) */
@@ -324,7 +326,8 @@ function dnsPanel(ctx, prefix, setBadge, done) {
         meaning: 'A PTR record maps an IP back to a name. Mail servers and security tools check it: the name should resolve forward to the same IP (forward-confirmed reverse DNS, FCrDNS). Auto-generated names such as 160-22-108-5.provider.net are accepted by some checks but rejected by strict mail filters.',
         fix: !s.with_ptr || (s.fcrdns_ok || 0) < s.with_ptr ? { steps: ['For every IP that sends mail, set a PTR to a name you control and make that name\'s A record point back to the same IP.', 'Ask the provider that delegates the reverse zone if you cannot edit it yourself.'] } : null }));
     }
-    holder.replaceChildren(...out);
+    out.push(cacheNote(d.cache));
+    holder.replaceChildren(...out.filter(Boolean));
   }
   async function load(block) {
     holder.replaceChildren(skeletonCards(2));
@@ -453,15 +456,15 @@ function render(res, ctx) {
   const dnsRow = healthRow({ label: 'Reverse DNS', status: 'mute', text: 'Not checked yet. Open the DNS tab to scan the PTR records.', tab: 'dns', linkText: 'Open DNS tab' });
   const overview = overviewPanel(res, dnsRow);
   const T = tabs({ label: 'Prefix report sections', items: [
-    { id: 'overview', label: 'Overview', badge: b.overview, load: () => overview },
-    { id: 'connectivity', label: 'Connectivity', badge: b.connectivity, load: () => connectivityPanel(res) },
+    { id: 'overview', label: 'Overview', badge: b.overview, load: () => [].concat(overview, cacheNote(res.cache) || []) },
+    { id: 'connectivity', label: 'Connectivity', badge: b.connectivity, load: () => [].concat(connectivityPanel(res), cacheNote(res.cache) || []) },
     { id: 'whois', label: 'Whois', badge: b.whois, load: async ({ setBadge }) => whoisPanel(await ctx.api(`/prefix-whois/${pfxPath(prefix)}`), setBadge) },
     { id: 'dns', label: 'DNS', badge: b.dns, load: ({ setBadge }) => dnsPanel(ctx, prefix, setBadge, (d) => {
       const s = d.stats || {};
       if ((d.rows || []).length) dnsRow.set(!s.with_ptr ? 'warn' : (s.fcrdns_ok || 0) < s.with_ptr ? 'warn' : 'ok', `${s.with_ptr ?? 0} of ${s.scanned ?? 256} addresses have a PTR record, ${s.fcrdns_ok ?? 0} forward-confirmed.`);
       else dnsRow.set('info', 'Only the reverse delegation is shown for this prefix.');
     }) },
-    { id: 'validation', label: 'Validation', badge: b.validation, load: () => validationPanel(res) },
+    { id: 'validation', label: 'Validation', badge: b.validation, load: () => [].concat(validationPanel(res), cacheNote(res.cache) || []) },
   ] });
   out.push(T.el);
   out.push(nextSteps([(res.origins || [])[0] ? { slug: 'asn-lookup', q: 'AS' + res.origins[0].asn, text: `Look up AS${res.origins[0].asn}` } : null, { slug: 'looking-glass', text: 'Trace the path from India' }]));
@@ -472,6 +475,7 @@ initTool({
   form: '#tool-form',
   run: (ctx) => { const q = input.value.trim(); if (!q) throw new Error('Enter an IP address or prefix such as 1.1.1.0/24.'); return ctx.api(`/prefix/${pfxPath(q)}`, null, { heavy: true }); },
   render,
+  autoCacheNote: false, // each tab shows its own note (the DNS and Whois tabs use their own endpoints)
   state: (d) => ({ q: d.prefix || d.queried || input.value.trim() }),
   prefill: (p) => { const q = qParam(p, 'prefix'); if (q) input.value = q; return !!q; },
 });

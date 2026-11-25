@@ -9,11 +9,22 @@ from fastapi import HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
+from app.core.config import RESULT_CACHE_TTL
 from app.core.mailcheck.models import clean_domain
 from app.core.ratelimit import Gate
 from app.core.validate import ValidationError
 
 log = logging.getLogger("bmh_tools")
+
+
+def cache_info(hit: bool, age_s: int = 0) -> dict:
+    """The `cache` object every cached endpoint adds to its JSON answer."""
+    return {"hit": bool(hit), "age_s": int(age_s) if hit else 0, "ttl_s": int(RESULT_CACHE_TTL)}
+
+
+def with_cache(value: dict, hit: bool, age_s: int = 0) -> dict:
+    """Shallow copy of `value` plus the cache note; never mutates the dict held by the cache."""
+    return {**value, "cache": cache_info(hit, age_s)}
 
 
 class DomainRequest(BaseModel):

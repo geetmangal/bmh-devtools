@@ -14,7 +14,7 @@ import re
 from typing import Any, Awaitable, Callable
 
 from app.core.cache import TTLCache
-from app.core.config import RIPESTAT_TIMEOUT, RIPESTAT_URL
+from app.core.config import RESULT_CACHE_TTL, RIPESTAT_TIMEOUT, RIPESTAT_URL
 from app.core.httpjson import FetchError, fetch_json
 
 Fetch = Callable[..., Awaitable[Any]]
@@ -29,9 +29,9 @@ def sourceapp() -> str:
 
 
 # --- cache: one TTLCache per TTL value --------------------------------------------------
-TTL_SHORT = 300.0      # 5 min: live-ish routing state
-TTL_MID = 900.0        # 15 min
-TTL_LONG = 3600.0      # 60 min: registry-ish data
+TTL_SHORT = min(300.0, float(RESULT_CACHE_TTL))      # 5 min: live-ish routing state
+TTL_MID = min(900.0, float(RESULT_CACHE_TTL))        # 15 min
+TTL_LONG = min(3600.0, float(RESULT_CACHE_TTL))      # 60 min: registry-ish data
 _caches: dict[float, TTLCache] = {}
 
 

@@ -11,8 +11,10 @@ import dns.resolver
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.api._common import with_cache
 from app.core.cache import TTLCache
-from app.core.config import DNS_TIMEOUT, MAX_CONCURRENT_NET, NET_RATE_PER_MIN, RDNS_GUIDE_PUBLISHED, RDNS_GUIDE_URL
+from app.core.config import (DNS_TIMEOUT, MAX_CONCURRENT_NET, NET_RATE_PER_MIN, RDNS_GUIDE_PUBLISHED, RDNS_GUIDE_URL,
+                             RESULT_CACHE_TTL)
 from app.core.ratelimit import Gate, TokenBucket, limiter
 from app.core.target import TargetError, parse_target
 from app.core.validate import normalise_hostname, ValidationError
@@ -21,7 +23,7 @@ router = APIRouter(prefix="/rdns", tags=["reverse-dns"])
 _gate = Gate(MAX_CONCURRENT_NET, "Reverse DNS")
 _bucket = TokenBucket(NET_RATE_PER_MIN)
 _dep = limiter(lambda: _bucket, "WHOIS/rDNS", NET_RATE_PER_MIN)
-_cache = TTLCache(120)
+_cache = TTLCache(RESULT_CACHE_TTL)
 RESOLVERS = ["1.1.1.1", "8.8.8.8"]
 MAX_PTR = 5
 
@@ -112,10 +114,12 @@ async def rdns_lookup(req: RdnsRequest) -> dict:
         raise HTTPException(status_code=exc.status, detail=str(exc))
     if not is_ip:
         raise HTTPException(status_code=422, detail="Enter an IPv4 or IPv6 address (not a hostname)")
-    hit = _cache.get(value)
+    hit, age = _cache.get_with_age(value)
+    if hit is not None:
+        return with_cache(hit, True, age)
     if hit is None:
         async with _gate.slot():
             hit = await asyncio.wait_for(check(value), DNS_TIMEOUT * 12)
         if hit["status"] != "error":
             _cache.set(value, hit)
-    return hit
+    return with_cache(hit, False)

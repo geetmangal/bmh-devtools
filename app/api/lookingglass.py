@@ -17,10 +17,12 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from app.api._common import cache_info
 from app.core import hopenrich
 from app.core.cache import TTLCache
 from app.core.config import (LG_ASN, LG_BURST, LG_LOCATION, LG_PING_COUNT, LG_PING_TIMEOUT, LG_RATE_PER_MIN,
-                             LG_TRACE_MAX_HOPS, LG_TRACE_TIMEOUT, MAX_CONCURRENT_LG, RIPESTAT_TIMEOUT, RIPESTAT_URL)
+                             LG_TRACE_MAX_HOPS, LG_TRACE_TIMEOUT, MAX_CONCURRENT_LG, RESULT_CACHE_TTL, RIPESTAT_TIMEOUT,
+                             RIPESTAT_URL)
 from app.core.httpjson import FetchError, fetch_json
 from app.core.turnstile import require_pass
 from app.core.ratelimit import Gate, PerIpInflight, TokenBucket, client_ip, limiter
@@ -32,7 +34,7 @@ _gate = Gate(MAX_CONCURRENT_LG, "Looking glass")
 _inflight = PerIpInflight(1)
 _bucket = TokenBucket(LG_RATE_PER_MIN, LG_BURST)
 _dep = limiter(lambda: _bucket, "looking glass", LG_RATE_PER_MIN)
-_bgp_cache = TTLCache(300)
+_bgp_cache = TTLCache(RESULT_CACHE_TTL)
 MAX_OUTPUT = 16 * 1024
 SOURCE = {"asn": LG_ASN, "location": LG_LOCATION, "label": f"from {LG_ASN} {LG_LOCATION.split(',')[0]}"}
 
@@ -215,7 +217,8 @@ async def bgp(req: BgpRequest, request: Request) -> dict:
         target, ip, _all = await resolve_target(req.target)
     except TargetError as exc:
         raise HTTPException(status_code=exc.status, detail=str(exc))
-    cached = _bgp_cache.get(ip)
+    cached, age = _bgp_cache.get_with_age(ip)
+    was_hit = cached is not None
     if cached is None:
         async with _inflight.hold(client_ip(request)):
             async with _gate.slot():
@@ -235,4 +238,4 @@ async def bgp(req: BgpRequest, request: Request) -> dict:
         _bgp_cache.set(ip, cached)
     return {"target": target, "source": {"name": "RIPEstat (RIPE NCC RIS route collectors)", "url": "https://stat.ripe.net/",
                                           "note": f"Public BGP data, not a query to {LG_ASN} routers."},
-            **cached}
+            **cached, "cache": cache_info(was_hit, age)}

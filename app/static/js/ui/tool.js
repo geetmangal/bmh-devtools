@@ -5,6 +5,7 @@ import { heavyFetch } from './turnstile.js';
 import { skeletonCards, readNdjson } from './stream.js';
 import { shareBar } from './share.js';
 import { rawJson } from './card.js';
+import { cacheNote } from './cachenote.js';
 
 const cfg = (() => { try { return JSON.parse(document.getElementById('toolbox-config').textContent); } catch { return { api: '/tools/api/v1', prefix: '/tools' }; } })();
 const embedHost = () => (document.documentElement.dataset.embed ? (document.body.dataset.embedHost || 'embed') : null);
@@ -62,7 +63,7 @@ export function errorCard(message) {
  *  state(data) -> object of URL params to keep in the address bar (always includes q for sharing)
  *  prefill(params) -> truthy when the page should run immediately (e.g. ?q=example.com)
  */
-export function initTool({ form, results = '#results', run, render, state, prefill, buttons = [], autorunDelay = 0, shareExtra }) {
+export function initTool({ form, results = '#results', run, render, state, prefill, buttons = [], autorunDelay = 0, shareExtra, autoCacheNote = true }) {
   const formEl = $(form), out = $(results);
   let last = null, token = 0;
   const btns = () => [...formEl.querySelectorAll('button')].concat(buttons.map((b) => $(b)).filter(Boolean));
@@ -84,7 +85,7 @@ export function initTool({ form, results = '#results', run, render, state, prefi
       last = data;
       const nodes = [].concat(await render(data, ctx)).filter(Boolean);
       clear(out);
-      out.append(...nodes, h('div', { class: 'mt-2 space-y-3' }, rawJson(data), shareBar({ getJson: () => last, ...(shareExtra || {}) })));
+      out.append(...nodes, ...(autoCacheNote ? [cacheNote(data && data.cache)].filter(Boolean) : []), h('div', { class: 'mt-2 space-y-3' }, rawJson(data), shareBar({ getJson: () => last, ...(shareExtra || {}) })));
       if (state && !document.documentElement.dataset.embed) {
         const q = new URLSearchParams(state(data));
         try { history.replaceState(null, '', '?' + q.toString() + location.hash); } catch { /* sandboxed frames */ }

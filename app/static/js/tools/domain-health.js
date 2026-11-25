@@ -26,17 +26,17 @@ const tool = initTool({
     const list = h('ul', { class: 'list-none m-0 p-0 space-y-2' });
     const bar = progressBar({ total: 10, noun: 'checks done' });
     const liveEl = h('div', { class: 'space-y-3', 'aria-live': 'polite' }, bar.el, list);
-    let summary = null;
+    let summary = null, cache = null;
     await ctx.stream('/health/domain', { domain }, {
       onStart: () => clear(ctx.out).append(liveEl),
       onItem: (o) => {
         if (o.type === 'check') { list.append(row(o.name, o.result, domain)); bar.update(o.done ?? list.children.length, o.total ?? 10); }
-        else if (o.type === 'summary') summary = o.summary;
+        else if (o.type === 'summary') { summary = o.summary; cache = o.cache; }
       },
     });
     if (!summary) throw new Error('The check ended before it finished. Please try again.');
     bar.finish();
-    const res = { ...summary };
+    const res = { ...summary, cache };
     Object.defineProperty(res, '_live', { value: list, enumerable: false });
     return res;
   },

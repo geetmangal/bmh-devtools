@@ -12,10 +12,10 @@ from typing import Awaitable, Callable
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import Field
 
-from app.api._common import DomainRequest, valid_domain
+from app.api._common import DomainRequest, valid_domain, with_cache
 from app.core import cooldown
 from app.core.cache import TTLCache
-from app.core.config import HEAVY_RATE_PER_MIN, MAIL_RATE_PER_MIN, MAX_CONCURRENT_NET
+from app.core.config import HEAVY_RATE_PER_MIN, MAIL_RATE_PER_MIN, MAX_CONCURRENT_NET, RESULT_CACHE_TTL
 from app.core.mailcheck import bimi, dkim, dmarc, dnsrec, mta_sts, mx, spf
 from app.core.mailcheck.models import CheckResult
 from app.core.ratelimit import Gate, TokenBucket, client_ip, limiter
@@ -27,7 +27,7 @@ _gate = Gate(MAX_CONCURRENT_NET, "Email DNS")
 _bucket = TokenBucket(MAIL_RATE_PER_MIN)
 _probe_bucket = TokenBucket(HEAVY_RATE_PER_MIN, 3)
 _dep = limiter(lambda: _bucket, "email check", MAIL_RATE_PER_MIN)
-_cache = TTLCache(120)
+_cache = TTLCache(RESULT_CACHE_TTL)
 
 
 class DkimRequest(DomainRequest):
@@ -36,7 +36,9 @@ class DkimRequest(DomainRequest):
 
 async def _single(kind: str, fn: Callable[[str], Awaitable[CheckResult]], domain: str, extra: str = "") -> dict:
     key = f"{kind}|{domain}|{extra}"
-    hit = _cache.get(key)
+    hit, age = _cache.get_with_age(key)
+    if hit is not None:
+        return with_cache(hit, True, age)
     if hit is None:
         async with _gate.slot():
             try:
@@ -46,7 +48,7 @@ async def _single(kind: str, fn: Callable[[str], Awaitable[CheckResult]], domain
         hit = res.to_dict()
         if hit["status"] != "error":
             _cache.set(key, hit)
-    return hit
+    return with_cache(hit, False)
 
 
 @router.post("/mx", dependencies=[Depends(_dep)])

@@ -3,7 +3,7 @@
 GET  asn/{asn}            ASN report: prefixes, neighbours, RPKI coverage, IX + facilities, AS graph, findings
 GET  prefix/{prefix:path} prefix (or IP) report: origin, RPKI, RIS collector visibility, history, AS paths, findings,
                           plus overview (registry), connectivity (AS graph) and validation (RPKI + IRR)
-GET  prefix-whois/{prefix:path} registry records with plain-English meanings, abuse contact, geofeed rows (light, cached 1 h)
+GET  prefix-whois/{prefix:path} registry records with plain-English meanings, abuse contact, geofeed rows (light, cached for the short result TTL)
 POST prefix-rdns          {prefix, block}: delegation + PTR/FCrDNS sweep of one /24 slice (heavy: pass + per-target cooldown)
 POST lg/global            ping / traceroute from Globalping probes, streamed as NDJSON:
      {"type": "created", id, probes_count} -> {"type": "probe", index, probe{probe{city,country,lat,lon,..}, stats, hops}}*
@@ -16,11 +16,11 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
-from app.api._common import guarded_stream, ndjson_response
+from app.api._common import guarded_stream, ndjson_response, with_cache
 from app.core import bgpview, cooldown, globalping, prefixdns, prefixwhois, ripestat
 from app.core.cache import TTLCache
 from app.core.config import (BGP_RATE_PER_MIN, GLOBAL_LG_RATE_PER_MIN, HEAVY_RATE_PER_MIN, MAX_CONCURRENT_NET,
-                             PREFIX_LIGHT_RATE_PER_MIN)
+                             PREFIX_LIGHT_RATE_PER_MIN, RESULT_CACHE_TTL)
 from app.core.ratelimit import Gate, TokenBucket, limiter
 from app.core.ripestat import parse_asn
 from app.core.target import TargetError, parse_target
@@ -33,15 +33,15 @@ _dep = limiter(lambda: _bucket, "BGP report", BGP_RATE_PER_MIN)
 _gp_gate = Gate(3, "Global looking glass")
 _gp_bucket = TokenBucket(GLOBAL_LG_RATE_PER_MIN, 2)
 _gp_dep = limiter(lambda: _gp_bucket, "global looking glass", GLOBAL_LG_RATE_PER_MIN)
-_asn_cache = TTLCache(300)
-_prefix_cache = TTLCache(120)
+_asn_cache = TTLCache(RESULT_CACHE_TTL)
+_prefix_cache = TTLCache(RESULT_CACHE_TTL)
 _light_bucket = TokenBucket(PREFIX_LIGHT_RATE_PER_MIN, 10)
 _light_dep = limiter(lambda: _light_bucket, "prefix whois", PREFIX_LIGHT_RATE_PER_MIN)
-_whois_cache = TTLCache(3600)
+_whois_cache = TTLCache(RESULT_CACHE_TTL)
 _rdns_gate = Gate(3, "Prefix reverse DNS")
 _rdns_bucket = TokenBucket(HEAVY_RATE_PER_MIN, 3)
 _rdns_dep = limiter(lambda: _rdns_bucket, "prefix reverse DNS", HEAVY_RATE_PER_MIN)
-_rdns_cache = TTLCache(600)
+_rdns_cache = TTLCache(RESULT_CACHE_TTL)
 
 
 @router.get("/asn/{asn}", dependencies=[Depends(require_pass), Depends(_dep)])
@@ -52,7 +52,9 @@ async def asn_report(asn: str) -> dict:
     except ValueError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
     key = f"AS{n}"
-    hit = _asn_cache.get(key)
+    hit, age = _asn_cache.get_with_age(key)
+    if hit is not None:
+        return with_cache(hit, True, age)
     if hit is None:
         cooldown.check(key)
         async with _gate.slot():
@@ -62,7 +64,7 @@ async def asn_report(asn: str) -> dict:
                 raise HTTPException(status_code=422, detail=str(exc))
         if not hit.get("partial"):
             _asn_cache.set(key, hit)
-    return hit
+    return with_cache(hit, False)
 
 
 @router.get("/prefix/{prefix:path}", dependencies=[Depends(require_pass), Depends(_dep)])
@@ -72,7 +74,9 @@ async def prefix_report(prefix: str) -> dict:
         res, _is_ip = bgpview.parse_resource(prefix)
     except bgpview.BgpInputError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
-    hit = _prefix_cache.get(res)
+    hit, age = _prefix_cache.get_with_age(res)
+    if hit is not None:
+        return with_cache(hit, True, age)
     if hit is None:
         cooldown.check(res)
         async with _gate.slot():
@@ -82,7 +86,7 @@ async def prefix_report(prefix: str) -> dict:
                 raise HTTPException(status_code=422, detail=str(exc))
         if not hit.get("partial"):
             _prefix_cache.set(res, hit)
-    return hit
+    return with_cache(hit, False)
 
 
 @router.get("/prefix-whois/{prefix:path}", dependencies=[Depends(_light_dep)])
@@ -92,7 +96,9 @@ async def prefix_whois(prefix: str) -> dict:
         res, _is_ip = bgpview.parse_resource(prefix)
     except bgpview.BgpInputError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
-    hit = _whois_cache.get(res)
+    hit, age = _whois_cache.get_with_age(res)
+    if hit is not None:
+        return with_cache(hit, True, age)
     if hit is None:
         async with _gate.slot():
             try:
@@ -100,7 +106,7 @@ async def prefix_whois(prefix: str) -> dict:
             except ripestat.RipeStatError:
                 raise HTTPException(status_code=502, detail="The registry lookup (RIPEstat) is unavailable right now, try again in a minute.")
         _whois_cache.set(res, hit)
-    return hit
+    return with_cache(hit, False)
 
 
 class PrefixRdnsRequest(BaseModel):
@@ -118,7 +124,9 @@ async def prefix_rdns(req: PrefixRdnsRequest) -> dict:
     if is_ip:
         res = f"{res}/{32 if ':' not in res else 128}"
     key = f"{res}|{req.block}"
-    hit = _rdns_cache.get(key)
+    hit, age = _rdns_cache.get_with_age(key)
+    if hit is not None:
+        return with_cache(hit, True, age)
     if hit is None:
         cooldown.check("rdns:" + res)
         async with _rdns_gate.slot():
@@ -128,7 +136,7 @@ async def prefix_rdns(req: PrefixRdnsRequest) -> dict:
                 raise HTTPException(status_code=422, detail=str(exc))
         if not hit.get("partial"):
             _rdns_cache.set(key, hit)
-    return hit
+    return with_cache(hit, False)
 
 
 class GlobalLgRequest(BaseModel):

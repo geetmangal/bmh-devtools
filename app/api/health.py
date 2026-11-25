@@ -10,10 +10,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Request
 from pydantic import Field
 
-from app.api._common import DomainRequest, guarded_stream, ndjson_response, valid_domain
+from app.api._common import DomainRequest, cache_info, guarded_stream, ndjson_response, valid_domain
 from app.core import cooldown
 from app.core.cache import TTLCache
-from app.core.config import HEALTH_RATE_PER_MIN, MAX_CONCURRENT_HEALTH
+from app.core.config import HEALTH_RATE_PER_MIN, MAX_CONCURRENT_HEALTH, RESULT_CACHE_TTL
 from app.core.mailcheck import health
 from app.core.ratelimit import Gate, TokenBucket, limiter
 from app.core.turnstile import require_pass
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/health", tags=["domain-health"])
 _gate = Gate(MAX_CONCURRENT_HEALTH, "Domain health")
 _bucket = TokenBucket(HEALTH_RATE_PER_MIN, 2)
 _dep = limiter(lambda: _bucket, "domain health", HEALTH_RATE_PER_MIN)
-_cache = TTLCache(180)
+_cache = TTLCache(RESULT_CACHE_TTL)
 
 
 class HealthRequest(DomainRequest):
@@ -38,7 +38,7 @@ async def domain_health(req: HealthRequest, request: Request):
     key = f"{domain}|{selector or ''}"
 
     async def produce():
-        events = _cache.get(key)
+        events, age = _cache.get_with_age(key)
         if events is None:
             events, done = [], 0
             total = len(health.CHECK_NAMES)
@@ -47,11 +47,11 @@ async def domain_health(req: HealthRequest, request: Request):
                     done += 1
                     ev = {**ev, "done": done, "total": total}
                 events.append(ev)
-                yield ev
+                yield {**ev, "cache": cache_info(False)} if ev["type"] == "summary" else ev
             if events and events[-1]["type"] == "summary":
                 _cache.set(key, events)
         else:
             for ev in events:
-                yield ev
+                yield {**ev, "cache": cache_info(True, age)} if ev["type"] == "summary" else ev
 
     return ndjson_response(guarded_stream(_gate, produce))
