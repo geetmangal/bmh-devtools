@@ -1,30 +1,77 @@
 {% extends "shell.html" %}
 {% from "_icons.html" import icon %}
-{% block intro %}
-<h1 class="text-3xl font-bold mb-2">Free network and DNS tools</h1>
-<p class="text-mute max-w-2xl mb-8">Fast, single-purpose tools built by the BookMyHost engineering team for our own day-to-day work: no sign-up, no ads, each with a JSON API. Results come with a plain-English summary and, where it helps, steps to fix the problem.</p>
+{% set by_slug = {} %}
+{% for t in tools %}{% set _ = by_slug.update({t.slug: t}) %}{% endfor %}
+{% macro card(it, g, by_slug) -%}
+{% set t = by_slug[it.slug] -%}
+<a href="{{ it.href }}" class="card tool-card" data-cat="{{ g.key }}" data-search="{{ ([it.name, t.short, (t.keywords or [])|join(' '), g.label]|join(' '))|lower }}">
+  <span class="tool-card-head"><span class="tool-card-icon">{{ icon(it.icon, "w-5 h-5") }}</span><span class="tool-card-name">{{ it.name }}</span></span>
+  <span class="tool-card-short">{{ t.short }}</span>
+  <span class="tool-card-pills">
+    {%- if t.badge == "popular" %}<span class="pill-pop">Popular</span>{% endif -%}
+    {%- if t.badge == "new" %}<span class="pill-new">New</span>{% endif -%}
+    {%- if t.client_only %}<span class="pill-meta">Runs in your browser</span>{% endif -%}
+    {%- if t.heavy %}<span class="pill-meta">Verification</span>{% endif -%}
+  </span>
+</a>
+{%- endmacro %}
+{% block hero %}
+<h1 class="text-3xl font-bold mb-2">Free email, DNS and network tools</h1>
+<p class="text-mute max-w-2xl mb-4">Fast, single-purpose tools built by the BookMyHost engineering team for our own day-to-day work: no sign-up, no ads, each with a JSON API. Results come with a plain-English summary and, where it helps, steps to fix the problem.</p>
 {% endblock %}
 {% block content %}
-{% for g in tool_groups %}
-<section class="mb-8" id="cat-{{ g.key }}">
-  <h2 class="text-sm font-bold uppercase tracking-wide text-mute mb-3">{{ g.label }}</h2>
-  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-  {% for it in g["items"] %}
-    {% if it.external %}
-    <a href="{{ it.href }}" rel="noopener" class="card p-5 block no-underline hover:no-underline hover:border-accent">
-      <div class="flex items-center gap-2 text-accent mb-2">{{ icon(it.icon, "w-5 h-5") }}</div>
-      <h3 class="text-base font-semibold text-ink mb-1">{{ it.name }}</h3>
-      <p class="text-sm text-mute">{% for c in calculators if c.name == it.name %}{{ c.short }}{% endfor %}</p>
+<section class="mb-8" aria-labelledby="qs-h">
+  <h2 id="qs-h" class="hub-h2">Start with a problem</h2>
+  <div class="qs-grid">
+  {% for q in quick_starts %}{% set t = by_slug[q.slug] %}
+    <a href="{{ prefix }}/{{ q.slug }}" class="card qs-card">
+      <span class="qs-icon">{{ icon(t.icon, "w-5 h-5") }}</span>
+      <span class="qs-label">{{ q.label }}</span>
+      <span class="qs-hint">{{ q.hint }}</span>
     </a>
-    {% else %}
-    <a href="{{ it.href }}" class="card p-5 block no-underline hover:no-underline hover:border-accent">
-      <div class="flex items-center gap-2 text-accent mb-2">{{ icon(it.icon, "w-5 h-5") }}</div>
-      <h3 class="text-base font-semibold text-ink mb-1">{{ it.name }}</h3>
-      <p class="text-sm text-mute">{% for t in tools if t.slug == it.slug %}{{ t.short }}{% endfor %}</p>
-    </a>
-    {% endif %}
   {% endfor %}
   </div>
+</section>
+<section id="hub-recent" class="mb-6" aria-label="Recently used" hidden>
+  <h2 class="hub-h2">Recently used</h2>
+  <div id="hub-recent-list" class="flex flex-wrap gap-2"></div>
+</section>
+<div class="hub-filter" id="hub-filterbar">
+  <input id="hub-filter" type="search" class="hub-filter-input" aria-label="Filter tools" placeholder="Filter tools, e.g. spam, ssl, traceroute" autocomplete="off">
+  <div class="hub-chips" role="group" aria-label="Filter by category">
+    <button type="button" class="chip-cat" data-chip="all" aria-pressed="true">All</button>
+    {% for g in tool_groups if g.key != "calc" %}<button type="button" class="chip-cat" data-chip="{{ g.key }}" aria-pressed="false">{{ g.label }}</button>{% endfor %}
+  </div>
+  <p id="hub-count" class="hub-count" aria-live="polite">{{ tools|length }} tools</p>
+</div>
+<p id="hub-empty" class="card p-5 text-sm text-mute mb-8" hidden>No tool matches that filter. Clear it, or <a href="#" id="hub-empty-omni">use the omnibox</a> to paste a domain, IP or ASN.</p>
+{% for g in tool_groups if g.key != "calc" %}
+<section class="mb-8 hub-sec" id="cat-{{ g.key }}" data-sec="{{ g.key }}">
+  <h2 class="hub-h2">{{ g.label }} <span class="hub-sec-count" data-sec-count>{{ g.count }}</span></h2>
+  {% if g.subgroups %}
+    {% for sg in g.subgroups if sg.tools %}
+    <div class="hub-sub" data-sub>
+      <h3 class="hub-h3">{{ sg.label }}</h3>
+      <div class="tool-grid">{% for it in sg.tools %}{{ card(it, g, by_slug) }}{% endfor %}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="tool-grid">{% for it in g["items"] %}{{ card(it, g, by_slug) }}{% endfor %}</div>
+  {% endif %}
+</section>
+{% endfor %}
+{% for g in tool_groups if g.key == "calc" %}
+<section class="mb-8" id="cat-calc">
+  <h2 class="hub-h2">More from BookMyHost</h2>
+  <div class="tool-grid">
+  {% for it in g["items"] %}{% for c in calculators if c.name == it.name %}
+    <a href="{{ it.href|replace("://www.", "://") }}" rel="noopener" class="card tool-card">
+      <span class="tool-card-head"><span class="tool-card-icon">{{ icon(it.icon, "w-5 h-5") }}</span><span class="tool-card-name">{{ it.name }}</span>{{ icon("external", "w-3 h-3 opacity-60") }}</span>
+      <span class="tool-card-short">{{ c.short }}</span>
+    </a>
+  {% endfor %}{% endfor %}
+  </div>
+  <p class="text-sm text-mute mt-3"><a href="https://bookmyhost.com/free-tools" class="font-semibold">All free tools</a> on bookmyhost.com, plus the India cloud uptime and latency report.</p>
 </section>
 {% endfor %}
 <section class="mt-10 card p-5 text-sm text-mute">
@@ -32,14 +79,7 @@
   <p>Every tool is also an endpoint under <code class="mono">{{ api }}/</code> with OpenAPI docs at <a href="{{ api }}/docs">{{ api }}/docs</a>. Limit: {{ rate_per_min }} requests per minute per IP.</p>
   <pre class="snippet mono mt-3">curl -s -X POST {{ base_url }}{{ api }}/subnet/calc -H 'Content-Type: application/json' -d '{"cidr":"10.0.0.0/22"}'</pre>
 </section>
-<section class="mt-8 card p-5">
-  <h2 class="text-lg font-bold mb-1 text-ink">More free tools for India</h2>
-  <p class="text-sm text-mute mb-4">Cost, sizing and latency calculators for Indian cloud servers, on bookmyhost.com.</p>
-  <ul class="grid gap-3 sm:grid-cols-2 text-sm">
-    <li><a href="https://bookmyhost.com/free-tools/cloud-cost-gst-calculator" class="font-semibold">Cloud cost and GST calculator</a><br><span class="text-mute">Monthly cost of a server with 18% GST and the TDS and wallet maths.</span></li>
-    <li><a href="https://bookmyhost.com/free-tools/vps-sizing-calculator" class="font-semibold">VPS sizing calculator</a><br><span class="text-mute">vCPU, RAM and disk for your workload, with a plan to match.</span></li>
-    <li><a href="https://bookmyhost.com/free-tools/noida-latency-test" class="font-semibold">Noida latency test</a><br><span class="text-mute">Measure round-trip time from your browser to our Noida data centre.</span></li>
-    <li><a href="https://bookmyhost.com/free-tools" class="font-semibold">All free tools</a><br><span class="text-mute">The full hub, plus the India cloud uptime and latency report.</span></li>
-  </ul>
-</section>
+{% endblock %}
+{% block scripts %}
+<script type="module" src="{{ static_url('js/hub.js') }}" nonce="{{ csp_nonce }}"></script>
 {% endblock %}

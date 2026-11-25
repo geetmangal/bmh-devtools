@@ -1,11 +1,11 @@
 {
   "title": "Free Developer Tools: Email, DNS, BGP, SSL | BookMyHost",
   "description": "Free online tools from BookMyHost: SPF, DKIM and DMARC checkers, blacklist check, DNS lookup, looking glass, WHOIS, ASN and BGP lookup, subnet calculator, SSL.",
-  "og_line": "18 free tools for email, DNS, network and web checks",
-  "answer": "The BookMyHost Toolbox is a set of 18 free tools for checking email authentication, DNS, IP networks and websites. Every tool needs no sign-up, runs a live check and explains the result in plain language, and most have a JSON API. BookMyHost provides cloud servers and VPS in India.",
+  "og_line": "Free tools for email, DNS, network and web checks",
+  "answer": "The BookMyHost Toolbox is a set of free tools for checking email authentication, DNS, IP networks and websites. Every tool needs no sign-up, runs a live check and explains the result in plain language, and most have a JSON API. BookMyHost provides cloud servers and VPS in India.",
   "sections": [
     {"h": "What is in the Toolbox", "p": [
-      "The tools are grouped by the problem they solve. The Email group answers 'why does my mail go to spam or bounce': the domain health report grades everything at once, and the MX lookup, SPF checker, DKIM checker, DMARC checker, blacklist check, SMTP test and email header analyzer each look at one part. The DNS group covers the DNS lookup, the DNS propagation checker, WHOIS and RDAP lookup and the reverse DNS (PTR) lookup. The Network and BGP group has the looking glass for ping, traceroute and BGP lookups, the ASN lookup, the BGP prefix lookup, the subnet calculator and the open port checker. The Web and SSL group has the TTFB and SSL certificate checker.",
+      "The tools are grouped by the problem they solve. Email & Deliverability answers 'why does my mail go to spam or bounce': the domain health report grades everything at once, and the MX lookup, SPF checker, DKIM checker, DMARC checker, blacklist check, SMTP test and email header analyzer each look at one part. DNS & Domains covers the DNS lookup, the DNS propagation checker, WHOIS and RDAP lookup and the reverse DNS (PTR) lookup. Network & BGP has the looking glass for ping, traceroute and BGP lookups, the ASN lookup, the BGP prefix lookup, the subnet calculator and the open port checker. Website & SSL has the TTFB and SSL certificate checker. A short More from BookMyHost section links to our cost, sizing and latency calculators.",
       "Each result is written for people who have to fix something. A check says what was found, what it means, how to fix it and, where it helps, gives a DNS record you can copy. A Beginner and Expert switch at the top shows more or less technical detail."
     ]},
     {"h": "Which tool should I start with", "p": [
