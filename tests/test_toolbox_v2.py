@@ -270,7 +270,7 @@ async def test_lg_traceroute_hops_are_enriched(client, monkeypatch):
 async def test_new_pages_render_with_commandbar_and_active_tab(client, slug):
     r = await client.get(f"/tools/{slug}")
     assert r.status_code == 200
-    assert 'id="cmdbar"' in r.text and 'id="results"' in r.text and "<h1" in r.text and "FAQPage" in r.text
+    assert 'id="cmdbar"' not in r.text and 'id="results"' in r.text and "<h1" in r.text and "FAQPage" in r.text
     assert re.search(r'<meta name="description" content="[^"]{40,}', r.text)
     assert re.search(rf'href="/tools/{slug}"[^>]*aria-current="page"|aria-current="page"[^>]*href="/tools/{slug}"', r.text)
     assert f"js/tools/{slug}.js" in r.text

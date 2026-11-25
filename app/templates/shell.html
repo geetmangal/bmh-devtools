@@ -4,18 +4,20 @@
 {% include "_head.html" %}
 <script nonce="{{ csp_nonce }}">(function(){try{var d=document.documentElement,t=localStorage.getItem('bmh-theme');if(t==='light'||t==='dark')d.dataset.theme=t;if(localStorage.getItem('bmh-mode')==='expert')d.dataset.mode='expert';}catch(e){}})();</script>
 </head>
-<body class="min-h-screen flex flex-col" data-turnstile-sitekey="{{ turnstile_sitekey }}">
+<body class="min-h-screen flex flex-col" data-turnstile-sitekey="{{ turnstile_sitekey }}"{% if tool %} data-tool-slug="{{ tool.slug }}"{% endif %}>
 <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:left-2 focus:top-2 focus:z-50 btn">Skip to content</a>
 <header class="border-b border-line bg-surface no-print">
-  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-3">
-    <a href="{{ prefix }}/" class="flex items-center gap-2 font-bold text-ink no-underline hover:no-underline">
+  <div class="max-w-6xl mx-auto px-4 h-14 flex items-center gap-2 sm:gap-3">
+    <a href="{{ prefix }}/" class="flex items-center gap-2 font-bold text-ink no-underline hover:no-underline whitespace-nowrap shrink-0" aria-label="BookMyHost Toolbox home">
       <span class="inline-flex w-7 h-7 rounded-lg bg-accent text-white items-center justify-center">{{ icon("route", "w-4 h-4") }}</span>
-      <span>BookMyHost <span class="text-accent">Toolbox</span></span>
+      <span><span class="hidden min-[400px]:inline">BookMyHost </span><span class="text-accent">Toolbox</span></span>
     </a>
+    <button type="button" class="btn btn-ghost btn-sm" data-palette-open aria-haspopup="dialog" title="Browse all tools">{{ icon("grid") }}<span class="hidden sm:inline">All tools</span><span class="sr-only sm:hidden">All tools</span></button>
+    <button type="button" class="btn btn-ghost btn-sm palette-trigger" data-palette-open aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K" title="Search tools (Ctrl K)">{{ icon("search") }}<span class="hidden sm:inline">Search tools</span><span class="sr-only sm:hidden">Search tools</span><kbd class="kbd hidden md:inline">Ctrl K</kbd></button>
     <div class="ml-auto flex items-center gap-2 sm:gap-3 text-sm">
       <div class="inline-flex rounded-lg border border-line overflow-hidden" role="group" aria-label="Detail level">
-        <button type="button" class="px-2.5 py-1 text-xs sm:text-sm" data-mode-btn="beginner" aria-pressed="true">Beginner</button>
-        <button type="button" class="px-2.5 py-1 text-xs sm:text-sm" data-mode-btn="expert" aria-pressed="false">Expert</button>
+        <button type="button" class="px-2 sm:px-2.5 py-1 text-xs sm:text-sm" data-mode-btn="beginner" aria-pressed="true">Beginner</button>
+        <button type="button" class="px-2 sm:px-2.5 py-1 text-xs sm:text-sm" data-mode-btn="expert" aria-pressed="false">Expert</button>
       </div>
       <button type="button" class="btn btn-ghost btn-sm" data-theme-toggle aria-label="Switch between light and dark theme" aria-pressed="false" title="Toggle theme"><span data-theme-icon="moon">{{ icon("moon") }}</span><span class="hidden" data-theme-icon="sun">{{ icon("sun") }}</span></button>
       <a href="{{ api }}/docs" class="hidden sm:inline text-mute">API docs</a>
@@ -23,32 +25,47 @@
   </div>
 </header>
 
+{# Hub = the page rendered with tool=None. Only the hub gets the omnibox band; tool pages get breadcrumb + sibling rail. #}
+{% if tool is none %}
 <section class="hero-glow border-b border-line no-print">
   <div class="max-w-4xl mx-auto px-4 pt-8 pb-5">
+    {% block hero %}{% endblock %}
     <form id="cmdbar" class="cmdbar" role="search" action="{{ prefix }}/" method="get" autocomplete="off">
       <label for="cmd-input" class="sr-only">Enter an IP address, prefix, ASN, domain, email address or URL</label>
-      <input id="cmd-input" name="q" type="text" class="mono" placeholder="8.8.8.8, example.com, AS13335, 1.1.1.0/24, you@example.com or mx:example.com" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="cmd-hint" value="{{ request.query_params.get('q', '') if tool is none else '' }}">
+      <input id="cmd-input" name="q" type="text" class="mono" placeholder="8.8.8.8, example.com, AS13335, 1.1.1.0/24, you@example.com or mx:example.com" autocapitalize="off" autocorrect="off" spellcheck="false" aria-describedby="cmd-hint" value="{{ request.query_params.get('q', '') }}">
       <button type="submit" class="btn">Go</button>
     </form>
     <div class="mt-3 flex flex-wrap items-center gap-2 min-h-[2rem]" id="cmd-chips" aria-live="polite"></div>
-    <p id="cmd-hint" class="mt-1 text-xs text-mute">We detect what you typed and suggest the right tool. Shortcuts: <span class="mono">mx: spf: dmarc: dkim: blacklist: smtp: health: asn: trace: ping: whois: dns: ports: ssl:</span></p>
+    <details class="mt-1 text-xs text-mute cmd-shortcuts">
+      <summary class="cursor-pointer">Shortcuts</summary>
+      <p id="cmd-hint" class="mt-1">We detect what you typed and suggest the right tool. Prefixes: <span class="mono">mx: spf: dmarc: dkim: blacklist: smtp: health: asn: trace: ping: whois: dns: ports: ssl:</span></p>
+    </details>
   </div>
 </section>
-
-<div class="border-b border-line bg-surface no-print">
-  <nav class="max-w-6xl mx-auto px-4 py-3 tabrail" aria-label="Tools">
-  {% for g in tool_groups %}
-    <div class="tabgroup">
-      <span class="tabgroup-label" id="grp-{{ g.key }}">{{ g.label }}</span>
-      <div class="tabs" role="group" aria-labelledby="grp-{{ g.key }}">
-      {% for it in g["items"] %}
-        <a class="tab" href="{{ it.href }}"{% if it.external %} rel="noopener"{% endif %}{% if tool and it.slug == tool.slug %} aria-current="page"{% endif %}>{{ icon(it.icon) }}<span>{{ it.name }}</span>{% if it.external %}{{ icon("external", "w-3 h-3 opacity-60") }}{% endif %}</a>
+{% else %}
+{% set cat = (tool_groups | selectattr('key', 'equalto', tool.category) | list | first) %}
+<div class="border-b border-line bg-surface no-print subhead">
+  <div class="max-w-6xl mx-auto px-4 pt-2.5 pb-2">
+    <nav class="bc" aria-label="Breadcrumb">
+      <ol>
+        <li><a href="{{ prefix }}/">Tools</a></li>
+        <li><a href="{{ prefix }}/#cat-{{ tool.category }}">{{ cat.label if cat else tool.category }}</a></li>
+        <li><span aria-current="page">{{ tool.name }}</span></li>
+      </ol>
+    </nav>
+    {% set sibs = category_siblings(tool.slug) %}
+    {% if sibs | length > 1 %}
+    <nav class="tabrail sibrail mt-2" aria-label="{{ cat.label if cat else 'Related' }} tools">
+      <div class="tabs">
+      {% for it in sibs %}
+        <a class="tab" href="{{ prefix }}/{{ it.slug }}"{% if it.slug == tool.slug %} aria-current="page"{% endif %}>{{ icon(it.icon) }}<span>{{ it.name }}</span></a>
       {% endfor %}
       </div>
-    </div>
-  {% endfor %}
-  </nav>
+    </nav>
+    {% endif %}
+  </div>
 </div>
+{% endif %}
 
 <main id="main" class="flex-1 max-w-5xl mx-auto w-full px-4 py-8">
 {% block intro %}{% endblock %}
@@ -116,11 +133,26 @@
 {% endif %}
 </main>
 <footer class="border-t border-line mt-10 no-print">
+  <nav class="max-w-6xl mx-auto px-4 pt-8 footdir" aria-label="All tools directory">
+    <div class="footdir-grid">
+    {% for g in tool_groups %}
+      <div>
+        <h2 class="footdir-h"><a href="{{ prefix }}/#cat-{{ g.key }}">{{ g.label }}</a></h2>
+        <ul>
+        {% for it in g["items"] %}
+          <li><a href="{{ it.href }}"{% if it.external %} rel="noopener"{% endif %}>{{ it.name }}{% if it.external %}{{ icon("external", "w-3 h-3 opacity-60 inline ml-1") }}{% endif %}</a></li>
+        {% endfor %}
+        </ul>
+      </div>
+    {% endfor %}
+    </div>
+  </nav>
   <div class="max-w-6xl mx-auto px-4 py-6 text-sm text-mute flex flex-wrap gap-4 justify-between">
     <span>Built by the <a href="https://bookmyhost.com" rel="author">BookMyHost</a> engineering team. Indian cloud servers and VPS by Blazing Bullet Pvt Ltd.</span>
     <span><a href="{{ prefix }}/">All tools</a> &middot; <a href="{{ api }}/docs">API</a> &middot; <a href="https://bookmyhost.com/free-tools">Cost, sizing and latency tools</a> &middot; <a href="https://bookmyhost.com/">Cloud servers</a> &middot; MIT licensed</span>
   </div>
 </footer>
+<dialog id="palette" class="palette" aria-label="Search tools" data-palette-dialog></dialog>
 <script type="module" src="{{ static_url('js/shell.js') }}" nonce="{{ csp_nonce }}"></script>
 {% block scripts %}{% endblock %}
 </body>

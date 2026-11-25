@@ -306,7 +306,9 @@ def test_tool_config_fields():
 async def test_pages_render_shell(client, path):
     r = await client.get(path)
     assert r.status_code == 200
-    assert 'id="cmdbar"' in r.text and 'tabrail"' in r.text and "BookMyHost <span" in r.text and "Toolbox" in r.text
+    assert ('id="cmdbar"' in r.text) == (path == "/tools/")
+    assert path == "/tools/" or 'aria-label="Breadcrumb"' in r.text
+    assert "BookMyHost " in r.text and 'text-accent">Toolbox</span>' in r.text
     for t in TOOLS:
         assert f'href="/tools/{t["slug"]}"' in r.text
     for c in CALCULATORS:
