@@ -4,7 +4,7 @@
 lifetime, typed answers, NXDOMAIN and NOANSWER kept distinct). ``FakeResolver`` is a dict-backed test
 double so tests never touch the network.
 
-Resolver servers: env ``BMH_TOOLS_MAILCHECK_RESOLVERS`` (comma separated IPs); default is the system
+Resolver servers: env ``BMH_TOOLS_MAILCHECK_RESOLVERS`` (comma separated IP or IP:port); default is the system
 resolver. DNSSEC "AD" results are only meaningful when that resolver validates."""
 from __future__ import annotations
 
@@ -94,6 +94,27 @@ def _fill(res: DnsResult, rrsets, rtype: str) -> None:
                     res.txt_strings.append([s.decode("utf-8", "replace") for s in rr.strings])
 
 
+def parse_nameserver(spec: str):
+    """'1.2.3.4', '1.2.3.4:5335', '2001:db8::1' or '[2001:db8::1]:5335' -> what dnspython accepts.
+    A non-default port is needed for the local unbound sidecar (127.0.0.1:5335)."""
+    import ipaddress
+
+    import dns.nameserver
+    s = spec.strip()
+    host, port = s, 53
+    if s.startswith("["):
+        host, _, rest = s[1:].partition("]")
+        if rest.startswith(":"):
+            port = int(rest[1:])
+    elif s.count(":") == 1:
+        host, p = s.split(":")
+        port = int(p)
+    ipaddress.ip_address(host)  # ValueError on garbage
+    if not 0 < port < 65536:
+        raise ValueError(f"bad port in nameserver {spec!r}")
+    return host if port == 53 else dns.nameserver.Do53Nameserver(host, port)
+
+
 def default_nameservers() -> list[str] | None:
     raw = os.environ.get("BMH_TOOLS_MAILCHECK_RESOLVERS", "").strip()
     ips = [p.strip() for p in raw.split(",") if p.strip()]
@@ -111,7 +132,7 @@ class DnsResolver:
     def _make(self) -> dns.asyncresolver.Resolver:
         if self.nameservers:
             r = dns.asyncresolver.Resolver(configure=False)
-            r.nameservers = list(self.nameservers)
+            r.nameservers = [parse_nameserver(n) for n in self.nameservers]
         else:
             try:
                 r = dns.asyncresolver.Resolver(configure=True)

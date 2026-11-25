@@ -5,7 +5,7 @@
 * Return codes: 127.0.0.x = listed. 127.255.255.x (Spamhaus "query refused / error"), a list's own refused codes
   (URIBL 127.0.0.1) and anything outside 127.0.0.0/8 (resolver hijack / wildcard) are errors and NEVER counted as listed.
 * Spamhaus lists need a DQS key: read from env ``SPAMHAUS_DQS_KEY`` at call time; without it the row is "skipped".
-* Resolver: env ``BMH_TOOLS_DNSBL_RESOLVER`` (comma separated IPs) else the system resolver. NOTE: many lists refuse
+* Resolver: env ``BMH_TOOLS_DNSBL_RESOLVER`` (comma separated IP or IP:port) else the system resolver. NOTE: many lists refuse
   queries from big public resolvers (8.8.8.8, 1.1.1.1), so use your own recursive resolver in production.
 """
 from __future__ import annotations
