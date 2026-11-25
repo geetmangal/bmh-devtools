@@ -35,7 +35,7 @@ services:
       BMH_TOOLS_DNSBL_RESOLVER: "127.0.0.1:5335"
       BMH_TOOLS_MAILCHECK_RESOLVERS: "127.0.0.1:5335"
       # Outbound TCP/25 is blocked on the production host, so the SMTP test stays off.
-      BMH_TOOLS_SMTP_ENABLED: "0"
+      BMH_TOOLS_SMTP_ENABLED: "${BMH_TOOLS_SMTP_ENABLED:-0}"
       SPAMHAUS_DQS_KEY: ${SPAMHAUS_DQS_KEY:-}
       GLOBALPING_TOKEN: ${GLOBALPING_TOKEN:-}
     read_only: true
