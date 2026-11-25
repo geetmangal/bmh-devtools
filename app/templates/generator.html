@@ -1,0 +1,96 @@
+{% extends layout %}
+{% from "_icons.html" import icon %}
+{# SPF + DMARC record builder. Runs entirely in the browser (static/js/tools/spf-dmarc-generator.js): no API call, nothing stored. #}
+{% block intro %}
+<h1 class="text-2xl sm:text-3xl font-bold mb-1">SPF &amp; DMARC Record Generator</h1>
+<p class="text-mute max-w-3xl mb-3 text-sm sm:text-base embed-lead">Tick the services that send mail for your domain and get a valid SPF record, then choose a DMARC policy and get the <span class="mono">_dmarc</span> record. The records update as you type, with warnings for the 10-lookup limit, duplicates and long records.</p>
+{% endblock %}
+{% block content %}
+<form id="gen-form" class="space-y-4" action="{{ prefix }}/{{ tool.slug }}" method="get" novalidate>
+  <div class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end">
+    <label class="block text-sm">Your domain (optional, only used to name the DNS host)
+      <input id="gen-domain" name="q" type="text" placeholder="example.com" autocomplete="off" class="mt-1 mono" spellcheck="false" autocapitalize="off"></label>
+    <button class="btn" type="submit" id="tool-submit">Build records</button>
+    <p class="text-sm flex items-start gap-2 sm:col-span-2"><span class="st-ok mt-0.5">{{ icon("shield", "w-4 h-4") }}</span><span><strong>Nothing leaves your browser.</strong> The records are built by JavaScript on this page. Nothing is sent, logged or stored.</span></p>
+  </div>
+
+  <div class="grid gap-4 lg:grid-cols-2">
+    <fieldset class="card p-4 space-y-3 min-w-0">
+      <legend class="text-lg font-bold px-1">1. SPF record</legend>
+      <p class="text-sm text-mute">Who may send mail as your domain. Tick every service that sends mail with your address.</p>
+      <div class="grid gap-1.5 sm:grid-cols-2 text-sm" id="spf-providers">
+        <label class="flex items-center gap-2"><input type="checkbox" data-include="_spf.google.com"> Google Workspace</label>
+        <label class="flex items-center gap-2"><input type="checkbox" data-include="spf.protection.outlook.com"> Microsoft 365</label>
+        <label class="flex items-center gap-2"><input type="checkbox" data-include="zoho.in"> Zoho Mail (India, zoho.in)</label>
+        <label class="flex items-center gap-2"><input type="checkbox" data-include="zoho.com"> Zoho Mail (global, zoho.com)</label>
+        <label class="flex items-center gap-2"><input type="checkbox" data-include="amazonses.com"> Amazon SES</label>
+        <label class="flex items-center gap-2"><input type="checkbox" data-include="sendgrid.net"> SendGrid</label>
+        <label class="flex items-center gap-2"><input type="checkbox" data-include="mailgun.org"> Mailgun</label>
+        <label class="flex items-center gap-2"><input type="checkbox" data-include="spf.brevo.com"> Brevo</label>
+      </div>
+      <div class="grid gap-1.5 sm:grid-cols-2 text-sm">
+        <label class="flex items-center gap-2"><input type="checkbox" id="spf-a"> The server in this domain's A record (<span class="mono">a</span>)</label>
+        <label class="flex items-center gap-2"><input type="checkbox" id="spf-mx"> This domain's mail servers (<span class="mono">mx</span>)</label>
+      </div>
+      <label class="block text-sm">Your own IPv4 addresses (<span class="mono">ip4</span>), separated by spaces or commas
+        <input id="spf-ip4" type="text" placeholder="203.0.113.10 198.51.100.0/24" autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
+      <label class="block text-sm">Your own IPv6 addresses (<span class="mono">ip6</span>)
+        <input id="spf-ip6" type="text" placeholder="2001:db8::25 2001:db8:100::/48" autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
+      <label class="block text-sm">Other services to include (<span class="mono">include</span>), one domain each
+        <input id="spf-include" type="text" placeholder="spf.mailprovider.com" autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
+      <label class="block text-sm">Everything else (the last rule)
+        <select id="spf-all" class="mt-1">
+          <option value="~all">~all: soft fail, mark as suspicious (safe start)</option>
+          <option value="-all">-all: hard fail, reject mail from other servers</option>
+        </select></label>
+    </fieldset>
+
+    <fieldset class="card p-4 space-y-3 min-w-0">
+      <legend class="text-lg font-bold px-1">2. DMARC record</legend>
+      <p class="text-sm text-mute">What receivers do with mail that fails SPF and DKIM alignment, and where to send reports.</p>
+      <div class="grid gap-3 sm:grid-cols-2">
+        <label class="block text-sm">Policy (<span class="mono">p</span>)
+          <select id="dm-p" class="mt-1">
+            <option value="none">none: monitor only (start here)</option>
+            <option value="quarantine">quarantine: send to spam</option>
+            <option value="reject">reject: refuse the mail</option>
+          </select></label>
+        <label class="block text-sm">Subdomain policy (<span class="mono">sp</span>)
+          <select id="dm-sp" class="mt-1">
+            <option value="">same as p (leave out)</option>
+            <option value="none">none</option>
+            <option value="quarantine">quarantine</option>
+            <option value="reject">reject</option>
+          </select></label>
+        <label class="block text-sm">Apply to (<span class="mono">pct</span>) percent of mail
+          <input id="dm-pct" type="number" min="0" max="100" step="1" value="100" class="mt-1 mono"></label>
+        <label class="block text-sm">Failure reports (<span class="mono">fo</span>)
+          <select id="dm-fo" class="mt-1">
+            <option value="0">0: report when everything fails (default)</option>
+            <option value="1">1: report when anything fails</option>
+            <option value="d">d: report DKIM failures</option>
+            <option value="s">s: report SPF failures</option>
+          </select></label>
+        <label class="block text-sm">DKIM alignment (<span class="mono">adkim</span>)
+          <select id="dm-adkim" class="mt-1"><option value="r">r: relaxed (default)</option><option value="s">s: strict</option></select></label>
+        <label class="block text-sm">SPF alignment (<span class="mono">aspf</span>)
+          <select id="dm-aspf" class="mt-1"><option value="r">r: relaxed (default)</option><option value="s">s: strict</option></select></label>
+      </div>
+      <label class="block text-sm">Send aggregate reports to (<span class="mono">rua</span>), email addresses separated by commas
+        <input id="dm-rua" type="text" placeholder="dmarc@example.com" autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
+      <label class="block text-sm">Send failure reports to (<span class="mono">ruf</span>, optional)
+        <input id="dm-ruf" type="text" placeholder="forensic@example.com" autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
+    </fieldset>
+  </div>
+</form>
+<div id="results" class="mt-5 space-y-4 gloss-scope" aria-live="off" aria-busy="false"></div>
+{% endblock %}
+{% block about %}
+<section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
+  <h2 class="text-xl font-bold text-ink mb-2">About this generator</h2>
+  <p>SPF lists the servers allowed to send mail for your domain and DMARC tells receivers what to do when a message fails. This page only builds the text of the two DNS records; publish them at your DNS provider and then verify them with the SPF and DMARC checkers.</p>
+  <p class="mt-2">The DNS lookup count is an estimate: every <span class="mono">include</span>, <span class="mono">a</span> and <span class="mono">mx</span> costs one lookup here, but the records you include can contain more includes of their own, so the real number can be higher.</p>
+  <p class="mt-2">BookMyHost provides <a href="https://bookmyhost.com">cloud servers and VPS in India</a>.</p>
+</section>
+{% endblock %}
+{% block scripts %}<script type="module" src="{{ static_url('js/tools/' ~ tool.slug ~ '.js') }}" nonce="{{ csp_nonce }}"></script>{% endblock %}

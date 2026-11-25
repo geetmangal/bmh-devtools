@@ -13,6 +13,7 @@ from cryptography.hazmat.primitives import hashes
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app.core import cooldown, httpheaders
 from app.core.config import HTTP_TIMEOUT, MAX_CONCURRENT_HTTP, MAX_REDIRECTS, MAX_RESPONSE_BYTES
 from app.core.ratelimit import Gate, rate_limit
 from app.core.validate import ValidationError, is_ip_literal, is_public_ip, validate_url
@@ -94,7 +95,7 @@ def _parse_headers(raw: bytes) -> tuple[str, int, str, dict[str, str]]:
 
 
 async def _fetch_once(scheme: str, host: str, port: int, path: str, verify: bool = True,
-                      pinned: tuple[str, float] | None = None) -> dict:
+                      pinned: tuple[str, float] | None = None, max_body: int = MAX_RESPONSE_BYTES) -> dict:
     """One GET with phase timings. Returns dict of timings, status, headers, body size, ssl object info.
     `pinned` = (ip, dns_ms) from _resolve(); the socket always goes to that validated IP literal."""
     phases: dict[str, float] = {}
@@ -112,6 +113,7 @@ async def _fetch_once(scheme: str, host: str, port: int, path: str, verify: bool
     phases["tcp_ms"] = round((t1 - t0) * 1000, 2)
 
     ssl_obj = None
+    tls_snapshot = None
     tls_error = None
     try:
         if scheme == "https":
@@ -124,6 +126,15 @@ async def _fetch_once(scheme: str, host: str, port: int, path: str, verify: bool
             except (OSError, asyncio.TimeoutError) as exc:
                 raise CheckError(f"TLS handshake failed: {exc}") from exc
             ssl_obj = writer.get_extra_info("ssl_object")
+            if ssl_obj is not None:  # snapshot now: closing the socket early (capped body read) resets the ssl object
+                tls_snapshot = {
+                    "version": ssl_obj.version(),
+                    "cipher": ssl_obj.cipher()[0] if ssl_obj.cipher() else None,
+                    "cipher_bits": ssl_obj.cipher()[2] if ssl_obj.cipher() else None,
+                    "alpn": ssl_obj.selected_alpn_protocol(),
+                    "peer_der": ssl_obj.getpeercert(binary_form=True),
+                    "chain_len": _chain_len(ssl_obj),
+                }
             t2 = time.perf_counter()
             phases["tls_ms"] = round((t2 - t1) * 1000, 2)
         else:
@@ -149,7 +160,7 @@ async def _fetch_once(scheme: str, host: str, port: int, path: str, verify: bool
 
         buf = bytearray(first)
         deadline = time.perf_counter() + HTTP_TIMEOUT
-        while len(buf) < MAX_RESPONSE_BYTES and time.perf_counter() < deadline:
+        while len(buf) < max_body and time.perf_counter() < deadline:
             try:
                 chunk = await asyncio.wait_for(reader.read(65536), max(0.05, deadline - time.perf_counter()))
             except asyncio.TimeoutError:
@@ -173,18 +184,11 @@ async def _fetch_once(scheme: str, host: str, port: int, path: str, verify: bool
     body_len = len(buf) - (buf.find(b"\r\n\r\n") + 4)
     info = {
         "ip": ip, "phases": phases, "http_version": version, "status": status, "reason": reason,
-        "headers": headers, "response_bytes": max(0, body_len), "truncated": len(buf) >= MAX_RESPONSE_BYTES,
+        "headers": headers, "response_bytes": max(0, body_len), "truncated": len(buf) >= max_body,
         "tls": None, "tls_error": tls_error,
     }
-    if ssl_obj is not None:
-        info["tls"] = {
-            "version": ssl_obj.version(),
-            "cipher": ssl_obj.cipher()[0] if ssl_obj.cipher() else None,
-            "cipher_bits": ssl_obj.cipher()[2] if ssl_obj.cipher() else None,
-            "alpn": ssl_obj.selected_alpn_protocol(),
-            "peer_der": ssl_obj.getpeercert(binary_form=True),
-            "chain_len": _chain_len(ssl_obj),
-        }
+    if tls_snapshot is not None:
+        info["tls"] = tls_snapshot
     return info
 
 
@@ -277,13 +281,14 @@ async def _probe_h2(host: str, port: int, ip: str) -> str | None:
 
 
 async def _fetch(scheme: str, host: str, port: int, path: str,
-                 pinned: tuple[str, float] | None = None) -> tuple[dict, bool]:
+                 pinned: tuple[str, float] | None = None, max_body: int | None = None) -> tuple[dict, bool]:
     """Verified fetch first; if the TLS verification fails, retry unverified so we can still report."""
+    kw = {} if max_body is None else {"max_body": max_body}
     try:
-        return await _fetch_once(scheme, host, port, path, verify=True, pinned=pinned), True
+        return await _fetch_once(scheme, host, port, path, verify=True, pinned=pinned, **kw), True
     except CheckError as exc:
         if scheme == "https" and "TLS handshake failed" in str(exc):
-            info = await _fetch_once(scheme, host, port, path, verify=False, pinned=pinned)
+            info = await _fetch_once(scheme, host, port, path, verify=False, pinned=pinned, **kw)
             info["tls_error"] = str(exc)
             return info, False
         raise
@@ -375,3 +380,112 @@ async def _http_check(req: CheckRequest) -> dict:
             "certificate": cert,
         }
     return result
+
+
+# ---------------------------------------------------------------- POST /http/headers: redirect chain + security headers
+HEADERS_MAX_HOPS = 8        # requests per check; a chain still redirecting after the 8th is "too many hops"
+HEADERS_BODY_CAP = 16384    # only the response head is needed; stop reading after the first chunk past this
+
+
+class HeadersRequest(BaseModel):
+    url: str = Field(..., min_length=1, max_length=2048, examples=["bookmyhost.com"])
+
+
+def _fmt(t: tuple[str, str, int, str]) -> str:
+    scheme, host, port, path = t
+    h = f"[{host}]" if ":" in host else host
+    return f"{scheme}://{h}{'' if port in (80, 443) else ':' + str(port)}{path}"
+
+
+@router.post("/headers", dependencies=[Depends(rate_limit)])
+async def http_headers(req: HeadersRequest) -> dict:
+    """Follow the redirect chain of a URL by hand (max 8 hops, every hop re-validated against the SSRF guard) and
+    grade the security headers of the final response."""
+    async with _gate.slot():
+        return await _http_headers(req)
+
+
+async def _http_headers(req: HeadersRequest) -> dict:
+    raw = req.url.strip()
+    if raw and "://" not in raw:
+        raw = "http://" + raw  # bare domain: start on HTTP like a visitor typing it, so the http to https redirect shows up
+    try:
+        cur = validate_url(raw)
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=str(exc))
+    cooldown.check(cur[1])
+
+    hops: list[dict] = []
+    seen: set[tuple] = set()
+    hosts_seen = {cur[1]}
+    loop = too_many = False
+    blocked: str | None = None
+    last_info: dict | None = None
+    last_verified = True
+    complete = False
+    start_url = _fmt(cur)
+
+    for i in range(HEADERS_MAX_HOPS):
+        url_here = _fmt(cur)
+        if cur in seen:
+            loop = True
+            break
+        seen.add(cur)
+        if cur[1] not in hosts_seen:  # new host on the way: shared per-target budget so a chain cannot be aimed at one victim
+            try:
+                cooldown.check(cur[1])
+            except cooldown.TargetBusy:
+                blocked = f"{cur[1]} is being checked by many people right now"
+                hops.append({"url": url_here, "status": None, "location": None, "ms": None, "error": blocked})
+                break
+            hosts_seen.add(cur[1])
+        try:
+            pinned = await _resolve(cur[1])                       # SSRF guard 1: every answer must be public
+            info, verified = await _fetch(*cur, pinned=pinned, max_body=HEADERS_BODY_CAP)  # guard 2 inside _fetch_once: IP re-checked
+        except CheckError as exc:
+            if i == 0:
+                raise HTTPException(status_code=400, detail=str(exc))
+            blocked = httpheaders.clean_text(exc, 200)
+            hops.append({"url": url_here, "status": None, "location": None, "ms": None, "error": blocked})
+            break
+        last_info, last_verified = info, verified
+        loc = info["headers"].get("location")
+        hop = {"url": url_here, "status": info["status"], "location": httpheaders.clean_text(loc, 500) if loc else None, "ms": info["phases"]["total_ms"]}
+        hops.append(hop)
+        if not (300 <= info["status"] < 400 and loc and info["status"] != 304):
+            complete = True
+            break
+        if i == HEADERS_MAX_HOPS - 1:
+            too_many = True
+            break
+        try:                                                      # SSRF guard 3: scheme, port, local names, IP literals
+            cur = validate_url(urljoin(url_here, loc))
+        except (ValidationError, ValueError) as exc:
+            blocked = f"{httpheaders.clean_text(loc, 120)}: {httpheaders.clean_text(exc, 120)}"
+            hops.append({"url": httpheaders.clean_text(loc, 300), "status": None, "location": None, "ms": None, "error": blocked})
+            break
+        hop["next"] = _fmt(cur)
+
+    flags = httpheaders.analyse_chain(hops, start_https=start_url.startswith("https://"), complete=complete, loop=loop, too_many=too_many, blocked=blocked)
+    for h in hops:
+        h.pop("next", None)
+    final_url = next((h["url"] for h in reversed(hops) if h["status"] is not None), start_url)
+    final_https = final_url.startswith("https://")
+    headers = httpheaders.clean_headers(last_info["headers"]) if (last_info and complete) else {}
+    grade = httpheaders.grade_headers(last_info["headers"], final_https) if (last_info and complete) else None
+    findings = httpheaders.build_findings(
+        hops=hops, flags=flags, grade=grade, headers=headers, final_status=last_info["status"] if (last_info and complete) else None,
+        final_https=final_https, tls_verified=last_verified, complete=complete)
+    status = httpheaders.overall_status(findings)
+    if grade:
+        summary = (f"{final_url} answered {last_info['status']} after {flags['redirect_count']} redirect{'s' if flags['redirect_count'] != 1 else ''}; "
+                   f"security headers grade {grade['grade']} ({sum(1 for c in grade['checks'] if c['status'] == 'ok')} of {len(grade['checks'])} headers fully set).")
+    else:
+        summary = "The redirect chain did not reach a final page, so the security headers could not be graded."
+    return {
+        "target": start_url, "final_url": final_url, "status": status, "score": grade["score"] if grade else None, "summary": summary,
+        "grade": grade, "hops": hops, "flags": flags, "complete": complete,
+        "final_status": last_info["status"] if (last_info and complete) else None, "headers": headers,
+        "tls": {"version": (last_info["tls"] or {}).get("version"), "verified": last_verified} if (last_info and complete and final_https and last_info.get("tls")) else None,
+        "findings": findings,
+    }

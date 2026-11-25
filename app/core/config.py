@@ -196,6 +196,15 @@ TOOLS = [
         "keywords": ["dkim", "selector", "signature", "key", "spam"],
     },
     {
+        "slug": "spf-dmarc-generator", "lastmod": "2026-11-25", "name": "SPF & DMARC Record Generator",
+        "short": "Build SPF and DMARC TXT records from a few ticks, with lookup count warnings, in your browser.",
+        "category": "email", "icon": "code", "accepts": ["domain"], "heavy": False, "embeddable": True,
+        "group": "auth",
+        "badge": "new",
+        "keywords": ["spf generator", "dmarc generator", "create spf record", "create dmarc record", "txt record"],
+        "client_only": True,
+    },
+    {
         "slug": "dns-propagation-checker", "lastmod": "2026-10-25", "name": "DNS Propagation Checker",
         "short": "Check whether your DNS record has propagated to public resolvers worldwide, including India.",
         "category": "dns", "icon": "dns", "accepts": ["domain", "host"], "heavy": False, "embeddable": True,
@@ -225,6 +234,13 @@ TOOLS = [
         "short": "Measure DNS, TCP, TLS, time to first byte and inspect the SSL certificate of any site.",
         "category": "web", "icon": "gauge", "accepts": ["url", "domain", "host"], "heavy": False, "embeddable": True,
         "keywords": ["ssl", "tls", "certificate", "slow", "ttfb", "https"],
+    },
+    {
+        "slug": "http-headers-checker", "lastmod": "2026-11-25", "name": "HTTP Headers & Redirect Checker",
+        "short": "Follow the redirect chain hop by hop and grade security headers A to F, with fixes for nginx and Apache.",
+        "category": "web", "icon": "shield", "accepts": ["url", "domain"], "heavy": False, "embeddable": True,
+        "badge": "new",
+        "keywords": ["http headers", "redirect", "301", "302", "hsts", "csp", "security headers", "redirect chain"],
     },
     {
         "slug": "subnet-calculator", "lastmod": "2026-10-25", "name": "IPv4 / IPv6 Subnet Calculator",

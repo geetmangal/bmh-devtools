@@ -1,0 +1,91 @@
+{
+  "title": "SPF & DMARC Record Generator | BookMyHost",
+  "description": "Free SPF and DMARC record generator that runs in your browser. Tick your mail providers, pick a policy and copy ready TXT records with lookup count warnings.",
+  "og_line": "Build SPF and DMARC records in your browser",
+  "answer": "An SPF record lists the servers allowed to send mail for your domain, and a DMARC record tells receivers what to do with mail that fails. This generator builds both as ready-to-publish TXT records from a few ticks and choices. It runs entirely in your browser, so nothing you type is sent anywhere.",
+  "inputs": "The services that send your mail (for example Google Workspace, Microsoft 365, Zoho, Amazon SES), your own IP addresses, the SPF ending, and the DMARC policy, percentage, report addresses and alignment. A domain name is optional and only names the DNS host.",
+  "outputs": "A TXT record for SPF and a TXT record for the _dmarc host, each with a copy button, an estimate of the SPF DNS lookups, and warnings for duplicates, invalid addresses, a record over 255 characters and DMARC settings that have no effect.",
+  "curl": null,
+  "sections": [
+    {
+      "h": "What the generator builds",
+      "p": [
+        "Two DNS TXT records protect your domain's mail. SPF (RFC 7208) is published on the domain itself and lists who may send. DMARC (RFC 7489) is published on the _dmarc host and says what receivers should do when a message fails both SPF and DKIM alignment, and where to send reports. This page writes the text of both records; you publish them at your DNS provider.",
+        "Everything is calculated by JavaScript on this page. There is no server request, so you can safely type internal IP addresses or report mailboxes."
+      ]
+    },
+    {
+      "h": "Building the SPF record",
+      "p": [
+        "Tick every service that sends mail with your address. The generator adds one include for each: Google Workspace, Microsoft 365, Zoho Mail (the India data centre uses zoho.in, accounts on the global data centre use zoho.com), Amazon SES, SendGrid, Mailgun and Brevo. Add your own servers as ip4 or ip6 addresses or ranges, and use a or mx only if the mail really leaves from those hosts.",
+        "The record ends with an all rule. Start with ~all, which marks mail from unlisted servers as suspicious. Move to -all, which asks receivers to reject it, after the DMARC reports show that every legitimate sender is covered.",
+        "SPF allows at most 10 DNS lookups. Each include, a and mx counts as one, while ip4 and ip6 are free. The generator counts these for you. Because every included record can contain includes of its own, the number shown is a lower bound whenever you use an include; publish the record and run it through the SPF checker for the exact total."
+      ]
+    },
+    {
+      "h": "Choosing a DMARC policy",
+      "p": [
+        "Begin with p=none and an rua address. You then receive daily aggregate reports from large mailbox providers and can see every system that sends as your domain. Fix the senders that fail, usually by adding them to SPF or enabling DKIM signing.",
+        "When the reports are clean, move to p=quarantine, then p=reject. The pct tag applies the policy to only part of the failing mail, which lets you roll out in steps, for example 10, 50 and then 100. The sp tag sets a different policy for subdomains, and adkim and aspf choose relaxed or strict alignment. Relaxed is the default and suits most domains."
+      ]
+    },
+    {
+      "h": "Publishing the records",
+      "p": [
+        "Create a TXT record with the host shown and paste the value. For SPF the host is the domain itself, written as @ in most panels. For DMARC the host is _dmarc. Publish only one SPF record per domain: two records make SPF fail. If one exists, merge your entries into it.",
+        "A TXT string holds 255 characters. If the SPF record is longer, the generator warns you and shows it split into quoted strings; most DNS panels do this for you. After publishing, wait for the TTL and check the result with the SPF checker, the DMARC checker and the domain health report.",
+        "The generator does not create DKIM keys, because those come from your mail provider. DMARC passes when either SPF or DKIM passes and is aligned with the From domain, so enable DKIM signing at each sender as well. The DKIM checker confirms that the key is published."
+      ]
+    },
+    {
+      "h": "Mistakes the warnings catch",
+      "p": [
+        "The generator flags duplicate entries, malformed IP addresses and domains, more than 10 DNS lookups, and a record longer than 255 characters. For DMARC it flags invalid report addresses, a pct below 100 combined with p=none, a missing rua address, an fo setting with no ruf address, and report addresses on another domain, which need an authorisation record on that domain before receivers send reports."
+      ]
+    }
+  ],
+  "faq": [
+    [
+      "Does this tool send my data anywhere?",
+      "No. The records are built by JavaScript in your browser and nothing is uploaded, logged or stored. The optional domain name is only used to show the DNS host."
+    ],
+    [
+      "Should I use ~all or -all in SPF?",
+      "Start with ~all (soft fail). Switch to -all (hard fail) once DMARC reports show that all legitimate senders are listed, because -all makes receivers reject mail from any server you forgot."
+    ],
+    [
+      "Which Zoho include do I need?",
+      "Use zoho.in if your Zoho account is in the India data centre and zoho.com if it is on the global one. Zoho publishes a separate include for each region, so tick the one that matches your account."
+    ],
+    [
+      "Why does the lookup count say at least?",
+      "Each include, a and mx counts as one DNS lookup here, but the included records can contain further includes. Publish the record and run the SPF checker to see the exact total against the limit of 10."
+    ],
+    [
+      "Can I publish two SPF records?",
+      "No. A domain must have exactly one record starting with v=spf1. Two records cause a permanent error and SPF fails, so merge the entries into a single record."
+    ],
+    [
+      "Which DMARC policy should I start with?",
+      "Start with p=none and a rua report address, read the reports for a few weeks, then move to quarantine and finally reject, using pct to roll out in steps."
+    ]
+  ],
+  "related": [
+    {
+      "slug": "spf-checker",
+      "anchor": "Check the published SPF record"
+    },
+    {
+      "slug": "dmarc-checker",
+      "anchor": "Check the published DMARC record"
+    },
+    {
+      "slug": "domain-health",
+      "anchor": "Grade the whole domain's email setup"
+    },
+    {
+      "slug": "dkim-checker",
+      "anchor": "Check the DKIM key for your domain"
+    }
+  ]
+}

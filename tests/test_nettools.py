@@ -521,7 +521,7 @@ async def test_sitemap_index_and_api_docs_include_new_tools(client):
     s = (await client.get("/tools/sitemap.xml")).text
     for slug in NEW:
         assert f"<loc>https://bookmyhost.com/tools/{slug}</loc>" in s
-    assert s.count("<loc>") == 19
+    assert s.count("<loc>") == len(__import__("app.core.config", fromlist=["TOOLS"]).TOOLS) + 1
     idx = (await client.get("/tools/")).text
     for slug in NEW:
         assert f'href="/tools/{slug}"' in idx

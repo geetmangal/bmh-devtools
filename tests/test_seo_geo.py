@@ -100,7 +100,7 @@ def test_content_files_are_complete(slug):
         assert r["slug"] in SLUGS and r["slug"] != slug and len(r["anchor"].split()) >= 3, r
     assert c["og_line"] and not re.search(r"@(API|BASE|RATE)@", json.dumps(c))  # no unfilled tokens
     if slug != "hub":
-        assert c["inputs"] and c["outputs"] and (c["curl"] is None) == (slug == "email-header-analyzer")
+        assert c["inputs"] and c["outputs"] and (c["curl"] is None) == (slug in ("email-header-analyzer", "spf-dmarc-generator"))
 
 
 @pytest.mark.parametrize("slug", SLUGS)
@@ -227,7 +227,7 @@ async def test_llms_full_txt(client):
     assert r.status_code == 200 and r.headers["content-type"] == "text/plain; charset=utf-8"
     assert r.headers["cache-control"] == "public, max-age=3600"
     t = r.text
-    assert t.count("\n## ") == 18
+    assert t.count("\n## ") == len(TOOLS)
     for tool in TOOLS:
         c = content_mod.load(tool["slug"])
         assert f"## {tool['name']}" in t and f"URL: https://bookmyhost.com/tools/{tool['slug']}" in t

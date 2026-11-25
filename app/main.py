@@ -346,6 +346,7 @@ async def index(request: Request):
 
 # Bespoke templates (the original seven tools): slug -> (template, extra context factory)
 _CUSTOM_PAGES = {
+    "spf-dmarc-generator": "generator.html",
     "dns-propagation-checker": "dns.html", "subnet-calculator": "subnet.html", "ttfb-ssl-checker": "ttfb.html",
     "looking-glass": "lg.html", "whois-lookup": "whois.html", "reverse-dns-lookup": "rdns.html", "port-checker": "ports.html",
 }
@@ -373,6 +374,7 @@ for _slug in PAGES:  # email / DNS / BGP suite: one generic template, one JS mod
 
 _ACCENT_RE = re.compile(r"^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$")
 _EMBED_TEMPLATES = {
+    "spf-dmarc-generator": "generator.html",
     "dns-propagation-checker": "dns.html", "subnet-calculator": "subnet.html", "ttfb-ssl-checker": "ttfb.html",
     "looking-glass": "lg.html", "whois-lookup": "whois.html", "reverse-dns-lookup": "rdns.html",
     "port-checker": "ports.html", **{s: "tool_generic.html" for s in PAGES}}

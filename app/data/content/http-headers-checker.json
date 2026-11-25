@@ -1,0 +1,85 @@
+{
+  "title": "HTTP Headers & Redirect Checker | BookMyHost",
+  "description": "Free HTTP headers and redirect checker: follow the redirect chain hop by hop, grade HSTS, CSP and other security headers A to F, and copy server fixes.",
+  "og_line": "Follow redirects and grade security headers",
+  "answer": "This tool requests a web address from our servers, follows the redirect chain by hand for up to 8 requests and grades the security headers of the final page from A to F. It flags missing HTTP to HTTPS redirects, loops, long chains and 302 redirects that should be 301, and gives copy-paste fixes for nginx, Apache and LiteSpeed.",
+  "inputs": "A domain name or a full URL. A bare domain starts on plain HTTP, like a visitor typing it, so the redirect to HTTPS shows up in the chain.",
+  "outputs": "Every request in the chain with status, Location and time, flags for loops, long chains and temporary redirects, the headers of the final page, a 0 to 100 score with an A to F grade, and findings with fix snippets.",
+  "curl": "curl -s -X POST @BASE@@API@/http/headers -H 'Content-Type: application/json' -d '{\"url\":\"example.com\"}'",
+  "sections": [
+    {
+      "h": "What the checker does",
+      "p": [
+        "A single address can pass through several redirects before a page loads: http to https, non-www to www, a language or login page. Browsers follow these silently. This tool follows them one request at a time, up to 8, and shows the status code, the Location header and the time for each, so you can see exactly where a visitor or a search engine ends up.",
+        "It flags a chain that never leaves plain HTTP, a loop where the chain returns to an address it already visited, a chain still redirecting after 8 requests, more than two redirects, and 302, 303 or 307 redirects that change the scheme or the host. Those changes are permanent, so a 301 or 308 is the right status.",
+        "The best chain is short. A visitor who types http://example.com should reach the final https address in one redirect, not two. Pick one canonical host name, with or without www, and send every other variant straight to it with a 301. That keeps page load fast, keeps search engines from splitting ranking between versions, and makes the security headers on the final page the only ones that matter."
+      ]
+    },
+    {
+      "h": "How the security grade works",
+      "p": [
+        "Only the final page is graded, out of 100 points. Strict-Transport-Security is worth 25: a max-age of at least 15552000 seconds (180 days) earns 20, includeSubDomains adds 3 and preload adds 2. Content-Security-Policy is worth 25: 20 for an enforced policy and 5 more if it contains frame-ancestors. X-Content-Type-Options: nosniff is worth 15, and clickjacking protection (X-Frame-Options DENY or SAMEORIGIN, or frame-ancestors) another 15. Referrer-Policy and Permissions-Policy are worth 10 each.",
+        "A is 90 or more, B 80, C 65, D 50, and anything lower is F. A final page served over plain HTTP is capped at F, because headers such as HSTS cannot protect a connection that is not encrypted."
+      ]
+    },
+    {
+      "h": "Fixing what it finds",
+      "p": [
+        "Each missing or weak header comes with the line to add for nginx (add_header with always, inside the server block), Apache (a Header always set line in .htaccess, which needs mod_headers) and LiteSpeed, which reads the same .htaccess directive. The HTTP to HTTPS redirect and 301 fixes are shown the same way.",
+        "Add a Content-Security-Policy carefully. The starter policy blocks third-party scripts and images, so first publish it as Content-Security-Policy-Report-Only and watch what it would block. Add HSTS preload only after every subdomain works over HTTPS, since removal from browser preload lists takes months.",
+        "After changing the configuration, run the check again on the public address. A CDN or reverse proxy in front of your server can add, change or remove headers, so always test what visitors actually receive rather than what the origin server sends."
+      ]
+    },
+    {
+      "h": "Version leaks and limits",
+      "p": [
+        "If the Server, X-Powered-By or X-AspNet-Version header shows a version number, the tool reports it as information. Hiding the number is minor hardening; updating the software matters more.",
+        "To keep the service safe, every redirect target is checked before it is requested. Private, local and internal addresses, non-web schemes and ports other than 80, 443, 8080 and 8443 are never contacted, and the chain simply stops with a note. Only the start of each response is read, and cookies are never returned. The requests come from our servers in India, so a site that redirects visitors by country may answer differently elsewhere."
+      ]
+    }
+  ],
+  "faq": [
+    [
+      "What is the difference between a 301 and a 302 redirect?",
+      "A 301 is permanent: browsers and search engines remember the new address. A 302 is temporary, so the old address stays in the index. Use 301 or 308 when http moves to https or one host name moves to another."
+    ],
+    [
+      "Why does the chain start on http even if I typed only a domain?",
+      "A bare domain is requested the way a visitor types it, without a scheme. That shows whether plain HTTP redirects to HTTPS. Type the full https:// address to start on HTTPS instead."
+    ],
+    [
+      "How many redirects will it follow?",
+      "Up to 8 requests. If the chain is still redirecting after that, it is flagged as too many hops, because browsers and crawlers give up on long chains."
+    ],
+    [
+      "Will it connect to internal or private addresses?",
+      "No. The address you enter and every redirect target are checked before the request, and private, loopback, link-local and other internal ranges are refused. The chain stops and the finding explains why."
+    ],
+    [
+      "Do I need every security header for an A?",
+      "No. The score is 100 points. An A needs 90, which is reachable without HSTS preload or frame-ancestors, but it needs HSTS, a Content-Security-Policy and the other four headers set well."
+    ],
+    [
+      "Does it work for LiteSpeed hosting?",
+      "Yes. LiteSpeed reads the Apache .htaccess directives, so the Header always set and RewriteRule fixes work there. On OpenLiteSpeed without .htaccess use the Header Operations setting in the WebAdmin console."
+    ]
+  ],
+  "related": [
+    {
+      "slug": "ttfb-ssl-checker",
+      "anchor": "Measure speed and check the certificate"
+    },
+    {
+      "slug": "dns-lookup",
+      "anchor": "Look up the DNS records of the site"
+    },
+    {
+      "slug": "whois-lookup",
+      "anchor": "Find who registered the domain"
+    },
+    {
+      "slug": "port-checker",
+      "anchor": "Check which ports are open"
+    }
+  ]
+}

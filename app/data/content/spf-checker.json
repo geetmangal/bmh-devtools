@@ -43,6 +43,6 @@
     {"slug": "dmarc-checker", "anchor": "Check the DMARC policy for the same domain"},
     {"slug": "dkim-checker", "anchor": "Verify the DKIM key that signs your mail"},
     {"slug": "domain-health", "anchor": "Run the full domain health report"},
-    {"slug": "blacklist-check", "anchor": "Check if your sending IP is on a blocklist"}
+    {"slug": "spf-dmarc-generator", "anchor": "Build a new SPF and DMARC record"}
   ]
 }
