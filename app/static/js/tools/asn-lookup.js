@@ -12,6 +12,43 @@ const asnOf = (v) => { const m = /^\s*(?:as)?\s*(\d{1,10})\s*$/i.exec(v || ''); 
 const RPKI = { valid: ['ok', 'Valid'], invalid: ['bad', 'Invalid'], unknown: ['mute', 'No ROA'], 'not-found': ['mute', 'No ROA'] };
 const rpkiPill = (r) => { const k = typeof r === 'string' ? r : r?.state || r?.status; const [s, w] = RPKI[k] || ['mute', k || 'Not checked']; return pill(s, w); };
 
+const PAGE = 50;
+const rpkiKey = (r) => (typeof r === 'string' ? r : r?.state || r?.status || '');
+const rpkiText = (r) => { const k = rpkiKey(r); return `${k} ${(RPKI[k] || [])[1] || ''}`.toLowerCase(); };
+
+/** Prefix table: first 50 rows, "Show 50 more" / "Show all", live filter by prefix text or RPKI state. Keeps the RPKI chips. */
+function prefixTable(list) {
+  const rows = list.map((x) => ({
+    hay: `${x.prefix} ${rpkiText(x.rpki)}`.toLowerCase(),
+    cells: [h('a', { href: `${config.prefix}/bgp-prefix-lookup?q=${encodeURIComponent(x.prefix)}` }, x.prefix), rpkiPill(x.rpki), (x.first_seen || '').slice(0, 10)],
+  }));
+  let shown = PAGE, query = '';
+  const body = h('div');
+  const counter = h('p', { class: 'text-sm text-mute', role: 'status', 'aria-live': 'polite', 'aria-atomic': 'true' });
+  const filterEl = h('input', { type: 'search', class: 'mono', placeholder: 'Filter by prefix or RPKI state (valid, invalid, no roa)', 'aria-label': 'Filter prefixes by prefix text or RPKI state', autocomplete: 'off', spellcheck: 'false' });
+  const moreBtn = h('button', { type: 'button', class: 'btn btn-ghost btn-sm' });
+  const allBtn = h('button', { type: 'button', class: 'btn btn-ghost btn-sm' });
+  const bar = h('div', { class: 'flex flex-wrap items-center gap-2' }, moreBtn, allBtn);
+  const draw = () => {
+    const terms = query.split(/\s+/).filter(Boolean);
+    const match = terms.length ? rows.filter((r) => terms.every((t) => r.hay.includes(t))) : rows;
+    const vis = match.slice(0, shown);
+    body.replaceChildren(vis.length ? dataTable(['Prefix', 'Route validation (RPKI)', 'First seen'], vis.map((r) => r.cells), { mono: [0] }) : h('p', { class: 'text-sm text-mute' }, 'No prefixes match this filter.'));
+    const left = match.length - vis.length;
+    counter.textContent = `Showing ${vis.length} of ${match.length}${match.length !== rows.length ? ` (filtered from ${rows.length})` : ''}`;
+    moreBtn.textContent = `Show ${Math.min(PAGE, left)} more`;
+    moreBtn.setAttribute('aria-label', `Show ${Math.min(PAGE, left)} more prefixes`);
+    allBtn.textContent = `Show all (${match.length})`;
+    allBtn.setAttribute('aria-label', `Show all ${match.length} prefixes`);
+    bar.style.display = left <= 0 ? 'none' : '';
+  };
+  moreBtn.addEventListener('click', () => { shown += PAGE; draw(); });
+  allBtn.addEventListener('click', () => { shown = rows.length; draw(); });
+  filterEl.addEventListener('input', () => { query = filterEl.value.trim().toLowerCase(); shown = PAGE; draw(); });
+  draw();
+  return h('div', { class: 'space-y-2' }, rows.length > PAGE ? filterEl : null, counter, body, bar);
+}
+
 function render(res) {
   const p = res.prefixes || {}, nb = res.neighbours || {}, rp = res.rpki || {}, pdb = res.peeringdb || {};
   const out = [resultVerdict({ ...res }, { meta: `AS${res.asn}${res.holder ? ' - ' + res.holder : res.name ? ' - ' + res.name : ''}` })];
@@ -32,7 +69,7 @@ function render(res) {
   }
   if ((p.list || []).length) {
     out.push(checkCard({ status: 'info', title: `Announced prefixes (${p.list.length}${p.truncated ? '+, list cut off' : ''})`,
-      body: dataTable(['Prefix', 'Route validation (RPKI)', 'First seen'], p.list.map((x) => [h('a', { href: `${config.prefix}/bgp-prefix-lookup?q=${encodeURIComponent(x.prefix)}` }, x.prefix), rpkiPill(x.rpki), (x.first_seen || '').slice(0, 10)]), { mono: [0] }),
+      body: prefixTable(p.list),
       meaning: 'Each line is a block of IP addresses this AS tells the internet it can deliver to. A "Valid" mark means a signed record (ROA) confirms the AS is allowed to announce it.' }));
   }
   const ix = pdb.ix_list || [];

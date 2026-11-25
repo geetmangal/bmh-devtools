@@ -131,3 +131,38 @@ async def require_pass(request: Request) -> None:
         return
     if not check_pass(request.headers.get("x-tools-pass"), ip, request.headers.get("user-agent", "")):
         raise PassRequired()
+
+
+class TurnstileRequired(Exception):
+    """Raised by require_fresh_token; main.py turns it into the 403 {"error": "turnstile_required"} body."""
+
+    def __init__(self, message: str = "Please complete the human check and run the test again.", status: int = 403,
+                 code: str = "turnstile_required") -> None:
+        super().__init__(message)
+        self.message, self.status, self.code = message, status, code
+
+
+def turnstile_required_response(exc: TurnstileRequired) -> JSONResponse:
+    return JSONResponse({"error": exc.code, "message": exc.message}, status_code=exc.status,
+                        headers={"Cache-Control": "no-store"})
+
+
+async def require_fresh_token(request: Request) -> None:
+    """Strict mode for the most abusable tools: a FRESH single-use Turnstile token (X-Turnstile-Token) is
+    verified per request, on top of the session pass. Missing/invalid/reused -> 403 turnstile_required.
+    Cloudflare unreachable -> fail closed (503 turnstile_unavailable). No-op when Turnstile is off or for bypass IPs."""
+    if not enabled():
+        return
+    ip = client_ip(request)
+    if is_bypass_ip(ip):
+        return
+    token = (request.headers.get("x-turnstile-token") or "").strip()
+    if not token or len(token) > 4096:
+        raise TurnstileRequired()
+    try:
+        ok = await verify(token, ip)
+    except (httpx.HTTPError, ValueError):
+        raise TurnstileRequired("Could not reach the verification service. Please try again in a minute.", 503,
+                                "turnstile_unavailable")
+    if not ok:
+        raise TurnstileRequired("The human check expired or was already used. Please solve it again and re-run the test.")

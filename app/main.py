@@ -187,6 +187,11 @@ async def _pass_required(request: Request, exc: turnstile.PassRequired):
     return turnstile.pass_required_response()
 
 
+@app.exception_handler(turnstile.TurnstileRequired)
+async def _turnstile_required(request: Request, exc: turnstile.TurnstileRequired):
+    return turnstile.turnstile_required_response(exc)
+
+
 @app.middleware("http")
 async def security_headers(request: Request, call_next):
     nonce = secrets.token_urlsafe(16)

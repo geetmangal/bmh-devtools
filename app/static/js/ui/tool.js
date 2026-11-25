@@ -15,12 +15,14 @@ export function errorMessage(data, status) {
   if (data && typeof data.detail === 'string') return data.detail;
   if (data && data.detail) return JSON.stringify(data.detail);
   if (status === 429) return 'Too many requests. Please wait a few seconds and try again.';
+  if (data && data.error === 'turnstile_required') return data.message || 'Please complete the human check and run the test again.';
+  if (data && data.error === 'turnstile_unavailable') return data.message || 'The verification service is unreachable. Please try again shortly.';
   if (status === 403) return 'The human check did not pass. Reload the page and try again.';
   return `The server answered with an error (${status}).`;
 }
 
-function request(path, body, heavy, container) {
-  const headers = {};
+function request(path, body, heavy, container, extraHeaders) {
+  const headers = { ...(extraHeaders || {}) };
   const eh = embedHost(); if (eh) headers['X-Tools-Embed'] = eh;
   const init = body == null ? { method: 'GET', headers } : { method: 'POST', headers: { ...headers, 'Content-Type': 'application/json' }, body: JSON.stringify(body) };
   const url = cfg.api + path;
@@ -28,8 +30,8 @@ function request(path, body, heavy, container) {
 }
 
 /** POST JSON (or GET when body is null) to the tools API. path is relative to /tools/api/v1. Throws Error(message) on failure. */
-export async function api(path, body, { heavy = false, container } = {}) {
-  const r = await request(path, body, heavy, container);
+export async function api(path, body, { heavy = false, container, headers } = {}) {
+  const r = await request(path, body, heavy, container, headers);
   const data = await r.json().catch(() => null);
   if (!r.ok) throw new Error(errorMessage(data, r.status));
   return data;

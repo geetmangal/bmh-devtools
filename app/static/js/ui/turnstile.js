@@ -43,6 +43,27 @@ async function exchange(token) {
   return d.pass;
 }
 
+export const turnstileEnabled = () => !!sitekey();
+
+/** Explicit, reusable widget for strict tools (fresh token per run). mount(el) -> { token(), reset() }. */
+export function mountWidget(el, { onChange } = {}) {
+  let wid = null, tok = '';
+  const set = (t) => { tok = t; if (onChange) onChange(!!t); };
+  loadScript().then(() => {
+    wid = window.turnstile.render(el, {
+      sitekey: sitekey(),
+      callback: (t) => set(t),
+      'expired-callback': () => set(''),
+      'timeout-callback': () => set(''),
+      'error-callback': () => set(''),
+    });
+  }).catch(() => { el.textContent = 'The human check could not load. Reload the page and try again.'; });
+  return {
+    token: () => tok,
+    reset: () => { set(''); try { if (wid != null) window.turnstile.reset(wid); } catch { /* widget gone */ } },
+  };
+}
+
 /** Render the inline challenge in `container` and resolve with a fresh pass. */
 function challenge(container) {
   const box = h('div', { class: 'card p-4', role: 'group', 'aria-label': 'Human check' },

@@ -14,9 +14,9 @@ from pydantic import BaseModel, Field
 from app.core import cooldown, smtpcheck
 from app.core.cache import TTLCache
 from app.core.config import HEAVY_RATE_PER_MIN, MAX_CONCURRENT_NET
-from app.core.ratelimit import Gate, TokenBucket, limiter
+from app.core.ratelimit import Gate, TokenBucket, client_ip, limiter
 from app.core.target import TargetError, parse_target
-from app.core.turnstile import require_pass
+from app.core.turnstile import network_of, require_fresh_token, require_pass
 from app.core.validate import ValidationError
 
 router = APIRouter(prefix="/smtp", tags=["smtp"])
@@ -24,6 +24,15 @@ _gate = Gate(max(2, MAX_CONCURRENT_NET // 2), "SMTP test")
 _bucket = TokenBucket(HEAVY_RATE_PER_MIN, 3)
 _dep = limiter(lambda: _bucket, "SMTP test", HEAVY_RATE_PER_MIN)
 _cache = TTLCache(60)
+# Strict per-client cap for real runs: 5 per 10 minutes per /24 (v4) or /48 (v6).
+STRICT_RUNS, STRICT_WINDOW_MIN = 5, 10
+_strict = TokenBucket(STRICT_RUNS / STRICT_WINDOW_MIN, STRICT_RUNS)
+
+
+def _strict_limit(request: Request) -> None:
+    if not _strict.allow(network_of(client_ip(request))):
+        raise HTTPException(status_code=429, detail=f"SMTP test limit reached: {STRICT_RUNS} checks per {STRICT_WINDOW_MIN} minutes. "
+                            "Please wait a few minutes and try again.", headers={"Retry-After": "120"})
 
 
 class SmtpRequest(BaseModel):
@@ -42,6 +51,9 @@ async def check(req: SmtpRequest, request: Request) -> dict:
         host, _is_ip = parse_target(req.host)
     except TargetError as exc:
         raise HTTPException(status_code=422, detail=str(exc))
+    # Invalid input is refused above without spending quota or a token.
+    _strict_limit(request)
+    await require_fresh_token(request)
     key = f"{host}|{req.port}"
     hit = _cache.get(key)
     if hit is None:

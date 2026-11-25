@@ -4,6 +4,7 @@ import { checkCard } from '../ui/card.js';
 import { timeline } from '../ui/timeline.js';
 import { gauge } from '../ui/gauge.js';
 import { keyValueTable } from '../ui/table.js';
+import { mountWidget, turnstileEnabled } from '../ui/turnstile.js';
 import { findingCards, resultVerdict, cleanDomain } from '../ui/findings.js';
 
 const hostEl = $('#tool-input'), portEl = $('#tool-port');
@@ -36,9 +37,31 @@ function render(res) {
   return out;
 }
 
+// Strict mode: a fresh Turnstile solve is required for every run (the token is single use).
+let widget = null;
+if (turnstileEnabled()) {
+  const submit = $('#tool-submit');
+  const wrap = h('div', { class: 'sm:col-span-full', role: 'group', 'aria-label': 'Human check' },
+    h('p', { class: 'text-sm text-mute mb-1' }, 'Please solve this quick check before each run.'));
+  const slot = h('div', { id: 'smtp-turnstile' });
+  wrap.append(slot);
+  submit.parentNode.insertBefore(wrap, submit);
+  widget = mountWidget(slot);
+}
+
 initTool({
   form: '#tool-form',
-  run: (ctx) => ctx.api('/smtp/check', { host: cleanDomain(hostEl.value), port: Number(portEl?.value || 25) }, { heavy: true }),
+  run: async (ctx) => {
+    const body = { host: cleanDomain(hostEl.value), port: Number(portEl?.value || 25) };
+    if (!widget) return ctx.api('/smtp/check', body, { heavy: true });
+    const token = widget.token();
+    if (!token) throw new Error('Please complete the human check above the Run button, then run the test again.');
+    try {
+      return await ctx.api('/smtp/check', body, { heavy: true, headers: { 'X-Turnstile-Token': token } });
+    } finally {
+      widget.reset(); // single-use token: the next run needs a new solve
+    }
+  },
   render,
   state: (d) => ({ q: cleanDomain(hostEl.value), port: portEl?.value || '25' }),
   prefill: (p) => { const q = qParam(p, 'host'); if (q) hostEl.value = q; if (portEl && ['25', '587', '2525'].includes(p.get('port'))) portEl.value = p.get('port'); return !!q; },
