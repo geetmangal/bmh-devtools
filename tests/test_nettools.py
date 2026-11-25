@@ -7,6 +7,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.api import lookingglass, portcheck, rdns, whois
 from app.core import ratelimit
+from app.core.config import TOOLS
 from app.core.httpjson import FetchError
 from app.core.target import TargetError, parse_target
 from app.main import app
@@ -521,7 +522,7 @@ async def test_sitemap_index_and_api_docs_include_new_tools(client):
     s = (await client.get("/tools/sitemap.xml")).text
     for slug in NEW:
         assert f"<loc>https://bookmyhost.com/tools/{slug}</loc>" in s
-    assert s.count("<loc>") == 19
+    assert s.count("<loc>") == len(TOOLS) + 1
     idx = (await client.get("/tools/")).text
     for slug in NEW:
         assert f'href="/tools/{slug}"' in idx

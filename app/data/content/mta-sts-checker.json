@@ -1,0 +1,103 @@
+{
+ "title": "MTA-STS and TLS-RPT Checker | BookMyHost",
+ "description": "Free MTA-STS checker: read the DNS id, fetch the policy over https, test mode, mx coverage and max_age, and check the TLS-RPT report address for your domain.",
+ "og_line": "Check MTA-STS policy, mx coverage and TLS-RPT reports",
+ "answer": "MTA-STS is a policy that tells other mail servers to deliver your mail only over verified TLS, which stops an attacker from stripping encryption. It needs a TXT record at _mta-sts.yourdomain and a policy file served over https. TLS-RPT adds daily failure reports. This checker reads both records, fetches the policy and tests mode, mx coverage and max_age.",
+ "inputs": "A domain name or an email address (the domain part is used).",
+ "outputs": "The MTA-STS TXT record and id, the fetched policy (version, mode, mx lines, max_age), which of your MX hosts the policy covers, the TLS-RPT record with its report addresses, and findings with fixes.",
+ "curl": "curl -s -X POST @BASE@@API@/mail/mta-sts -H 'Content-Type: application/json' -d '{\"domain\":\"example.com\"}'",
+ "sections": [
+  {
+   "h": "What MTA-STS does",
+   "p": [
+    "Email between servers uses STARTTLS, which is opportunistic: if the encrypted connection fails, most servers simply fall back to plain text. An attacker on the network path can force that failure, and can also redirect mail to a fake server. MTA-STS (RFC 8461) closes the gap by letting you publish a rule that senders must use TLS with a valid certificate to reach your mail servers.",
+    "Senders that support it fetch your policy, cache it for the time you set, and refuse to deliver unless the connection meets the policy."
+   ]
+  },
+  {
+   "h": "The two parts of an MTA-STS setup",
+   "p": [
+    "The first part is a TXT record at _mta-sts.yourdomain, for example v=STSv1; id=20261125. The id is 1 to 32 letters and digits and must change every time you change the policy, because senders re-download the policy only when the id changes.",
+    "The second part is the policy file at https://mta-sts.yourdomain/.well-known/mta-sts.txt. It needs a host name mta-sts.yourdomain with a valid, non self-signed certificate, must answer 200 with no redirect, and should be served as text/plain."
+   ]
+  },
+  {
+   "h": "How to read the result",
+   "p": [
+    "We check the TXT id, then fetch the policy over https and read version, mode, mx and max_age. The version must be STSv1. Mode is enforce (senders refuse to deliver without verified TLS), testing (senders report problems but still deliver) or none (the policy is switched off).",
+    "Each mx line must match one of your real MX hosts; a wildcard such as *.example.com covers exactly one label. If an MX host is not covered and the mode is enforce, senders will refuse to deliver mail to it, so this is flagged as a failure. max_age is the cache time in seconds: one week (604800) is the usual minimum and the standard caps it at one year."
+   ]
+  },
+  {
+   "h": "Rolling out from testing to enforce",
+   "p": [
+    "Start with mode: testing and a short list of mx lines that match your MX records. Add TLS-RPT so you receive reports, and read them for a few weeks. When the reports show no certificate or connection problems, change mode to enforce and raise the id.",
+    "Before you begin, make sure every mail server has a certificate that matches its name. The SMTP test shows the certificate each server presents."
+   ]
+  },
+  {
+   "h": "An example policy",
+   "p": [
+    "A policy file for a domain with two mail servers looks like this: version: STSv1, then mode: testing, then one mx line per server such as mx: mail1.example.com and mx: mail2.example.com, then max_age: 604800. Each line is plain text in the form key: value.",
+    "The matching DNS record is a TXT at _mta-sts.example.com with the value v=STSv1; id=20261125T0900. Many hosting setups serve the file from a small static site on the mta-sts host name. When you change the file, publish it first and update the id afterwards, so senders never see a new id with an old policy."
+   ]
+  },
+  {
+   "h": "What TLS-RPT adds",
+   "p": [
+    "TLS-RPT (RFC 8460) is a second TXT record, at _smtp._tls.yourdomain, such as v=TLSRPTv1; rua=mailto:tls-reports@example.com. Supporting senders then send you a summary, normally once a day, of successes and failures when delivering to you over TLS. It is optional, but without it testing mode tells you nothing.",
+    "We check that the record exists, that there is only one, and that rua= holds mailto: or https: addresses."
+   ]
+  },
+  {
+   "h": "Limits of this check",
+   "p": [
+    "We read public DNS and fetch the policy file from our own server, so a policy that is only reachable from inside your network will show as unreachable. We do not test the certificates of your mail servers here."
+   ]
+  }
+ ],
+ "faq": [
+  [
+   "What is MTA-STS?",
+   "MTA-STS is a standard (RFC 8461) that lets a domain publish a policy requiring other mail servers to use verified TLS when delivering mail to it. It protects against downgrade and interception attacks."
+  ],
+  [
+   "What is the difference between testing and enforce mode?",
+   "In testing mode senders still deliver mail when TLS fails and, if TLS-RPT is set, send you a report. In enforce mode senders refuse to deliver unless the connection meets the policy."
+  ],
+  [
+   "Why must the id change when I edit the policy?",
+   "Senders cache the policy and compare only the id in DNS. If you change the policy file but keep the same id, senders keep using the old cached policy until max_age expires."
+  ],
+  [
+   "What is TLS-RPT and do I need it?",
+   "TLS-RPT is a DNS record that asks senders to email you reports about TLS delivery problems. It is optional, but it is the only way to learn what MTA-STS would break before you enforce it."
+  ],
+  [
+   "Why can the policy file not be fetched?",
+   "Common causes are a missing mta-sts host name, a certificate that does not match or is self-signed, a redirect, a wrong path, or a server that blocks our request. The path must be exactly /.well-known/mta-sts.txt."
+  ],
+  [
+   "How long should max_age be?",
+   "Use at least one week, 604800 seconds. Many domains use 30 days, 2592000, once they are in enforce mode. The standard allows at most one year, 31557600 seconds."
+  ]
+ ],
+ "related": [
+  {
+   "slug": "smtp-test",
+   "anchor": "Test TLS on your mail servers"
+  },
+  {
+   "slug": "mx-lookup",
+   "anchor": "Look up the MX hosts of a domain"
+  },
+  {
+   "slug": "domain-health",
+   "anchor": "Run a full domain health report"
+  },
+  {
+   "slug": "dmarc-checker",
+   "anchor": "Check your DMARC policy and rollout"
+  }
+ ]
+}

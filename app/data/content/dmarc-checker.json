@@ -44,6 +44,6 @@
     {"slug": "spf-checker", "anchor": "Check the SPF record that DMARC relies on"},
     {"slug": "dkim-checker", "anchor": "Look up the DKIM selector and key strength"},
     {"slug": "domain-health", "anchor": "Grade the whole domain with the health report"},
-    {"slug": "dns-lookup", "anchor": "See all DNS records of the domain"}
+    {"slug": "bimi-checker", "anchor": "Add a brand logo once DMARC is enforced"}
   ]
 }

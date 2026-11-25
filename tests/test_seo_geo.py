@@ -227,7 +227,7 @@ async def test_llms_full_txt(client):
     assert r.status_code == 200 and r.headers["content-type"] == "text/plain; charset=utf-8"
     assert r.headers["cache-control"] == "public, max-age=3600"
     t = r.text
-    assert t.count("\n## ") == 18
+    assert t.count("\n## ") == len(TOOLS)
     for tool in TOOLS:
         c = content_mod.load(tool["slug"])
         assert f"## {tool['name']}" in t and f"URL: https://bookmyhost.com/tools/{tool['slug']}" in t

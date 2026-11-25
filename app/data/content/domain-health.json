@@ -39,7 +39,7 @@
   "related": [
     {"slug": "spf-checker", "anchor": "Look at the SPF lookup count in detail"},
     {"slug": "dmarc-checker", "anchor": "Plan a DMARC rollout to reject"},
-    {"slug": "dns-lookup", "anchor": "See all DNS records and nameserver health"},
+    {"slug": "mta-sts-checker", "anchor": "Check MTA-STS and TLS-RPT mail encryption"},
     {"slug": "blacklist-check", "anchor": "Check blocklists for a mail server IP"}
   ]
 }

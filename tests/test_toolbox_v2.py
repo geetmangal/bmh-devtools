@@ -22,7 +22,8 @@ API = "/tools/api/v1"
 VISITOR = {"X-Real-IP": "93.184.215.14", "User-Agent": "pytest-browser/1.0"}
 SECRET = "unit-test-pass-secret"
 NEW = ["domain-health", "mx-lookup", "spf-checker", "dmarc-checker", "dkim-checker", "blacklist-check", "smtp-test",
-       "email-header-analyzer", "dns-lookup", "asn-lookup", "bgp-prefix-lookup"]
+       "email-header-analyzer", "dns-lookup", "asn-lookup", "bgp-prefix-lookup",
+       "mta-sts-checker", "bimi-checker", "what-is-my-ip"]
 
 
 @pytest.fixture
