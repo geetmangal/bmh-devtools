@@ -29,6 +29,15 @@ export function summarise(w) {
 
 const reason = (r) => (r.status === 'rejected' ? (r.reason && r.reason.message) || 'unavailable' : null);
 
+// The registry upstream can fail on a cold cache (502); one retry after a short pause usually succeeds.
+async function whoisWithRetry(ctx, ip) {
+  const path = `/prefix-whois/${encodeURIComponent(ip)}`;
+  try { return await ctx.api(path, null); } catch {
+    await new Promise((r) => setTimeout(r, 1500));
+    return ctx.api(path, null);
+  }
+}
+
 async function run(ctx) {
   const me = await ctx.api('/ports/myip', null);
   const ip = String(me.ip || '').trim();
@@ -36,7 +45,7 @@ async function run(ctx) {
   if (!ip || !out.public) return out;
   const [ptr, who] = await Promise.allSettled([
     ctx.api('/rdns/lookup', { ip }),
-    ctx.api(`/prefix-whois/${encodeURIComponent(ip)}`, null),
+    whoisWithRetry(ctx, ip),
   ]);
   if (ptr.status === 'fulfilled') out.ptr = ptr.value; else out.notes.push(`Reverse DNS: ${reason(ptr)}`);
   if (who.status === 'fulfilled') out.whois = who.value; else out.notes.push(`Registry data: ${reason(who)}`);

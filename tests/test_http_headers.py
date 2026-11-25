@@ -268,3 +268,16 @@ def test_findings_carry_fix_snippets_for_three_servers():
     assert labels == ["nginx", "Apache (.htaccess)", "LiteSpeed"]
     assert hsts["fix_tabs"][0]["code"].startswith("add_header Strict-Transport-Security") and hsts["fix_tabs"][1]["code"].startswith("Header always set Strict-Transport-Security")
     assert httpheaders.overall_status(fs) == "fail"
+
+
+def test_grade_a_partial_header_is_info_not_warn():
+    """Regression: a grade-A result must not show an overall Warning just because one header is partly set."""
+    from app.core import httpheaders as hh
+    grade = {"score": 90, "grade": "A", "checks": [
+        {"id": "csp", "label": "Content-Security-Policy", "points": 10, "max": 20, "status": "warn", "value": "x", "note": "partial"}]}
+    hops = [{"url": "https://a.example/", "status": 200, "location": None, "ms": 5}]
+    flags = hh.analyse_chain(hops, start_https=True, complete=True, loop=False, too_many=False, blocked=None)
+    f = hh.build_findings(hops=hops, flags=flags, grade=grade, headers={}, final_status=200,
+                          final_https=True, tls_verified=True, complete=True)
+    csp = [x for x in f if x["id"] == "hdr-csp"][0]
+    assert csp["status"] == "info"

@@ -296,7 +296,8 @@ def build_findings(*, hops: list[dict], flags: dict, grade: dict | None, headers
             if c["status"] == "ok":
                 add("hdr-" + c["id"], "pass", f"{c['label']} is set", c["note"], details={"value": c["value"]})
             else:
-                st = "fail" if c["status"] == "bad" else "warn"
+                # On an A grade a partly-set header is advice, not a warning, so the verdict agrees with the grade.
+                st = "fail" if c["status"] == "bad" else "info" if grade["grade"].startswith("A") else "warn"
                 if c["id"] == "hsts" and not final_https:
                     add("hdr-hsts", "fail", "Strict-Transport-Security cannot work over HTTP", _MEANING["hsts"],
                         fix=["Serve the site over HTTPS first, then add the header on the HTTPS responses."])
