@@ -502,3 +502,14 @@ def test_sample_fixtures_follow_the_contract():
     assert {"prefix", "records", "irr_records", "authorities", "abuse_email", "geofeed", "raw", "fetched_at"} == set(w)
     d = json.loads((FIX / "rdns.json").read_text())
     assert {"prefix", "family", "block", "blocks", "base", "delegations", "rows", "stats", "note"} <= set(d) and len(d["rows"]) == 256
+
+
+def test_irr_stale_object_alongside_match():
+    from app.core import bgpview
+    irr = {"available": True, "sources": ["APNIC"], "objects": [
+        {"source": "APNIC", "prefix": "160.22.108.0/24", "asn": 152523, "exact": True, "matches_bgp": True},
+        {"source": "APNIC", "prefix": "160.22.108.0/24", "asn": 151734, "exact": True, "matches_bgp": False}]}
+    f = bgpview.irr_findings("160.22.108.0/24", [{"asn": 152523}], irr, "match")
+    ids = [x["id"] for x in f]
+    assert ids == ["irr-match", "irr-stale"]
+    assert "AS151734 in APNIC" in f[1]["title"] and f[1]["status"] == "warn"

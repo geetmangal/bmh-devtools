@@ -381,6 +381,16 @@ def irr_findings(prefix: str, origins: list[dict], irr: dict | None, verdict: st
         out.append(finding("irr-match", "pass", f"IRR route object matches the announcing AS ({names})",
                            "A route object in the IRR names the AS that announces this prefix, so IRR-based filters at your upstreams and "
                            "IXPs will accept it.", "", {"sources": sorted({o["source"] for o in irr["objects"] if o["matches_bgp"]})}))
+        rel = [o for o in irr["objects"] if o["exact"]] or irr["objects"]
+        stale = sorted({(o["source"], o["asn"]) for o in rel if o["asn"] not in asns})
+        if stale:
+            who = ", ".join(f"AS{a} in {s}" for s, a in stale)
+            out.append(finding("irr-stale", "warn", f"Outdated route object with a different origin also exists ({who})",
+                               "Besides the correct object, the IRR still holds a route object naming another AS for this prefix. "
+                               "Filters built from the IRR then also allow that AS to announce your space, and tools report "
+                               "\"multiple route objects with different origins\".",
+                               "If that AS should no longer announce the prefix, delete its route object in the registry "
+                               "(and remove its ROA too if one exists).", {"stale": [{"source": s, "asn": a} for s, a in stale]}))
     return out
 
 
