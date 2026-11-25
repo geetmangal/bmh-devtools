@@ -522,3 +522,38 @@ def test_irr_stale_object_alongside_match():
     ids = [x["id"] for x in f]
     assert ids == ["irr-match", "irr-stale"]
     assert "AS151734 in APNIC" in f[1]["title"] and f[1]["status"] == "warn"
+
+
+def test_delegation_does_not_fall_back_to_parent_on_timeout():
+    import asyncio
+    from types import SimpleNamespace as NS
+    from app.core import prefixdns
+    calls = []
+
+    class R:
+        async def query(self, name, rtype):
+            calls.append((name, rtype))
+            if name.startswith("108."):
+                return NS(ok=False, status="timeout", records=[])
+            return NS(ok=True, status="ok", records=["z.arin.net"])
+
+    out = asyncio.run(prefixdns.delegation(R(), ["108.22.160.in-addr.arpa", "22.160.in-addr.arpa", "160.in-addr.arpa"]))
+    assert out == [{"zone": "108.22.160.in-addr.arpa", "ns": [], "ds": None, "ns_problems": [], "error": "timeout"}]
+    assert calls.count(("108.22.160.in-addr.arpa", "NS")) == 2   # retried once, no parent lookup
+
+
+def test_delegation_retry_recovers():
+    import asyncio
+    from types import SimpleNamespace as NS
+    from app.core import prefixdns
+    seen = {"n": 0}
+
+    class R:
+        async def query(self, name, rtype):
+            if rtype == "NS" and name.startswith("108."):
+                seen["n"] += 1
+                return NS(ok=seen["n"] > 1, status="ok" if seen["n"] > 1 else "timeout", records=["win-8h6jmqbvgp2"])
+            return NS(ok=False, status="noanswer", records=[])
+
+    out = asyncio.run(prefixdns.delegation(R(), ["108.22.160.in-addr.arpa", "22.160.in-addr.arpa"]))
+    assert out[0]["zone"] == "108.22.160.in-addr.arpa" and out[0]["ns_problems"] == [{"ns": "win-8h6jmqbvgp2", "problem": "not_fqdn"}]

@@ -82,10 +82,21 @@ def v6_zone(net: ipaddress.IPv6Network, nibbles: int) -> str:
     return ".".join(rp[32 - nibbles:]) + ".ip6.arpa"
 
 
+DEFINITE = ("noanswer", "nxdomain")
+
+
 async def delegation(resolver: Resolver, zones: list[str]) -> list[dict]:
-    """First zone of ``zones`` (most specific first) that has NS records, with its DS state."""
+    """First zone of ``zones`` (most specific first) that has NS records, with its DS state.
+
+    Only a definite "no such zone" answer (NOERROR/no data or NXDOMAIN) moves on to the parent zone. A timeout or
+    SERVFAIL is retried once and then reported for that zone (``error``), never silently replaced by the parent's
+    delegation (a cold resolver cache once made a /24 zone look delegated to the /8 registry servers)."""
     for zone in zones:
         ns = await resolver.query(zone, "NS")
+        if not ns.ok and ns.status not in DEFINITE:
+            ns = await resolver.query(zone, "NS")
+        if not ns.ok and ns.status not in DEFINITE:
+            return [{"zone": zone, "ns": [], "ds": None, "ns_problems": [], "error": ns.status or "lookup failed"}]
         if ns.ok:
             ds = await resolver.query(zone, "DS")
             ds_state = True if ds.ok else (False if ds.status in ("noanswer", "nxdomain") else None)
