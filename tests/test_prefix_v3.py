@@ -324,7 +324,8 @@ def test_overview_arin_style_keys():
 
 # --- PTR sweep --------------------------------------------------------------------------------------------
 def ptr_zone():
-    z = {"108.22.160.in-addr.arpa/NS": ["ns1.example.com", "ns2.example.com"], "108.22.160.in-addr.arpa/DS": ["12345 13 2 ABCD"]}
+    z = {"108.22.160.in-addr.arpa/NS": ["ns1.example.com", "ns2.example.com"], "108.22.160.in-addr.arpa/DS": ["12345 13 2 ABCD"],
+         "ns1.example.com/A": ["192.0.2.1"], "ns2.example.com/AAAA": ["2001:db8::2"]}
     z["1.108.22.160.in-addr.arpa/PTR"] = ["mail.example.com"]
     z["mail.example.com/A"] = ["160.22.108.1"]                           # FCrDNS ok
     z["2.108.22.160.in-addr.arpa/PTR"] = ["spoof.example.com"]
@@ -352,7 +353,7 @@ def test_auto_heuristic():
 async def test_ptr_report_fcrdns_auto_and_delegation():
     rep = await prefixdns.report(REAL, 0, FakeResolver(ptr_zone()))
     assert rep["family"] == 4 and rep["block"] == 0 and rep["blocks"] == 1 and rep["base"] == REAL and len(rep["rows"]) == 256
-    assert rep["delegations"] == [{"zone": "108.22.160.in-addr.arpa", "ns": ["ns1.example.com", "ns2.example.com"], "ds": True}]
+    assert rep["delegations"] == [{"zone": "108.22.160.in-addr.arpa", "ns": ["ns1.example.com", "ns2.example.com"], "ds": True, "ns_problems": []}]
     rows = {r["ip"]: r for r in rep["rows"]}
     assert rows["160.22.108.1"] == {"ip": "160.22.108.1", "ptr": "mail.example.com", "fcrdns": True, "auto": False}
     assert rows["160.22.108.2"]["fcrdns"] is False and rows["160.22.108.4"]["fcrdns"] is False
@@ -364,10 +365,10 @@ async def test_ptr_report_fcrdns_auto_and_delegation():
 
 
 async def test_ptr_blocks_and_small_prefixes():
-    r = FakeResolver({"109.22.160.in-addr.arpa/NS": ["ns.example.com"], "109.22.160.in-addr.arpa/DS": "NXDOMAIN"})
+    r = FakeResolver({"109.22.160.in-addr.arpa/NS": ["ns.example.com"], "109.22.160.in-addr.arpa/DS": "NXDOMAIN", "ns.example.com/A": ["192.0.2.9"]})
     rep = await prefixdns.report("160.22.108.0/23", 1, r)
     assert rep["blocks"] == 2 and rep["block"] == 1 and rep["base"] == "160.22.109.0/24" and rep["rows"][0]["ip"] == "160.22.109.0"
-    assert rep["delegations"] == [{"zone": "109.22.160.in-addr.arpa", "ns": ["ns.example.com"], "ds": False}]
+    assert rep["delegations"] == [{"zone": "109.22.160.in-addr.arpa", "ns": ["ns.example.com"], "ds": False, "ns_problems": []}]
     with pytest.raises(ValueError):
         await prefixdns.report("160.22.108.0/23", 2, r)
     small = await prefixdns.report("160.22.108.64/26", 0, FakeResolver())
@@ -377,9 +378,17 @@ async def test_ptr_blocks_and_small_prefixes():
 
 
 async def test_ptr_delegation_falls_back_to_parent_zone():
-    r = FakeResolver({"22.160.in-addr.arpa/NS": ["ns.parent.example"]})
+    r = FakeResolver({"22.160.in-addr.arpa/NS": ["ns.parent.example"], "ns.parent.example/A": ["192.0.2.7"]})
     rep = await prefixdns.report(REAL, 0, r)
-    assert rep["delegations"] == [{"zone": "22.160.in-addr.arpa", "ns": ["ns.parent.example"], "ds": False}]
+    assert rep["delegations"] == [{"zone": "22.160.in-addr.arpa", "ns": ["ns.parent.example"], "ds": False, "ns_problems": []}]
+
+
+async def test_ptr_delegation_flags_bad_name_servers():
+    r = FakeResolver({"108.22.160.in-addr.arpa/NS": ["win-8h6jmqbvgp2", "ghost.example.com", "ns1.example.com", "slow.example.com", "ns6.example.com."],
+                      "ns1.example.com/A": ["192.0.2.1"], "ghost.example.com/TXT": ["x"], "slow.example.com/A": "TIMEOUT", "slow.example.com/AAAA": "TIMEOUT",
+                      "ns6.example.com/AAAA": ["2001:db8::6"]})
+    d = (await prefixdns.report(REAL, 0, r))["delegations"][0]
+    assert d["ns_problems"] == [{"ns": "ghost.example.com", "problem": "no_address"}, {"ns": "win-8h6jmqbvgp2", "problem": "not_fqdn"}]
 
 
 async def test_ptr_ipv6_only_delegation():
