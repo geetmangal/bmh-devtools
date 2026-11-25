@@ -4,6 +4,7 @@ import { h, $, $$, store, copyText, clear } from './ui/dom.js';
 import { initMode } from './ui/mode.js';
 import { initGlossary } from './ui/glossary.js';
 import { detect, chipsFor, route, paramsFor, TYPE_LABEL } from './ui/detect.js';
+import { pushRecent } from './ui/recent.js';
 
 const cfg = (() => { try { return JSON.parse(document.getElementById('toolbox-config').textContent); } catch { return { prefix: '/tools', tools: [] }; } })();
 const root = document.documentElement;
@@ -56,6 +57,24 @@ function initCommandBar() {
     if (det.type !== 'empty') chips.append(h('span', { class: 'text-sm st-warn' }, 'That lookup is not available yet.'));
   });
   if (input.value) render();
+}
+
+// ---------- command palette (lazy) + recents ----------
+function initPalette() {
+  const open = async (from) => { try { (await import('./ui/palette.js')).openPalette(cfg, from); } catch { location.href = `${cfg.prefix}/`; } };
+  $$('[data-palette-open]').forEach((b) => b.addEventListener('click', () => open(b)));
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 'k') { e.preventDefault(); open(document.activeElement); return; }
+    if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+    const a = document.activeElement, tag = a && a.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || (a && a.isContentEditable)) return;
+    if (document.querySelector('dialog[open]')) return;
+    e.preventDefault();
+    const hub = document.getElementById('hub-filter');
+    if (hub) hub.focus(); else open(a);
+  });
+  const slug = document.body.dataset.toolSlug;
+  if (slug && !root.dataset.embed) pushRecent(slug);
 }
 
 // ---------- tab rail: arrow keys move between tabs ----------
@@ -134,6 +153,7 @@ initMode();
 initTheme();
 initCommandBar();
 initTabs();
+initPalette();
 initEmbedDrawer();
 initEmbedChild();
 initGlossary();
