@@ -285,7 +285,7 @@ async def test_page_csp_allows_turnstile_only_where_needed(client):
 # ---------- shell, tabs, config, glossary ----------
 def test_tool_config_fields():
     cats = {c["key"] for c in CATEGORIES}
-    assert [c["label"] for c in CATEGORIES] == ["Network & BGP", "DNS", "Email", "Web & SSL", "Calculators"]
+    assert [c["label"] for c in CATEGORIES] == ["Email & Deliverability", "DNS & Domains", "Website & SSL", "Network & BGP", "More from BookMyHost"]
     kinds = {"ip", "prefix", "asn", "domain", "email", "url", "host"}
     expect = {"looking-glass": "network", "port-checker": "network", "dns-propagation-checker": "dns", "reverse-dns-lookup": "dns",
               "whois-lookup": "dns", "ttfb-ssl-checker": "web", "subnet-calculator": "network",
@@ -299,10 +299,7 @@ def test_tool_config_fields():
         "https://www.bookmyhost.com/free-tools/cloud-cost-gst-calculator",
         "https://www.bookmyhost.com/free-tools/vps-sizing-calculator",
         "https://www.bookmyhost.com/free-tools/noida-latency-test"]
-    assert [t["slug"] for t in TOOLS] == ["dns-propagation-checker", "subnet-calculator", "ttfb-ssl-checker", "looking-glass",
-                                          "whois-lookup", "reverse-dns-lookup", "port-checker", "domain-health", "mx-lookup", "spf-checker",
-                                          "dmarc-checker", "dkim-checker", "blacklist-check", "smtp-test", "email-header-analyzer", "dns-lookup",
-                                          "asn-lookup", "bgp-prefix-lookup"]
+    assert [t["slug"] for t in TOOLS] == ["domain-health", "blacklist-check", "smtp-test", "email-header-analyzer", "mx-lookup", "spf-checker", "dmarc-checker", "dkim-checker", "dns-propagation-checker", "whois-lookup", "reverse-dns-lookup", "dns-lookup", "ttfb-ssl-checker", "subnet-calculator", "looking-glass", "port-checker", "asn-lookup", "bgp-prefix-lookup"]
 
 
 @pytest.mark.parametrize("path", ["/tools/"] + [f"/tools/{t['slug']}" for t in TOOLS])

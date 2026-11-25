@@ -291,7 +291,7 @@ async def test_new_tools_embed_and_sitemap(client, slug):
 
 async def test_email_tab_is_visible_and_header_analyzer_takes_no_api(client):
     r = await client.get("/tools/spf-checker")
-    assert ">Email<" in r.text
+    assert ">Email &amp; Deliverability<" in r.text
     h = await client.get("/tools/email-header-analyzer")
     assert "nothing leaves your browser" in h.text.lower()
     js = (Path(main_mod.__file__).parent / "static/js/tools/email-header-analyzer.js").read_text()

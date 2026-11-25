@@ -105,11 +105,11 @@ TOOLS_HUB_LASTMOD = "2026-11-25"
 
 # Ordered tab-rail categories. Tools whose category has no tool yet are simply not shown as a tab group.
 CATEGORIES = [
+    {"key": "email", "label": "Email & Deliverability"},
+    {"key": "dns", "label": "DNS & Domains"},
+    {"key": "web", "label": "Website & SSL"},
     {"key": "network", "label": "Network & BGP"},
-    {"key": "dns", "label": "DNS"},
-    {"key": "email", "label": "Email"},
-    {"key": "web", "label": "Web & SSL"},
-    {"key": "calc", "label": "Calculators"},
+    {"key": "calc", "label": "More from BookMyHost"},
 ]
 # External calculators (bookmyhost.com/free-tools): shown under "Calculators", not part of the sitemap.
 CALCULATORS = [
@@ -121,97 +121,141 @@ CALCULATORS = [
      "short": "Measure round-trip time from your browser to our Noida data centre."},
 ]
 
-TOOLS = [
-    {
-        "slug": "dns-propagation-checker", "lastmod": "2026-10-25", "name": "DNS Propagation Checker",
-        "short": "Check whether your DNS record has propagated to public resolvers worldwide, including India.",
-        "category": "dns", "icon": "dns", "accepts": ["domain", "host"], "heavy": False, "embeddable": True,
-    },
-    {
-        "slug": "subnet-calculator", "lastmod": "2026-10-25", "name": "IPv4 / IPv6 Subnet Calculator",
-        "short": "CIDR calculator with network, broadcast, usable range, wildcard, binary, split and supernet.",
-        "category": "network", "icon": "grid", "accepts": ["ip", "prefix"], "heavy": False, "embeddable": True,
-    },
-    {
-        "slug": "ttfb-ssl-checker", "lastmod": "2026-10-25", "name": "TTFB & SSL Checker",
-        "short": "Measure DNS, TCP, TLS, time to first byte and inspect the SSL certificate of any site.",
-        "category": "web", "icon": "gauge", "accepts": ["url", "domain", "host"], "heavy": False, "embeddable": True,
-    },
-    {
-        "slug": "looking-glass", "lastmod": "2026-11-25", "name": "Looking Glass (Ping, Traceroute, BGP)",
-        "short": "Ping, traceroute and BGP route lookup from our Noida network, AS152523.",
-        "category": "network", "icon": "route", "accepts": ["ip", "host", "domain"], "heavy": True, "embeddable": True,
-    },
-    {
-        "slug": "whois-lookup", "lastmod": "2026-11-21", "name": "WHOIS / RDAP Lookup",
-        "short": "Domain and IP registration data via RDAP: registrar, dates, nameservers, network owner.",
-        "category": "dns", "icon": "search", "accepts": ["domain", "ip"], "heavy": False, "embeddable": True,
-    },
-    {
-        "slug": "reverse-dns-lookup", "lastmod": "2026-11-21", "name": "Reverse DNS (PTR) Lookup",
-        "short": "PTR record for any IPv4 or IPv6 address with a forward-confirmed reverse DNS check.",
-        "category": "dns", "icon": "swap", "accepts": ["ip"], "heavy": False, "embeddable": True,
-    },
-    {
-        "slug": "port-checker", "lastmod": "2026-11-21", "name": "Open Port Checker",
-        "short": "Check which TCP ports are open on your own public IP address.",
-        "category": "network", "icon": "plug", "accepts": [], "heavy": True, "embeddable": True,
-    },
+# Sub-groups of the email category (tool["group"]).
+EMAIL_GROUPS = [("diagnose", "Diagnose delivery problems"), ("auth", "Authentication records")]
 
-    # ---- email / DNS / BGP suite (2026-11-25) ----
+# "I want to..." entry points on the hub: label, one-line hint, tool slug.
+QUICK_STARTS = [
+    {"label": "My email goes to spam", "hint": "Grade SPF, DKIM, DMARC, DNS and blocklists in one report.", "slug": "domain-health"},
+    {"label": "I changed DNS and it's not showing", "hint": "See which resolvers worldwide already serve the new record.", "slug": "dns-propagation-checker"},
+    {"label": "Website is slow or shows an SSL warning", "hint": "Time DNS, TCP, TLS and first byte, and inspect the certificate.", "slug": "ttfb-ssl-checker"},
+    {"label": "Is my port open?", "hint": "Check which TCP ports are reachable on your public IP.", "slug": "port-checker"},
+    {"label": "Who owns this IP or ASN?", "hint": "Look up the origin AS, prefixes and upstreams of a network.", "slug": "asn-lookup"},
+    {"label": "Ping or traceroute from India", "hint": "Run ping, traceroute and BGP lookups from our Noida network.", "slug": "looking-glass"},
+]
+
+TOOLS = [
     {
         "slug": "domain-health", "lastmod": "2026-11-25", "name": "Domain Health Report",
         "short": "Grade a domain A to F for email delivery, authentication, DNS, security and blocklist reputation.",
         "category": "email", "icon": "mail", "accepts": ["domain", "email"], "heavy": True, "embeddable": True,
-    },
-    {
-        "slug": "mx-lookup", "lastmod": "2026-11-25", "name": "MX Lookup",
-        "short": "Mail servers of a domain in priority order, with IP addresses, reverse DNS and provider.",
-        "category": "email", "icon": "inbox", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
-    },
-    {
-        "slug": "spf-checker", "lastmod": "2026-11-25", "name": "SPF Checker",
-        "short": "Validate an SPF record, follow every include and count the 10 DNS lookup limit.",
-        "category": "email", "icon": "shield", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
-    },
-    {
-        "slug": "dmarc-checker", "lastmod": "2026-11-25", "name": "DMARC Checker",
-        "short": "Read a DMARC policy, alignment and report addresses, with a staged rollout plan.",
-        "category": "email", "icon": "shield", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
-    },
-    {
-        "slug": "dkim-checker", "lastmod": "2026-11-25", "name": "DKIM Checker",
-        "short": "Look up a DKIM selector or probe common ones and check key strength.",
-        "category": "email", "icon": "key", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+        "group": "diagnose",
+        "badge": "popular",
+        "keywords": ["spam", "deliverability", "email health", "grade", "audit", "report"],
     },
     {
         "slug": "blacklist-check", "lastmod": "2026-11-25", "name": "Blacklist Check",
         "short": "Check an IP address or domain against dozens of DNS blocklists, live, with removal links.",
         "category": "email", "icon": "ban", "accepts": ["ip", "domain"], "heavy": True, "embeddable": True,
+        "group": "diagnose",
+        "badge": "popular",
+        "keywords": ["blacklist", "blocklist", "spam", "dnsbl", "rbl", "bounce"],
     },
     {
         "slug": "smtp-test", "lastmod": "2026-11-25", "name": "SMTP Test",
         "short": "Read-only SMTP test: banner, STARTTLS, TLS version and certificate of a mail server.",
         "category": "email", "icon": "plug", "accepts": ["host", "domain"], "heavy": True, "embeddable": True,
+        "group": "diagnose",
+        "keywords": ["smtp", "starttls", "mail server", "bounce", "port 25"],
     },
     {
         "slug": "email-header-analyzer", "lastmod": "2026-11-25", "name": "Email Header Analyzer",
         "short": "Paste email headers to see hop delays, SPF/DKIM/DMARC results and spam scores, in your browser.",
         "category": "email", "icon": "file", "accepts": [], "heavy": False, "embeddable": True,
+        "group": "diagnose",
+        "keywords": ["header", "headers", "bounce", "spam score", "delay", "received"],
+        "client_only": True,
+    },
+    {
+        "slug": "mx-lookup", "lastmod": "2026-11-25", "name": "MX Lookup",
+        "short": "Mail servers of a domain in priority order, with IP addresses, reverse DNS and provider.",
+        "category": "email", "icon": "inbox", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+        "group": "diagnose",
+        "keywords": ["mx", "mail server", "mail exchanger", "email routing"],
+    },
+    {
+        "slug": "spf-checker", "lastmod": "2026-11-25", "name": "SPF Checker",
+        "short": "Validate an SPF record, follow every include and count the 10 DNS lookup limit.",
+        "category": "email", "icon": "shield", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+        "group": "auth",
+        "badge": "popular",
+        "keywords": ["spf", "sender policy", "spam", "include", "10 lookups"],
+    },
+    {
+        "slug": "dmarc-checker", "lastmod": "2026-11-25", "name": "DMARC Checker",
+        "short": "Read a DMARC policy, alignment and report addresses, with a staged rollout plan.",
+        "category": "email", "icon": "shield", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+        "group": "auth",
+        "keywords": ["dmarc", "spoofing", "policy", "alignment", "phishing"],
+    },
+    {
+        "slug": "dkim-checker", "lastmod": "2026-11-25", "name": "DKIM Checker",
+        "short": "Look up a DKIM selector or probe common ones and check key strength.",
+        "category": "email", "icon": "key", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+        "group": "auth",
+        "keywords": ["dkim", "selector", "signature", "key", "spam"],
+    },
+    {
+        "slug": "dns-propagation-checker", "lastmod": "2026-10-25", "name": "DNS Propagation Checker",
+        "short": "Check whether your DNS record has propagated to public resolvers worldwide, including India.",
+        "category": "dns", "icon": "dns", "accepts": ["domain", "host"], "heavy": False, "embeddable": True,
+        "badge": "popular",
+        "keywords": ["propagation", "dns changed", "nameserver", "ttl", "not showing"],
+    },
+    {
+        "slug": "whois-lookup", "lastmod": "2026-11-21", "name": "WHOIS / RDAP Lookup",
+        "short": "Domain and IP registration data via RDAP: registrar, dates, nameservers, network owner.",
+        "category": "dns", "icon": "search", "accepts": ["domain", "ip"], "heavy": False, "embeddable": True,
+        "keywords": ["whois", "rdap", "registrar", "domain owner", "expiry"],
+    },
+    {
+        "slug": "reverse-dns-lookup", "lastmod": "2026-11-21", "name": "Reverse DNS (PTR) Lookup",
+        "short": "PTR record for any IPv4 or IPv6 address with a forward-confirmed reverse DNS check.",
+        "category": "dns", "icon": "swap", "accepts": ["ip"], "heavy": False, "embeddable": True,
+        "keywords": ["ptr", "rdns", "reverse", "fcrdns"],
     },
     {
         "slug": "dns-lookup", "lastmod": "2026-11-25", "name": "DNS Lookup",
         "short": "All DNS records with TTLs, nameserver health, SOA timers, CAA and DNSSEC state.",
         "category": "dns", "icon": "dns", "accepts": ["domain", "host"], "heavy": False, "embeddable": True,
+        "keywords": ["dns", "a record", "cname", "txt", "dnssec", "nameserver"],
+    },
+    {
+        "slug": "ttfb-ssl-checker", "lastmod": "2026-10-25", "name": "TTFB & SSL Checker",
+        "short": "Measure DNS, TCP, TLS, time to first byte and inspect the SSL certificate of any site.",
+        "category": "web", "icon": "gauge", "accepts": ["url", "domain", "host"], "heavy": False, "embeddable": True,
+        "keywords": ["ssl", "tls", "certificate", "slow", "ttfb", "https"],
+    },
+    {
+        "slug": "subnet-calculator", "lastmod": "2026-10-25", "name": "IPv4 / IPv6 Subnet Calculator",
+        "short": "CIDR calculator with network, broadcast, usable range, wildcard, binary, split and supernet.",
+        "category": "network", "icon": "grid", "accepts": ["ip", "prefix"], "heavy": False, "embeddable": True,
+        "keywords": ["cidr", "netmask", "ipv4", "ipv6", "wildcard", "supernet"],
+        "client_only": True,
+    },
+    {
+        "slug": "looking-glass", "lastmod": "2026-11-25", "name": "Looking Glass (Ping, Traceroute, BGP)",
+        "short": "Ping, traceroute and BGP route lookup from our Noida network, AS152523.",
+        "category": "network", "icon": "route", "accepts": ["ip", "host", "domain"], "heavy": True, "embeddable": True,
+        "badge": "popular",
+        "keywords": ["ping", "traceroute", "bgp", "mtr", "latency", "india"],
+    },
+    {
+        "slug": "port-checker", "lastmod": "2026-11-21", "name": "Open Port Checker",
+        "short": "Check which TCP ports are open on your own public IP address.",
+        "category": "network", "icon": "plug", "accepts": [], "heavy": True, "embeddable": True,
+        "keywords": ["port", "firewall", "open port", "tcp", "nat"],
     },
     {
         "slug": "asn-lookup", "lastmod": "2026-11-25", "name": "ASN Lookup",
         "short": "Prefixes, upstreams, downstreams, RPKI coverage and exchange points of any AS number.",
         "category": "network", "icon": "graph", "accepts": ["asn"], "heavy": True, "embeddable": True,
+        "keywords": ["asn", "autonomous system", "upstream", "peering", "rpki", "owner"],
     },
     {
         "slug": "bgp-prefix-lookup", "lastmod": "2026-11-25", "name": "BGP Prefix Lookup",
         "short": "Origin AS, RPKI, global visibility map, 30-day history and AS paths of an IP prefix.",
         "category": "network", "icon": "globe", "accepts": ["prefix", "ip"], "heavy": True, "embeddable": True,
+        "keywords": ["bgp", "prefix", "cidr", "rpki", "as path", "route"],
     },
 ]

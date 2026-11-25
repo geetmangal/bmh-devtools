@@ -24,7 +24,7 @@ from app import llms
 from app.api import bgp, dns, health, http_check, lookingglass, mail, pass_, portcheck, rdns, smtp, subnet, whois
 from app.api import dnsbl as dnsbl_api
 from app.core import config, cooldown, turnstile
-from app.core.config import (API_PREFIX, BASE_URL, CALCULATORS, CATEGORIES, CORS_ORIGINS, EMBED_BASE_URL,
+from app.core.config import (API_PREFIX, BASE_URL, CALCULATORS, CATEGORIES, EMAIL_GROUPS, QUICK_STARTS, CORS_ORIGINS, EMBED_BASE_URL,
                              EMBED_RATE_PER_MIN, RATE_LIMIT_PER_MIN, SITE_NAME, STATIC_PREFIX,
                              RDNS_GUIDE_PUBLISHED, RDNS_GUIDE_URL, TOOLS, TOOLS_HUB_LASTMOD, TOOLS_PREFIX, VERSION)
 from app.core.ratelimit import TokenBucket, client_ip
@@ -103,24 +103,41 @@ def _json_for_script(obj) -> str:
 
 
 GLOSSARY_JSON = _json_for_script(_load_glossary())
+_CAT_LABELS = {c["key"]: c["label"] for c in CATEGORIES}
 TOOLBOX_JSON = _json_for_script({
     "prefix": TOOLS_PREFIX, "api": API_PREFIX,
-    "tools": [{k: t[k] for k in ("slug", "name", "category", "icon", "accepts", "heavy")} for t in TOOLS],
+    "tools": [{**{k: t[k] for k in ("slug", "name", "short", "category", "icon", "accepts", "heavy")},
+               "category_label": _CAT_LABELS.get(t["category"], t["category"]),
+               "group": t.get("group", ""), "badge": t.get("badge", ""),
+               "keywords": t.get("keywords", []), "client_only": bool(t.get("client_only", False))}
+              for t in TOOLS],
 })
 
 
 def _tool_groups() -> list[dict]:
-    """Tab-rail groups in CATEGORIES order; empty categories (Email until its tools ship) are hidden."""
+    """Tab-rail groups in CATEGORIES order; empty categories are hidden. Email also carries `subgroups`."""
     groups = []
     for c in CATEGORIES:
         if c["key"] == "calc":
             items = [{"name": x["name"], "href": x["url"], "icon": x["icon"], "external": True} for x in CALCULATORS]
         else:
             items = [{"name": t["name"], "href": f"{TOOLS_PREFIX}/{t['slug']}", "icon": t["icon"], "slug": t["slug"],
-                      "external": False} for t in TOOLS if t["category"] == c["key"]]
+                      "external": False, "group": t.get("group", ""), "badge": t.get("badge", "")}
+                     for t in TOOLS if t["category"] == c["key"]]
         if items:
-            groups.append({"key": c["key"], "label": c["label"], "items": items})
+            g = {"key": c["key"], "label": c["label"], "items": items, "count": len(items)}
+            if c["key"] == "email":
+                g["subgroups"] = [{"key": k, "label": lbl, "tools": [i for i in items if i["group"] == k]}
+                                  for k, lbl in EMAIL_GROUPS]
+            groups.append(g)
     return groups
+
+
+def _category_siblings(slug: str) -> list[dict]:
+    """Tools in the same category as `slug` (including itself), in TOOLS order."""
+    cat = next((t["category"] for t in TOOLS if t["slug"] == slug), None)
+    return [t for t in TOOLS if t["category"] == cat] if cat else []
+
 
 def static_url(rel: str) -> str:
     """Versioned static URL: /tools/static/v/<build>/<rel>. Relative imports inside ES modules resolve under the
@@ -131,7 +148,8 @@ def static_url(rel: str) -> str:
 templates.env.globals.update(site_name=SITE_NAME, base_url=BASE_URL, prefix=TOOLS_PREFIX, tools=TOOLS,
                              api=API_PREFIX, static_url=static_url, rate_per_min=RATE_LIMIT_PER_MIN,
                              glossary_json=GLOSSARY_JSON, toolbox_json=TOOLBOX_JSON, tool_groups=_tool_groups(),
-                             categories=CATEGORIES, calculators=CALCULATORS, embed_base=EMBED_BASE_URL)
+                             categories=CATEGORIES, calculators=CALCULATORS, embed_base=EMBED_BASE_URL,
+                             quick_starts=QUICK_STARTS, category_siblings=_category_siblings)
 
 CF = "https://challenges.cloudflare.com"  # Turnstile
 PAGE_CSP = ("default-src 'none'; script-src 'self' 'nonce-{nonce}' " + CF + "; style-src 'self'; style-src-attr 'unsafe-inline'; "

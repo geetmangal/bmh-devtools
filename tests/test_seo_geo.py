@@ -154,7 +154,7 @@ async def test_hub_json_ld(client):
     assert sorted(n["@type"] for n in g) == ["BreadcrumbList", "CollectionPage", "FAQPage", "ItemList"]
     items = next(n for n in g if n["@type"] == "ItemList")["itemListElement"]
     assert sorted(i["url"] for i in items) == sorted(f"https://bookmyhost.com/tools/{s}" for s in SLUGS)
-    assert [i["position"] for i in items] == list(range(1, 19))
+    assert [i["position"] for i in items] == list(range(1, len(TOOLS) + 1))
     assert "AggregateRating" not in json.dumps(g)
 
 
@@ -214,7 +214,7 @@ async def test_llms_txt(client):
     assert t.startswith("# BookMyHost Toolbox\n\n> ")
     for tool in TOOLS:
         assert f"[{tool['name']}](https://bookmyhost.com/tools/{tool['slug']}): {tool['short']}" in t
-    assert t.count("](https://bookmyhost.com/tools/") >= 18
+    assert t.count("](https://bookmyhost.com/tools/") >= len(TOOLS)
     for cat in CATEGORIES:
         if cat["key"] != "calc":
             assert f"## {cat['label']}" in t
@@ -247,7 +247,7 @@ async def test_hub_head_links_to_llms_files_and_tool_pages_do_not(client):
 
 async def test_robots_and_sitemap_behaviour_unchanged(client):
     s = (await client.get("/tools/sitemap.xml")).text
-    assert s.count("<loc>") == 19 and "llms" not in s and "/api/" not in s and "/static/" not in s
+    assert s.count("<loc>") == len(TOOLS) + 1 and "llms" not in s and "/api/" not in s and "/static/" not in s
     r = await client.get("/tools/api/v1/openapi.json")
     assert r.headers["x-robots-tag"] == "noindex" and r.headers["cache-control"] == "no-store"
     assert (await client.get("/robots.txt")).status_code == 404  # robots.txt belongs to the host site
