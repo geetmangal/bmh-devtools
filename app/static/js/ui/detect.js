@@ -3,7 +3,7 @@
 //   type: ip | prefix | asn | domain | email | url | host | empty
 // route(det, tools) -> { slug, params } | null   (null: no tool for this input yet)
 
-const PREFIXES = ['mx', 'spf', 'dmarc', 'dkim', 'blacklist', 'asn', 'smtp', 'health', 'trace', 'ping', 'whois', 'dns', 'ports', 'ssl'];
+const PREFIXES = ['mx', 'spf', 'dmarc', 'dkim', 'blacklist', 'asn', 'smtp', 'health', 'trace', 'ping', 'whois', 'dns', 'ports', 'ssl', 'bimi', 'mtasts', 'mta-sts', 'headers'];
 
 const V4 = /^(25[0-5]|2[0-4]\d|1?\d?\d)(\.(25[0-5]|2[0-4]\d|1?\d?\d)){3}$/;
 const V6 = /^[0-9a-f:.]+$/i;
@@ -16,8 +16,9 @@ export function isIPv6(s) { return s.includes(':') && V6.test(s) && s.split(':')
 export function detect(raw) {
   let input = (raw || '').trim();
   if (!input) return { type: 'empty', value: '' };
+  if (/^myip$/i.test(input)) return { type: 'myip', value: '', prefix: null };
   let prefix = null;
-  const m = /^([a-z]+):\s*(\S.*)$/i.exec(input);
+  const m = /^([a-z][a-z-]*):\s*(\S.*)$/i.exec(input);
   if (m && PREFIXES.includes(m[1].toLowerCase()) && !/^\/\//.test(m[2])) { prefix = m[1].toLowerCase(); input = m[2].trim(); }
   const base = (type) => ({ type, value: input, prefix });
   if (prefix === 'asn' && /^\d{1,10}$/.test(input)) return { type: 'asn', value: 'AS' + input, prefix };
@@ -74,6 +75,9 @@ export function route(det, tools) {
     case 'mx': return go('mx-lookup');
     case 'spf': return go('spf-checker');
     case 'dmarc': return go('dmarc-checker');
+    case 'bimi': return go('bimi-checker');
+    case 'mtasts': case 'mta-sts': return go('mta-sts-checker');
+    case 'headers': { const r = go('http-headers-checker', { q: det.type === 'url' ? det.value : v }); if (r) return r; break; } // ignored when the tool is not installed
     case 'health': return go('domain-health');
     case 'smtp': return go('smtp-test');
     case 'blacklist': return go('blacklist-check');
@@ -85,6 +89,7 @@ export function route(det, tools) {
     default: break;
   }
   switch (det.type) {
+    case 'myip': return has('what-is-my-ip') ? { slug: 'what-is-my-ip', params: {} } : null;
     case 'ip': return go('looking-glass') || go('reverse-dns-lookup');
     case 'prefix': return go('bgp-prefix-lookup') || go('subnet-calculator');
     case 'asn': return go('asn-lookup');
@@ -101,11 +106,12 @@ export function paramsFor(slug, det) {
   switch (slug) {
     case 'ttfb-ssl-checker': return { q: det.type === 'url' ? det.value : 'https://' + host };
     case 'looking-glass': case 'dns-propagation-checker': case 'whois-lookup': return det.type === 'ip' || det.type === 'prefix' ? { q: det.value } : { q: host };
-    case 'mx-lookup': case 'spf-checker': case 'dmarc-checker': case 'dkim-checker': case 'domain-health': case 'dns-lookup': case 'smtp-test': return { q: host };
+    case 'mx-lookup': case 'spf-checker': case 'dmarc-checker': case 'bimi-checker': case 'mta-sts-checker': case 'dkim-checker': case 'domain-health': case 'dns-lookup': case 'smtp-test': return { q: host };
+    case 'http-headers-checker': return { q: det.type === 'url' ? det.value : host };
     case 'blacklist-check': return { q: det.type === 'ip' ? det.value : host };
     default: return { q: det.value };
   }
 }
 
 /** Human label for the detected type, shown next to the chips. */
-export const TYPE_LABEL = { ip: 'an IP address', prefix: 'an IP prefix', asn: 'an AS number', domain: 'a domain', email: 'an email address', url: 'a URL', host: 'a hostname' };
+export const TYPE_LABEL = { ip: 'an IP address', prefix: 'an IP prefix', asn: 'an AS number', domain: 'a domain', email: 'an email address', url: 'a URL', host: 'a hostname', myip: 'a request for your own IP address' };

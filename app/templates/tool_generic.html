@@ -13,6 +13,12 @@
   <p class="text-sm flex items-start gap-2"><span class="st-ok mt-0.5">{{ icon("shield", "w-4 h-4") }}</span><span><strong>Nothing leaves your browser.</strong> The headers are read by JavaScript on this page and are never uploaded, logged or stored.</span></p>
   <button class="btn" type="submit" id="tool-submit">{{ page.button }}</button>
 </form>
+{% elif page.noinput %}
+<form id="tool-form" class="card p-4 flex flex-wrap items-center gap-3" action="{{ prefix }}/{{ tool.slug }}" method="get">
+  <p class="text-sm flex-1 min-w-[12rem]">{{ page.label }}</p>
+  <input id="tool-ip" type="text" hidden aria-hidden="true" tabindex="-1">
+  <button class="btn" type="submit" id="tool-submit">{{ page.button }}</button>
+</form>
 {% else %}
 <form id="tool-form" class="card p-4 grid gap-3 items-end {% if page.selector %}sm:grid-cols-[1fr_200px_auto]{% elif page.port %}sm:grid-cols-[1fr_140px_auto]{% else %}sm:grid-cols-[1fr_auto]{% endif %}" action="{{ prefix }}/{{ tool.slug }}" method="get">
   <label class="block text-sm">{{ page.label }}<input id="tool-input" name="q" type="text" placeholder="{{ page.placeholder }}" required autocomplete="off" class="mt-1 mono" spellcheck="false" autocapitalize="off"></label>

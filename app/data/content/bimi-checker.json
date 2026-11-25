@@ -1,0 +1,103 @@
+{
+ "title": "BIMI Record Checker: Logo and DMARC Readiness | BookMyHost",
+ "description": "Free BIMI checker: read your default._bimi record, check that the logo and certificate links use https and see whether DMARC is enforced for your brand logo.",
+ "og_line": "Check your BIMI record, logo link and DMARC readiness",
+ "answer": "BIMI (Brand Indicators for Message Identification) lets receiving mail apps show your brand logo next to your messages. It is a TXT record at default._bimi.yourdomain that points to an SVG logo and, for Gmail, a mark certificate. It only works once DMARC is enforced. This checker reads the record, tests the logo and certificate links and tells you what is missing.",
+ "inputs": "A domain name or an email address (the domain part is used).",
+ "outputs": "The published BIMI record, where it was found, the logo link (l=), the certificate link (a=), whether DMARC is enforced and a list of findings with fixes.",
+ "curl": "curl -s -X POST @BASE@@API@/mail/bimi -H 'Content-Type: application/json' -d '{\"domain\":\"example.com\"}'",
+ "sections": [
+  {
+   "h": "What BIMI does",
+   "p": [
+    "BIMI stands for Brand Indicators for Message Identification. When a message passes authentication, supporting mail apps can show the sender's logo in the inbox list instead of a generic initial. It is a branding feature that rewards domains that have already done the hard authentication work.",
+    "The setting lives in DNS. You publish one TXT record at default._bimi under your domain. The record names the logo you want shown and, optionally, a certificate that proves you own that logo."
+   ]
+  },
+  {
+   "h": "What this checker reads",
+   "p": [
+    "We look up the TXT record at default._bimi for the domain you enter. If a subdomain has no record we also try the organisational domain, because receivers do the same. From the record we read the version (v=BIMI1), the logo link in l= and the certificate link in a=.",
+    "We then check that the logo link and the certificate link are https addresses, and we warn when the logo link does not end in .svg. Finally we read your DMARC record and tell you whether it is enforced, because BIMI is ignored without that."
+   ]
+  },
+  {
+   "h": "What it does not check",
+   "p": [
+    "This tool reads DNS only. It does not download your logo, so it cannot tell you whether the file is a valid SVG Tiny Portable/Secure image, whether it is square, or whether the file is too large. It also does not download or validate the certificate. Test the logo file with your certificate authority's validator before you rely on it."
+   ]
+  },
+  {
+   "h": "Prerequisites",
+   "p": [
+    "Receivers show a BIMI logo only for domains with enforced DMARC: a policy of quarantine or reject applied to 100 percent of mail. If your DMARC policy is still none, or pct is below 100, fix that first with the DMARC checker and its rollout plan.",
+    "The logo must be an SVG in the Tiny Portable/Secure profile, served over https. Plain SVG files exported from design tools often need to be converted."
+   ]
+  },
+  {
+   "h": "Certificates and mailbox providers",
+   "p": [
+    "Gmail shows the logo only when the record links a Verified Mark Certificate (VMC) or a Common Mark Certificate (CMC) in a=. A VMC also earns the verified checkmark in Gmail. Other mailbox providers have their own rules, and those rules change, so check each provider's current BIMI documentation.",
+    "Certificates are sold by a small number of certificate authorities and usually require a registered trademark for a VMC."
+   ]
+  },
+  {
+   "h": "Publishing BIMI step by step",
+   "p": [
+    "First move DMARC to quarantine or reject at 100 percent and keep it stable. Next prepare the logo as a square SVG Tiny Portable/Secure file and host it on https at an address that will not change. If you want Gmail to show it, obtain a VMC or CMC from a supported certificate authority and host the .pem file the same way.",
+    "Then publish one TXT record at default._bimi.yourdomain with a value such as v=BIMI1; l=https://example.com/bimi/logo.svg; a=https://example.com/bimi/cert.pem. Run this checker, fix anything it flags and send a test message to a Gmail account. Mailbox providers cache BIMI data, so a change can take a few days to appear."
+   ]
+  },
+  {
+   "h": "Common problems",
+   "p": [
+    "The record is published at the wrong name (it must be default._bimi, not _bimi), the logo link uses http instead of https, or two BIMI records exist at the same name. An empty l= is valid: it deliberately switches BIMI off for that domain.",
+    "A record can be perfectly correct and still show nothing because DMARC is not enforced yet. Fix the order: authentication first, then the logo."
+   ]
+  }
+ ],
+ "faq": [
+  [
+   "What is a BIMI record?",
+   "A BIMI record is a TXT record at default._bimi.yourdomain with a version, a logo link (l=) and an optional certificate link (a=). Mail apps that support BIMI use it to show your logo."
+  ],
+  [
+   "Do I need DMARC for BIMI?",
+   "Yes. Receivers only show BIMI logos when DMARC is enforced: p=quarantine or p=reject, applied to 100 percent of mail. This checker tells you whether your DMARC policy qualifies."
+  ],
+  [
+   "Does this tool validate my SVG logo?",
+   "No. We check that the logo link is an https address and warn if it does not end in .svg, but we do not download the file or test it against the SVG Tiny Portable/Secure rules."
+  ],
+  [
+   "Do I need a VMC or CMC certificate?",
+   "Gmail needs one to show your logo. A VMC also gives the verified checkmark. Other providers differ, so a record without a certificate may still be worth publishing but will not show everywhere."
+  ],
+  [
+   "Why does my correct BIMI record show no logo?",
+   "The usual causes are DMARC not yet enforced, a logo file that is not valid SVG Tiny PS, a missing certificate for Gmail, or a mail app that has not fetched the record yet."
+  ],
+  [
+   "Does BIMI work for subdomains?",
+   "A subdomain can have its own record. If it has none, receivers fall back to the record of the organisational domain, and this checker follows the same fallback."
+  ]
+ ],
+ "related": [
+  {
+   "slug": "dmarc-checker",
+   "anchor": "Check the DMARC policy BIMI depends on"
+  },
+  {
+   "slug": "spf-checker",
+   "anchor": "Validate your SPF record and lookups"
+  },
+  {
+   "slug": "dkim-checker",
+   "anchor": "Check your DKIM selector and key"
+  },
+  {
+   "slug": "domain-health",
+   "anchor": "Run a full domain health report"
+  }
+ ]
+}

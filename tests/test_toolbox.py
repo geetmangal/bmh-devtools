@@ -251,7 +251,7 @@ async def test_embed_js_served_with_fixed_schema(client):
 
 async def test_embed_pages_not_in_sitemap(client):
     r = await client.get("/tools/sitemap.xml")
-    assert r.text.count("<loc>") == 19 and "/embed" not in r.text
+    assert r.text.count("<loc>") == len(config.TOOLS) + 1 and "/embed" not in r.text
 
 
 async def test_embed_api_calls_have_own_bucket(client):
@@ -291,7 +291,8 @@ def test_tool_config_fields():
               "whois-lookup": "dns", "ttfb-ssl-checker": "web", "subnet-calculator": "network",
               "domain-health": "email", "mx-lookup": "email", "spf-checker": "email", "dmarc-checker": "email", "dkim-checker": "email",
               "blacklist-check": "email", "smtp-test": "email", "email-header-analyzer": "email", "dns-lookup": "dns",
-              "asn-lookup": "network", "bgp-prefix-lookup": "network"}
+              "asn-lookup": "network", "bgp-prefix-lookup": "network",
+                  "mta-sts-checker": "email", "bimi-checker": "email", "what-is-my-ip": "network"}
     for t in TOOLS:
         assert t["category"] == expect[t["slug"]] and t["category"] in cats
         assert t["icon"] and set(t["accepts"]) <= kinds and isinstance(t["heavy"], bool) and t["embeddable"] is True
@@ -299,7 +300,7 @@ def test_tool_config_fields():
         "https://bookmyhost.com/free-tools/cloud-cost-gst-calculator",
         "https://bookmyhost.com/free-tools/vps-sizing-calculator",
         "https://bookmyhost.com/free-tools/noida-latency-test"]
-    assert [t["slug"] for t in TOOLS] == ["domain-health", "blacklist-check", "smtp-test", "email-header-analyzer", "mx-lookup", "spf-checker", "dmarc-checker", "dkim-checker", "dns-propagation-checker", "whois-lookup", "reverse-dns-lookup", "dns-lookup", "ttfb-ssl-checker", "subnet-calculator", "looking-glass", "port-checker", "asn-lookup", "bgp-prefix-lookup"]
+    assert [t["slug"] for t in TOOLS] == ["domain-health", "blacklist-check", "smtp-test", "email-header-analyzer", "mx-lookup", "spf-checker", "dmarc-checker", "dkim-checker", "mta-sts-checker", "bimi-checker", "dns-propagation-checker", "whois-lookup", "reverse-dns-lookup", "dns-lookup", "ttfb-ssl-checker", "subnet-calculator", "looking-glass", "port-checker", "asn-lookup", "bgp-prefix-lookup", "what-is-my-ip"]
 
 
 @pytest.mark.parametrize("path", ["/tools/"] + [f"/tools/{t['slug']}" for t in TOOLS])

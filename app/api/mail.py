@@ -16,7 +16,7 @@ from app.api._common import DomainRequest, valid_domain, with_cache
 from app.core import cooldown
 from app.core.cache import TTLCache
 from app.core.config import HEAVY_RATE_PER_MIN, MAIL_RATE_PER_MIN, MAX_CONCURRENT_NET, RESULT_CACHE_TTL
-from app.core.mailcheck import bimi, dkim, dmarc, dnsrec, mta_sts, mx, spf
+from app.core.mailcheck import bimi, dkim, dmarc, dnsrec, mta_sts, mx, spf, tlsrpt
 from app.core.mailcheck.models import CheckResult
 from app.core.ratelimit import Gate, TokenBucket, client_ip, limiter
 from app.core.turnstile import require_pass
@@ -77,6 +77,12 @@ async def bimi_check(req: DomainRequest) -> dict:
 @router.post("/mta-sts", dependencies=[Depends(_dep)])
 async def mta_sts_check(req: DomainRequest) -> dict:
     return await _single("mta_sts", lambda d: mta_sts.check(d), valid_domain(req.domain))
+
+
+@router.post("/tls-rpt", dependencies=[Depends(_dep)])
+async def tls_rpt_check(req: DomainRequest) -> dict:
+    """SMTP TLS Reporting (RFC 8460): the TXT record at _smtp._tls.<domain> and its report addresses."""
+    return await _single("tlsrpt", lambda d: tlsrpt.check(d), valid_domain(req.domain))
 
 
 @router.post("/dns", dependencies=[Depends(_dep)])

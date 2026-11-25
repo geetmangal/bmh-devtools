@@ -1,0 +1,96 @@
+{
+ "title": "What Is My IP Address? IPv4, IPv6, PTR and ASN | BookMyHost",
+ "description": "See your public IP address in one click, with IPv4 or IPv6 type, reverse DNS (PTR), network prefix, ASN and holder, plus links to port and blacklist checks.",
+ "og_line": "Your public IP address, reverse DNS, prefix and ASN",
+ "answer": "Your public IP address is the address other servers on the internet see when you connect. This page reads it from your own request and shows it with a copy button, whether it is IPv4 or IPv6, its reverse DNS (PTR) name, the network prefix and the AS number and holder. From there you can check open ports, blocklists and the BGP route.",
+ "inputs": "None. The page uses the address your browser connects from.",
+ "outputs": "Your public IP address, IPv4 or IPv6, the PTR record, the network prefix, the origin ASN and holder from registry data, and links to the port checker, blacklist check, BGP prefix lookup and WHOIS.",
+ "curl": "curl -s @BASE@@API@/ports/myip",
+ "sections": [
+  {
+   "h": "What your public IP address is",
+   "p": [
+    "Every connection to a website comes from an address, and that is the one the site sees. For most home and office users it belongs to the router or to the provider's network, not to the laptop or phone itself. Devices inside a network use private addresses such as 192.168.1.20, which are never visible to servers on the internet.",
+    "This page shows the address that reached our server. If you use a VPN, a proxy or a corporate gateway, that is the address of the VPN or gateway, not of your own line."
+   ]
+  },
+  {
+   "h": "IPv4 and IPv6",
+   "p": [
+    "IPv4 addresses look like 203.0.113.9; IPv6 addresses are longer, such as 2001:db8::1. A device with both can use either, and your browser picks one for each site. We label the one you used to reach us. If you see IPv4 but expect IPv6, your provider or router may not have IPv6 enabled."
+   ]
+  },
+  {
+   "h": "Reverse DNS, prefix and ASN",
+   "p": [
+    "The PTR record is the host name published for the address in reverse DNS. Home connections often show an automatic name that embeds the address, while business and mail servers should show a name you control.",
+    "The network prefix is the block of addresses your address belongs to. The ASN is the number of the network that announces that block, and the holder is who the registry says owns it. We read these from registry data (registry whois records and IRR route objects), so a missing value means the registry did not list one, not that anything is wrong. For routing and visibility use the BGP prefix lookup."
+   ]
+  },
+  {
+   "h": "Why your address may be shared",
+   "p": [
+    "Providers short of IPv4 addresses often put many customers behind one public address, a technique called carrier-grade NAT or CGNAT. It is common on mobile networks and some broadband lines in India. With CGNAT you cannot accept inbound connections, and a blocklist entry or a rate limit that hits the shared address may affect other customers too.",
+    "If the address shown here is in a shared range, ask your provider for a public or static address when you need port forwarding or an allowlist entry."
+   ]
+  },
+  {
+   "h": "Privacy and sharing your address",
+   "p": [
+    "An IP address is not a secret: every site you visit sees it. It usually reveals your provider and an approximate area, but not your street address or your name. Even so, never treat it as proof of identity, because a VPN, a shared office or a mobile network can put many people behind one address.",
+    "It is fine to give your address to a support team or a hosting provider that needs to allow your connection. To hide it from the sites you visit, use a VPN or proxy, and expect this page to show the address of that service instead."
+   ]
+  },
+  {
+   "h": "What to do with it",
+   "p": [
+    "Use the address to add yourself to a firewall or SSH allowlist, to tell a hosting provider where you connect from, or to confirm that a VPN is active. The links under the result send the same address to the open port checker, the blacklist check, the BGP prefix lookup and WHOIS.",
+    "A residential address often changes when the router restarts, so do not hard-code it in a production allowlist unless your provider guarantees a static address."
+   ]
+  }
+ ],
+ "faq": [
+  [
+   "What is my public IP address?",
+   "It is the address shown at the top of this page: the one your connection uses to reach our server. If you are on a VPN or proxy it is the address of that service."
+  ],
+  [
+   "What is the difference between a public and a private IP address?",
+   "A public address is reachable on the internet and is assigned by your provider. A private address, such as 192.168.x.x or 10.x.x.x, works only inside your local network."
+  ],
+  [
+   "Why does my IP address look different from my friend's on the same network?",
+   "Devices on one network normally share one public address. If the addresses differ, one device may be using a VPN, a different network such as mobile data, or a different IP version."
+  ],
+  [
+   "Can I use this to check my IPv6 address?",
+   "Yes. If your connection to us uses IPv6, the page shows the IPv6 address and labels it. If you only see IPv4, your network may not have working IPv6."
+  ],
+  [
+   "Does this page store my address?",
+   "You do not enter anything. The address is read from your request so it can be shown back to you and used for the lookups on this page."
+  ],
+  [
+   "Why is the ASN or holder empty?",
+   "We read the ASN and holder from public registry records. If the registry has no route object or organisation entry for the block, those fields stay empty. The BGP prefix lookup shows the live origin."
+  ]
+ ],
+ "related": [
+  {
+   "slug": "port-checker",
+   "anchor": "Check open ports on your IP"
+  },
+  {
+   "slug": "blacklist-check",
+   "anchor": "Check whether your IP is blacklisted"
+  },
+  {
+   "slug": "bgp-prefix-lookup",
+   "anchor": "Look up the BGP prefix of your IP"
+  },
+  {
+   "slug": "whois-lookup",
+   "anchor": "See who owns your IP address"
+  }
+ ]
+}

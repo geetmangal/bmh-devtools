@@ -196,6 +196,20 @@ TOOLS = [
         "keywords": ["dkim", "selector", "signature", "key", "spam"],
     },
     {
+        "slug": "mta-sts-checker", "lastmod": "2026-11-25", "name": "MTA-STS & TLS-RPT Checker",
+        "short": "Read the MTA-STS record and policy file, check mode, mx coverage and max_age, and the TLS-RPT report address.",
+        "category": "email", "icon": "shield", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+        "group": "auth", "badge": "new",
+        "keywords": ["mta-sts", "tls-rpt", "starttls", "downgrade", "tls reporting", "mail encryption"],
+    },
+    {
+        "slug": "bimi-checker", "lastmod": "2026-11-25", "name": "BIMI Record Checker",
+        "short": "Check a BIMI record: logo and certificate links, https, and whether DMARC is enforced so your logo can show.",
+        "category": "email", "icon": "mail", "accepts": ["domain", "email"], "heavy": False, "embeddable": True,
+        "group": "auth", "badge": "new",
+        "keywords": ["bimi", "brand logo", "vmc", "cmc", "gmail logo", "svg"],
+    },
+    {
         "slug": "dns-propagation-checker", "lastmod": "2026-10-25", "name": "DNS Propagation Checker",
         "short": "Check whether your DNS record has propagated to public resolvers worldwide, including India.",
         "category": "dns", "icon": "dns", "accepts": ["domain", "host"], "heavy": False, "embeddable": True,
@@ -257,5 +271,12 @@ TOOLS = [
         "short": "Origin AS, RPKI, global visibility map, 30-day history and AS paths of an IP prefix.",
         "category": "network", "icon": "globe", "accepts": ["prefix", "ip"], "heavy": True, "embeddable": True,
         "keywords": ["bgp", "prefix", "cidr", "rpki", "as path", "route"],
+    },
+    {
+        "slug": "what-is-my-ip", "lastmod": "2026-11-25", "name": "What Is My IP Address",
+        "short": "Your public IP address with IPv4 or IPv6 type, reverse DNS, network prefix, ASN and holder.",
+        "category": "network", "icon": "globe", "accepts": [], "heavy": False, "embeddable": True,
+        "badge": "new",
+        "keywords": ["my ip", "public ip", "ip address", "ipv6", "cgnat", "what is my ip"],
     },
 ]

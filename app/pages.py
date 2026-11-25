@@ -75,4 +75,22 @@ PAGES: dict[str, dict] = {
         "intro": "Enter an IP prefix or a single address to see which AS originates it, whether RPKI validates the announcement, how widely it is visible around the world, how the origin changed over the last 30 days and the AS paths collectors use to reach it.",
         "about": [f"API: GET {API}/prefix/1.1.1.0/24."],
     },
+    "mta-sts-checker": {
+        **FORM_DOMAIN, "button": "Check MTA-STS",
+        "h1": "MTA-STS and TLS-RPT Checker",
+        "intro": "MTA-STS tells other mail servers to deliver your mail only over verified TLS. This checker reads the DNS record, fetches the policy file over HTTPS, tests the mode, the mx lines and max_age, and then checks the TLS-RPT record that asks for failure reports.",
+        "about": [f"This tool queries public DNS and fetches the policy file from mta-sts.<domain>. API: POST {API}/mail/mta-sts and POST {API}/mail/tls-rpt, each with {{\"domain\": \"example.com\"}}."],
+    },
+    "bimi-checker": {
+        **FORM_DOMAIN, "button": "Check BIMI",
+        "h1": "BIMI Record Checker",
+        "intro": "BIMI shows your brand logo next to your emails in supporting inboxes. This checker reads the record at default._bimi, tests the logo and certificate links and tells you whether DMARC is enforced, which BIMI needs. It reads DNS only and does not validate the SVG file or the certificate.",
+        "about": [f"This tool queries public DNS only. API: POST {API}/mail/bimi with {{\"domain\": \"example.com\"}}."],
+    },
+    "what-is-my-ip": {
+        "noinput": True, "label": "Your address is read from this connection. There is nothing to type.", "button": "Check again",
+        "h1": "What Is My IP Address?",
+        "intro": "See the public IP address you are connecting from, whether it is IPv4 or IPv6, its reverse DNS name, and the network prefix, origin AS and holder from registry data. Then check the same address for open ports, blocklists and its BGP route.",
+        "about": [f"The address is the one our server sees for your request. API: GET {API}/ports/myip."],
+    },
 }
