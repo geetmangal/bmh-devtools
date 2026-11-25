@@ -49,6 +49,7 @@ export function domainTool({ endpoint, render, heavy = false, body, state, form 
     form,
     run: (ctx) => ctx.api(endpoint, { domain: cleanDomain(el.value), ...(body ? body() : {}) }, { heavy: typeof heavy === 'function' ? heavy() : heavy }),
     render,
+    heavy,
     state: state || ((d) => ({ q: d.target || cleanDomain(el.value) })),
     prefill: (p) => { const q = qParam(p, 'domain'); if (q) el.value = q; if (after) after(p); return !!q; },
   });

@@ -1,7 +1,7 @@
 {% extends layout %}
 {% block intro %}
-<h1 class="text-3xl font-bold mb-2">DNS Propagation Checker</h1>
-<p class="text-mute max-w-3xl mb-5">Check whether a DNS change has reached public resolvers around the world, including Indian anycast nodes, and compare each answer with the zone's authoritative nameserver. Supports A, AAAA, CNAME, MX, NS, TXT, SOA and PTR records.</p>
+<h1 class="text-2xl sm:text-3xl font-bold mb-1">DNS Propagation Checker</h1>
+<p class="text-mute max-w-3xl mb-3 text-sm sm:text-base">Check whether a DNS change has reached public resolvers worldwide, including India.</p>
 {% endblock %}
 {% block content %}
 <form id="dns-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_140px_auto] items-end" method="post" action="{{ api }}/dns/propagation">
@@ -16,7 +16,8 @@
 {% block about %}
 <section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
   <h2 class="text-xl font-bold text-ink mb-2">How DNS propagation works</h2>
-  <p>When you change a record at your DNS provider, the authoritative nameservers answer with the new value immediately. Recursive resolvers run by ISPs and public DNS operators, however, keep the previous answer in cache until its TTL (time to live) expires. This checker queries 18 recursive resolvers in parallel with a 2 second timeout each and marks every one that already returns the same record set as the authoritative server as propagated.</p>
+  <p>The checker compares each resolver's answer with the zone's authoritative nameserver. It supports A, AAAA, CNAME, MX, NS, TXT, SOA and PTR records, including Indian anycast nodes.</p>
+  <p class="mt-2">When you change a record at your DNS provider, the authoritative nameservers answer with the new value immediately. Recursive resolvers run by ISPs and public DNS operators, however, keep the previous answer in cache until its TTL (time to live) expires. This checker queries 18 recursive resolvers in parallel with a 2 second timeout each and marks every one that already returns the same record set as the authoritative server as propagated.</p>
   <p class="mt-2">Tip: before migrating a website or mail server to a new <a href="https://bookmyhost.com">cloud server</a>, lower the TTL to 300 seconds at least 24 hours in advance, then raise it again after the move.</p>
 </section>
 {% endblock %}

@@ -1,7 +1,7 @@
 {% extends layout %}
 {% block intro %}
-<h1 class="text-3xl font-bold mb-2">WHOIS &amp; RDAP Lookup</h1>
-<p class="text-mute max-w-3xl mb-5">Look up who is behind a domain or an IP address: registrar, creation and expiry dates, status and nameservers for domains; network name, range, country and abuse role for IPv4 and IPv6. Data comes live from the registries over RDAP.</p>
+<h1 class="text-2xl sm:text-3xl font-bold mb-1">WHOIS &amp; RDAP Lookup</h1>
+<p class="text-mute max-w-3xl mb-3 text-sm sm:text-base">Look up who is behind a domain or an IP address, live from the registries over RDAP.</p>
 {% endblock %}
 {% block content %}
 <form id="whois-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end" method="post" action="{{ api }}/whois/lookup">
@@ -13,7 +13,8 @@
 {% block about %}
 <section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
   <h2 class="text-xl font-bold text-ink mb-2">Reading the result</h2>
-  <p>Status values such as <span class="mono">clientTransferProhibited</span> are registrar locks that protect a domain against unauthorised transfer. The expiry date tells you when to renew; the nameservers show where the DNS is hosted. Personal contact data is redacted by registries and never shown here.</p>
+  <p>For domains you get registrar, creation and expiry dates, status and nameservers; for IPv4 and IPv6 the network name, range, country and abuse role.</p>
+  <p class="mt-2">Status values such as <span class="mono">clientTransferProhibited</span> are registrar locks that protect a domain against unauthorised transfer. The expiry date tells you when to renew; the nameservers show where the DNS is hosted. Personal contact data is redacted by registries and never shown here.</p>
   <p class="mt-2">Moving a site? After you change nameservers, confirm the change with the <a href="{{ prefix }}/dns-propagation-checker">DNS propagation checker</a>, then host it on a <a href="https://bookmyhost.com">cloud server in India</a>. For an IP, also try the <a href="{{ prefix }}/reverse-dns-lookup">reverse DNS lookup</a>.</p>
 </section>
 {% endblock %}

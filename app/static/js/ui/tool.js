@@ -6,6 +6,7 @@ import { skeletonCards, readNdjson } from './stream.js';
 import { shareBar } from './share.js';
 import { rawJson } from './card.js';
 import { cacheNote } from './cachenote.js';
+import './nextsteps.js'; // listens for bmh:result and renders the Next steps block
 
 const cfg = (() => { try { return JSON.parse(document.getElementById('toolbox-config').textContent); } catch { return { api: '/tools/api/v1', prefix: '/tools' }; } })();
 const embedHost = () => (document.documentElement.dataset.embed ? (document.body.dataset.embedHost || 'embed') : null);
@@ -63,7 +64,7 @@ export function errorCard(message) {
  *  state(data) -> object of URL params to keep in the address bar (always includes q for sharing)
  *  prefill(params) -> truthy when the page should run immediately (e.g. ?q=example.com)
  */
-export function initTool({ form, results = '#results', run, render, state, prefill, buttons = [], autorunDelay = 0, shareExtra, autoCacheNote = true }) {
+export function initTool({ form, results = '#results', run, render, state, prefill, buttons = [], autorunDelay = 0, shareExtra, autoCacheNote = true, heavy = false }) {
   const formEl = $(form), out = $(results);
   let last = null, token = 0;
   const btns = () => [...formEl.querySelectorAll('button')].concat(buttons.map((b) => $(b)).filter(Boolean));
@@ -90,6 +91,7 @@ export function initTool({ form, results = '#results', run, render, state, prefi
         const q = new URLSearchParams(state(data));
         try { history.replaceState(null, '', '?' + q.toString() + location.hash); } catch { /* sandboxed frames */ }
       }
+      announce(data);
     } catch (e) {
       if (my !== token) return;
       clear(out).append(errorCard(e.message || String(e)));
@@ -98,8 +100,25 @@ export function initTool({ form, results = '#results', run, render, state, prefi
     }
   }
 
+  /** bmh:result {slug, input, verdict: ok|warn|bad|info} - drives the Next steps block (ui/nextsteps.js). */
+  function announce(data) {
+    const v = out.querySelector('.verdict[data-status]');
+    const s = v ? v.getAttribute('data-status') : 'info';
+    let input = '';
+    try { input = String((state && state(data).q) || ''); } catch { input = ''; }
+    if (!input) {
+      const f = formEl.querySelector('input:not([type=hidden]):not([type=checkbox]):not([readonly])');
+      input = f ? f.value.trim() : '';
+    }
+    document.dispatchEvent(new CustomEvent('bmh:result', { detail: { slug: location.pathname.replace(/\/+$/, '').split('/').pop(), input, verdict: ['ok', 'warn', 'bad', 'info'].includes(s) ? s : 'info' } }));
+  }
+
   formEl.addEventListener('submit', (e) => { e.preventDefault(); execute(); });
-  if (prefill && prefill(ctx.params)) setTimeout(() => execute(), autorunDelay);
+  if (prefill && prefill(ctx.params)) {
+    // Light tools run at once; Turnstile-protected (heavy) tools only prefill and put the focus on the button.
+    if (typeof heavy === 'function' ? heavy() : heavy) { const b = formEl.querySelector('button[type=submit]'); if (b) b.focus({ preventScroll: true }); }
+    else setTimeout(() => execute(), autorunDelay);
+  }
   return { execute, ctx, get last() { return last; } };
 }
 

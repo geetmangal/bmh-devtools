@@ -140,6 +140,7 @@ function renderBgp(d) {
 }
 
 initTool({
+  heavy: true, // Turnstile: prefill only, the visitor presses the button
   form: '#lg-form',
   async run(ctx) {
     const target = targetEl.value.trim(), tool = toolEl.value, from = fromEl ? fromEl.value : 'local';

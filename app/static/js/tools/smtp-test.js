@@ -50,6 +50,7 @@ if (turnstileEnabled()) {
 }
 
 initTool({
+  heavy: true, // Turnstile: prefill only, the visitor presses the button
   form: '#tool-form',
   run: async (ctx) => {
     const body = { host: cleanDomain(hostEl.value), port: Number(portEl?.value || 25) };
