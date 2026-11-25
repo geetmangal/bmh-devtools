@@ -112,7 +112,7 @@
   /* gui-v3 slice A: breadcrumb, sibling rail, palette, footer directory */
   .kbd { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .68rem; line-height: 1; padding: .18rem .35rem; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: .35rem; background: var(--surface2); color: var(--mute); }
   .bc ol { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem; margin: 0; padding: 0; list-style: none; font-size: .8rem; color: var(--mute); }
-  .bc li + li::before { content: "A"; margin-right: .25rem; color: var(--mute); }
+  .bc li + li::before { content: "\203A"; margin-right: .25rem; color: var(--mute); }
   .bc a { color: var(--mute); }
   .bc a:hover { color: var(--accent); }
   .bc [aria-current="page"] { color: var(--ink); font-weight: 600; }
