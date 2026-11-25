@@ -237,6 +237,9 @@ _MEANING = {
 }
 
 
+CORE_HEADERS = {"hsts", "csp", "xcto", "frame"}  # a missing one can fail the check; the others only warn
+
+
 def build_findings(*, hops: list[dict], flags: dict, grade: dict | None, headers: dict[str, str], final_status: int | None,
                    final_https: bool, tls_verified: bool, complete: bool) -> list[dict]:
     F: list[dict] = []
@@ -296,8 +299,12 @@ def build_findings(*, hops: list[dict], flags: dict, grade: dict | None, headers
             if c["status"] == "ok":
                 add("hdr-" + c["id"], "pass", f"{c['label']} is set", c["note"], details={"value": c["value"]})
             else:
-                # On an A grade a partly-set header is advice, not a warning, so the verdict agrees with the grade.
-                st = "fail" if c["status"] == "bad" else "info" if grade["grade"].startswith("A") else "warn"
+                # The verdict must agree with the grade: on an A every gap is advice (info); otherwise only the four
+                # core headers can fail, and Referrer-Policy / Permissions-Policy (hardening) are at most a warning.
+                if grade["grade"].startswith("A"):
+                    st = "info"
+                else:
+                    st = "fail" if c["status"] == "bad" and c["id"] in CORE_HEADERS else "warn"
                 if c["id"] == "hsts" and not final_https:
                     add("hdr-hsts", "fail", "Strict-Transport-Security cannot work over HTTP", _MEANING["hsts"],
                         fix=["Serve the site over HTTPS first, then add the header on the HTTPS responses."])

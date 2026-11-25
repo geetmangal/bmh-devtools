@@ -281,3 +281,15 @@ def test_grade_a_partial_header_is_info_not_warn():
                           final_https=True, tls_verified=True, complete=True)
     csp = [x for x in f if x["id"] == "hdr-csp"][0]
     assert csp["status"] == "info"
+
+
+def test_missing_hardening_header_warns_core_header_fails():
+    from app.core import httpheaders as hh
+    hops = [{"url": "https://a.example/", "status": 200, "location": None, "ms": 5}]
+    flags = hh.analyse_chain(hops, start_https=True, complete=True, loop=False, too_many=False, blocked=None)
+    grade = {"score": 60, "grade": "C", "checks": [
+        {"id": "permissions", "label": "Permissions-Policy", "points": 0, "max": 10, "status": "bad", "value": None, "note": "Missing."},
+        {"id": "xcto", "label": "X-Content-Type-Options", "points": 0, "max": 15, "status": "bad", "value": None, "note": "Missing."}]}
+    f = {x["id"]: x["status"] for x in hh.build_findings(hops=hops, flags=flags, grade=grade, headers={}, final_status=200,
+                                                         final_https=True, tls_verified=True, complete=True)}
+    assert f["hdr-permissions"] == "warn" and f["hdr-xcto"] == "fail"
