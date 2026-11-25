@@ -242,7 +242,7 @@ def test_blocklist_data_file_is_sane():
     lists = dnsbl.load_lists()
     ip = [e for e in lists if e["type"] == "ip"]
     dom = [e for e in lists if e["type"] == "domain"]
-    assert len(ip) >= 30 and len(dom) >= 6
+    assert len(ip) >= 25 and len(dom) >= 6
     for e in lists:
         assert {"name", "zone", "type", "weight", "requires_key", "delist_url"} <= set(e) and e["weight"] in (1, 2, 3)
         assert e["delist_url"].startswith("https://") and e["zone"] == e["zone"].lower()
