@@ -1,0 +1,48 @@
+{
+  "title": "Looking Glass: Ping, Traceroute & BGP from India",
+  "description": "Free looking glass from Noida, India (AS152523): run ping and traceroute to any public IP or host, from India or worldwide, and look up BGP prefix and AS paths.",
+  "og_line": "Ping, traceroute and BGP lookups from India and worldwide",
+  "answer": "A looking glass runs network commands from a vantage point other than your own. Ping measures round-trip time and packet loss with ICMP echo, and traceroute lists the routers on the path by sending probes with increasing TTL. This one runs from a BookMyHost server in Noida, India (AS152523), or from up to six probes in India, Asia, Europe, North America or worldwide.",
+  "inputs": "A public IPv4 or IPv6 address, or a host name that resolves to one, and the test to run: ping, traceroute or BGP lookup. Private and internal addresses are refused.",
+  "outputs": "Ping: packets sent and received, loss and minimum, average and maximum round-trip time. Traceroute: each hop with its address, round-trip times, the network (AS) it belongs to and an approximate location, shown on a map. BGP: the announced prefix, the origin AS and sample AS paths.",
+  "curl": "curl -s -X POST @BASE@@API@/lg/run -H 'Content-Type: application/json' -H 'X-Tools-Pass: <pass>' -d '{\"target\":\"1.1.1.1\",\"tool\":\"ping\"}'",
+  "sections": [
+    {"h": "Why test from somewhere else", "p": [
+      "Testing from your own computer tells you about your own connection. When a customer says that your server is slow or unreachable, you need to see the path from their side, or at least from a different network. A looking glass gives you that second point of view. Running from Noida shows how the target looks from an Indian network on our own AS, and the From menu adds probes in other regions, using the public Globalping network, so that you can compare latency by location."
+    ]},
+    {"h": "Reading a ping", "p": [
+      "Ping sends four ICMP echo requests and reports how many came back and how long each took. Packet loss of 0 % and a steady time are what you want. The numbers that matter are the average and the spread between minimum and maximum. A big spread means jitter, which hurts voice, video and games more than a high but steady time.",
+      "Round-trip time depends mainly on distance and on how directly traffic is routed. Light in fibre travels about 200 kilometres per millisecond, so a path that is 2000 km long cannot be faster than about 20 ms there and back, and real routes are longer than straight lines. Compare the result with what the distance allows. If the time is far higher, traffic is taking a detour, and the traceroute shows where.",
+      "A host that does not answer ping is not necessarily down. Many firewalls drop ICMP. Check with a TCP test such as the port checker or a web request."
+    ]},
+    {"h": "Reading a traceroute", "p": [
+      "Traceroute sends probes with a time-to-live (TTL) of 1, 2, 3 and so on. Each router decreases the TTL, and the one that brings it to zero replies with an ICMP time exceeded message, which reveals its address. The tool stops after 30 hops. For each hop you see the address, three timings, the AS number and name of the network that owns it, and an approximate location from public routing data.",
+      "Stars (asterisks) mean no answer. Many routers do not reply to such probes or rate-limit them, so a star in the middle of the path is normal, as long as later hops answer. A hop with high latency or loss that disappears at the next hop is only that router being slow to reply, not a problem on the path. A real problem shows as latency or loss that continues from one hop to the end.",
+      "Watch the AS column for the path between networks. On a traceroute from India you often see Indian carriers such as Bharti Airtel (AS9498), Tata Communications (AS4755 inside India, AS6453 as global backbone), Reliance Jio (AS55836) and BSNL (AS9829). A path from Delhi to a server in Mumbai that goes through Singapore or Europe, before coming back, shows that the two networks do not peer in India. That adds a lot of latency and is worth reporting to the network involved.",
+      "Routes can differ in each direction. Traceroute shows only the way out. Reverse paths need a test from the other side."
+    ]},
+    {"h": "The BGP lookup", "p": [
+      "The BGP view shows the route to an IP as seen on the public internet: the prefix it belongs to, the AS that originates the prefix and typical AS paths, from RIPEstat route collectors. We do not query our own routers for this. It answers the question 'who announces this address, and via whom do others reach it', which is useful when one network is unreachable from some places only."
+    ]},
+    {"h": "Limits and fair use", "p": [
+      "Each IP address can start a few runs per minute, one at a time, and every run is time-limited. Only public addresses and host names that resolve to public addresses are accepted. These limits protect the targets from being used for floods, and the tool gives a busy message when the same target has been tested a lot in a short time."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "To learn more about a network seen in a traceroute, open its AS number in the ASN lookup, and look up its prefix with the BGP prefix lookup. If a site is slow rather than unreachable, the TTFB and SSL checker separates network time from server time. The port checker tests whether a specific TCP port on your own IP is reachable."
+    ]}
+  ],
+  "faq": [
+    ["Where do the ping and traceroute run from?", "By default from a BookMyHost server in Noida, India, on our own network (AS152523). The From menu also runs the test from up to six probes in India, Asia, Europe, North America or worldwide, using the public Globalping network."],
+    ["What is the BGP lookup based on?", "Public BGP data from RIPEstat (RIPE NCC route collectors): the announced prefix, the origin AS and sample AS paths. We do not query our own routers for this."],
+    ["What are the limits?", "Ping sends 4 packets, traceroute stops after 30 hops, each run is time-limited, and each IP may start a few runs per minute, one at a time. Only public IPv4 and IPv6 addresses and host names that resolve to public addresses are accepted."],
+    ["Why are some traceroute hops shown as stars?", "Many routers do not answer or rate-limit TTL-expired probes. A star in the middle of a path is normal as long as later hops answer."],
+    ["A hop in the middle shows high latency. Is that the problem?", "Not by itself. Routers deprioritise replies to probes. It is a problem only if the latency or loss continues in the hops after it, up to the destination."],
+    ["Is there an API?", "Yes: POST @API@/lg/run with JSON {\"target\": \"1.1.1.1\", \"tool\": \"ping\"} and POST @API@/lg/bgp with {\"target\": \"8.8.8.8\"}. Both need a pass obtained after a Turnstile check."]
+  ],
+  "related": [
+    {"slug": "asn-lookup", "anchor": "Look up a network seen in the traceroute by AS number"},
+    {"slug": "bgp-prefix-lookup", "anchor": "See origin, RPKI and AS paths for an IP prefix"},
+    {"slug": "port-checker", "anchor": "Check whether a TCP port is open on your IP"},
+    {"slug": "ttfb-ssl-checker", "anchor": "Separate network time from server time for a website"}
+  ]
+}

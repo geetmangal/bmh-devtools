@@ -1,0 +1,47 @@
+{
+  "title": "DKIM Record Checker & Selector Lookup | BookMyHost",
+  "description": "Free DKIM checker: look up a DKIM selector or probe about 30 common ones, and check the public key for validity and strength (1024 vs 2048-bit RSA, Ed25519).",
+  "og_line": "Find your DKIM selector and check the key strength",
+  "answer": "DKIM (RFC 6376) signs outgoing mail with a private key, and receivers verify it with a public key published in DNS at selector._domainkey.yourdomain. RFC 8301 requires signing keys of at least 1024 bits and recommends 2048-bit RSA. This checker fetches the key for a selector, or tries about 30 common selector names, and tests it.",
+  "inputs": "A domain name and, optionally, a DKIM selector. Without a selector the tool tries common names such as google, selector1, selector2, k1, s1 and default.",
+  "outputs": "The selector and the DNS name that was queried, the key type (rsa or ed25519), the key size in bits, flags such as test mode, and findings about weak, revoked or malformed keys.",
+  "curl": "curl -s -X POST @BASE@@API@/mail/dkim -H 'Content-Type: application/json' -d '{\"domain\":\"example.com\",\"selector\":\"google\"}'",
+  "sections": [
+    {"h": "How DKIM works", "p": [
+      "When your mail server sends a message it adds a DKIM-Signature header. The header names the signing domain (d=), the selector (s=), the signed headers (h=) and a hash of the body (bh=), followed by the signature itself (b=). The receiver builds a DNS name from the selector and the domain, for example google._domainkey.example.com, fetches the TXT record and uses the public key in it to check the signature. If the check passes, the message was signed by someone holding the private key and the signed parts were not changed on the way.",
+      "A domain can publish many selectors at once. This allows several services (your mail host, a newsletter tool, a ticket system) to sign with their own keys and lets you rotate keys without a break."
+    ]},
+    {"h": "Finding your selector", "p": [
+      "DNS cannot list the names under _domainkey, so the selector has to be known. The easiest way is to send yourself a message and open its original source. The DKIM-Signature header contains s=, and the value is the selector. Google Workspace commonly uses google, Microsoft 365 uses selector1 and selector2, and many hosting panels use default or a name made from a date. If you leave the selector empty, this tool tries about 30 common names, but a custom selector will only be found if you type it."
+    ]},
+    {"h": "How to read the result", "p": [
+      "A good record starts with v=DKIM1, has k=rsa or k=ed25519 and ends with a p= value holding the public key. The checker decodes the key and reports its size. RFC 8301 says signers must use RSA keys of at least 1024 bits and should use 2048 bits. A 1024-bit key still verifies everywhere, but it is the weakest size accepted and the checker marks it as a warning. Ed25519 keys (RFC 8463) are short and strong, but not every receiver can verify them yet, so sign with RSA as well when you use them.",
+      "An empty p= value means the key has been revoked on purpose. Mail signed with it fails. The t=y flag means the domain is testing DKIM, and receivers should not treat a failure as serious. Remove it once signing works. The h= and s= tags may limit which hash algorithms and services can use the key.",
+      "If the key shows as split into several quoted strings, that is normal. A single DNS string holds at most 255 characters and a 2048-bit key is longer, so the record is stored in pieces that receivers join together."
+    ]},
+    {"h": "Common problems and fixes", "p": [
+      "No key found even though DKIM is on. The selector is probably custom. Read it from a real message header and enter it.",
+      "Key mismatch. The public key in DNS does not belong to the private key the server uses, usually after a migration or a re-generated key. Copy the new key from the mail server or provider into DNS and wait for the TTL.",
+      "A CNAME instead of a TXT record. Many providers, including Microsoft 365, ask you to publish a CNAME for the selector that points to a record they host. This is fine and the checker follows it.",
+      "Extra spaces or line breaks inside the key. Some DNS panels add quotes or break lines in the wrong place. Paste the key as one string and let the panel split it.",
+      "A 1024-bit key. Create a 2048-bit key under a new selector, switch signing to it, keep the old selector published for a few days so that mail in transit still verifies, and then delete it."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "DKIM on its own does not tell receivers what to do when it fails. That is the job of DMARC, so check the DMARC policy next. Check SPF as well, because DMARC accepts either one. The email header analyzer shows the DKIM result that a real receiver gave for an actual message, which is the quickest way to confirm that signing works in practice."
+    ]}
+  ],
+  "faq": [
+    ["How do I find my DKIM selector?", "Send yourself an email, open the original message source and look at the DKIM-Signature header. The value after s= is the selector, for example s=google or s=selector1."],
+    ["Why does the checker say no key found when DKIM works?", "DNS cannot list selectors, so without yours the tool can only try common names. A custom selector is found only when you enter it."],
+    ["Is a 1024-bit DKIM key still acceptable?", "It still verifies, and RFC 8301 sets 1024 bits as the minimum. 2048-bit RSA is the recommended size. Publish the new key under a new selector, switch signing and remove the old one later."],
+    ["Why is my DKIM key split into several quoted strings?", "A single DNS text string can hold only 255 characters and a 2048-bit key is longer. DNS panels split it, and receivers join the strings."],
+    ["What does an empty p= value mean?", "The key has been revoked. Any message signed with that selector will fail verification. Publish a new key and sign with a new selector."],
+    ["Can I have more than one DKIM selector?", "Yes. Every service that sends for your domain can use its own selector, and you can publish a new selector before you retire the old one when rotating keys."]
+  ],
+  "related": [
+    {"slug": "dmarc-checker", "anchor": "Check the DMARC policy that uses DKIM results"},
+    {"slug": "spf-checker", "anchor": "Check the SPF record for the same domain"},
+    {"slug": "email-header-analyzer", "anchor": "Read the DKIM result in a real message"},
+    {"slug": "domain-health", "anchor": "Run the full domain health report"}
+  ]
+}

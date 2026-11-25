@@ -1,0 +1,48 @@
+{
+  "title": "Reverse DNS (PTR) Lookup with FCrDNS Check",
+  "description": "Free reverse DNS lookup for IPv4 and IPv6: see the PTR record and check forward-confirmed reverse DNS (FCrDNS), which mail servers rely on for delivery.",
+  "og_line": "PTR record and forward-confirmed reverse DNS for any IP",
+  "answer": "A PTR record maps an IP address back to a host name, the reverse of an A or AAAA record. It lives in the in-addr.arpa zone for IPv4 or ip6.arpa for IPv6 and is controlled by the owner of the IP block, usually the hosting provider. Mail servers expect the name to resolve back to the same address, which is called forward-confirmed reverse DNS (FCrDNS).",
+  "inputs": "An IPv4 or IPv6 address.",
+  "outputs": "The reverse lookup name, each PTR host name found, the addresses each name resolves to, whether the forward check matches (FCrDNS), a warning if the name looks like a generic provider name, and fixes with a record you can copy.",
+  "curl": "curl -s -X POST @BASE@@API@/rdns/lookup -H 'Content-Type: application/json' -d '{\"ip\":\"8.8.8.8\"}'",
+  "sections": [
+    {"h": "How reverse DNS works", "p": [
+      "To find the name for 203.0.113.9, DNS reverses the four numbers and appends in-addr.arpa, then asks for a PTR record at 9.113.0.203.in-addr.arpa. The zone is delegated by the registry to whoever holds the address block, one level at a time, so you cannot set it at your normal DNS host. For IPv6 the address is written as 32 hex digits, reversed one digit at a time and placed under ip6.arpa, which makes the names very long. If the block is smaller than a /24, the provider uses the classless delegation of RFC 2317 so that several customers can control their own part.",
+      "A normal forward lookup is controlled by the domain owner. The reverse lookup is controlled by the network owner. That is why a PTR record for a server is set in the control panel of the hosting company, or by their support."
+    ]},
+    {"h": "What FCrDNS means", "p": [
+      "Forward-confirmed reverse DNS is a two-step test. First the PTR record gives a name for the IP. Then the A or AAAA record of that name must contain the same IP. If both steps agree, the owner controls both the address and the name, which is much harder to fake than a PTR record alone, since anyone who controls an IP block can write any name into a PTR.",
+      "The tool does both steps and shows them as a flow: the IP, its PTR hostname and the addresses of that hostname. A green result means they match. A warning means a PTR exists, but the name does not point back. An error means there is no PTR record."
+    ]},
+    {"h": "Why it matters for email", "p": [
+      "Many receiving mail servers look at the PTR record of the sending IP before they look at anything else. Missing or generic names such as 203-0-113-9.isp.example are typical of consumer lines and compromised machines, and several large mailbox providers reject or filter mail from such addresses. The name should also match the name the server uses in its SMTP HELO or EHLO greeting. A mail server on a VPS needs three things to line up: the PTR of its IP names mail.example.com, the A record of mail.example.com points at the IP, and the server says the same name in HELO.",
+      "Reverse DNS is also used by log analysis, by some SSH and FTP servers that log names of clients, and by traceroute to show readable names for routers. It is not used for normal web traffic."
+    ]},
+    {"h": "Common problems and fixes", "p": [
+      "No PTR record. Set it in your hosting control panel or ask your provider to set it. You cannot set it at the DNS host of your domain. Use a real host name that you control.",
+      "PTR points to a name that does not resolve to the IP. Add the A or AAAA record for the name, or change the PTR to a name that already points to the IP. The tool shows a record you can copy.",
+      "Generic provider name. A name made from the IP itself tells receivers the address was not customised. Replace it with a name in your own domain.",
+      "More than one PTR record on the same IP. This is allowed, but it can confuse software and mail receivers, and it makes FCrDNS less clear. Keep one.",
+      "An IPv6 server with no PTR. Many providers leave IPv6 reverse zones empty. If your mail server sends over IPv6, the PTR of the IPv6 address needs the same care, or disable IPv6 for mail delivery.",
+      "A change that does not show. PTR records have their own TTL and caching, so wait for the old TTL to run out."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "If you are fixing mail delivery, look at the whole picture: check the IP against blocklists, check SPF, DKIM and DMARC for your domain, and test the mail server's SMTP greeting and TLS. The WHOIS and RDAP lookup shows which network owns the IP and where its abuse contact is, which tells you who to ask when you cannot set the PTR yourself."
+    ]}
+  ],
+  "faq": [
+    ["What is a PTR record?", "A PTR record maps an IP address back to a host name, the reverse of an A or AAAA record. It lives in the in-addr.arpa (IPv4) or ip6.arpa (IPv6) zone, controlled by the owner of the IP block."],
+    ["What is forward-confirmed reverse DNS (FCrDNS)?", "The PTR host name must resolve (A or AAAA) back to the same IP address. Mail servers use it as a basic proof that the sender controls both sides."],
+    ["Why does my mail go to spam without a PTR record?", "Large mailbox providers expect a valid, matching PTR on the sending IP. A missing or generic one, such as 203-0-113-9.isp.example, is a common reason for rejection."],
+    ["How do I set a PTR record on a VPS?", "The reverse zone belongs to your provider, so set it in the server control panel or ask support. Use the same host name as your mail server's HELO name and make sure its A record points to the IP."],
+    ["Can I have several PTR records for one IP?", "Technically yes, but it is discouraged. Mail receivers and other software may pick any of them. Keep one that matches the forward record."],
+    ["Does reverse DNS matter for websites?", "Not for normal browsing. It matters for mail servers, for readable names in logs and traceroutes, and for some services that check the client's reverse name."]
+  ],
+  "related": [
+    {"slug": "blacklist-check", "anchor": "Check the same IP against email blocklists"},
+    {"slug": "smtp-test", "anchor": "Test the SMTP greeting and TLS of the mail server"},
+    {"slug": "mx-lookup", "anchor": "See which mail servers a domain uses"},
+    {"slug": "whois-lookup", "anchor": "Find the network owner and abuse contact of the IP"}
+  ]
+}

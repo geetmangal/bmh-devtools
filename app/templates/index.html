@@ -1,28 +1,45 @@
-{% extends "base.html" %}
+{% extends "shell.html" %}
+{% from "_icons.html" import icon %}
+{% block intro %}
+<h1 class="text-3xl font-bold mb-2">Free network and DNS tools</h1>
+<p class="text-mute max-w-2xl mb-8">Fast, single-purpose tools built by the BookMyHost engineering team for our own day-to-day work: no sign-up, no ads, each with a JSON API. Results come with a plain-English summary and, where it helps, steps to fix the problem.</p>
+{% endblock %}
 {% block content %}
-<h1 class="text-3xl font-bold mb-2">Free developer tools</h1>
-<p class="text-slate-300 max-w-2xl mb-6">Fast, single-purpose network tools built by the BookMyHost engineering team for our own day-to-day work: no sign-up, no ads, each with a JSON API.</p>
-<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-{% for t in tools %}
-  <a href="{{ prefix }}/{{ t.slug }}" class="card p-5 block no-underline hover:border-orange-500">
-    <h2 class="text-lg font-semibold text-white mb-1">{{ t.name }}</h2>
-    <p class="text-sm text-slate-400">{{ t.short }}</p>
-  </a>
+{% for g in tool_groups %}
+<section class="mb-8" id="cat-{{ g.key }}">
+  <h2 class="text-sm font-bold uppercase tracking-wide text-mute mb-3">{{ g.label }}</h2>
+  <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+  {% for it in g["items"] %}
+    {% if it.external %}
+    <a href="{{ it.href }}" rel="noopener" class="card p-5 block no-underline hover:no-underline hover:border-accent">
+      <div class="flex items-center gap-2 text-accent mb-2">{{ icon(it.icon, "w-5 h-5") }}</div>
+      <h3 class="text-base font-semibold text-ink mb-1">{{ it.name }}</h3>
+      <p class="text-sm text-mute">{% for c in calculators if c.name == it.name %}{{ c.short }}{% endfor %}</p>
+    </a>
+    {% else %}
+    <a href="{{ it.href }}" class="card p-5 block no-underline hover:no-underline hover:border-accent">
+      <div class="flex items-center gap-2 text-accent mb-2">{{ icon(it.icon, "w-5 h-5") }}</div>
+      <h3 class="text-base font-semibold text-ink mb-1">{{ it.name }}</h3>
+      <p class="text-sm text-mute">{% for t in tools if t.slug == it.slug %}{{ t.short }}{% endfor %}</p>
+    </a>
+    {% endif %}
+  {% endfor %}
+  </div>
+</section>
 {% endfor %}
-</div>
-<section class="mt-10 card p-5 text-sm text-slate-300">
-  <h2 class="text-lg font-bold mb-2 text-white">JSON API</h2>
+<section class="mt-10 card p-5 text-sm text-mute">
+  <h2 class="text-lg font-bold mb-2 text-ink">JSON API</h2>
   <p>Every tool is also an endpoint under <code class="mono">{{ api }}/</code> with OpenAPI docs at <a href="{{ api }}/docs">{{ api }}/docs</a>. Limit: {{ rate_per_min }} requests per minute per IP.</p>
   <pre class="snippet mono mt-3">curl -s -X POST {{ base_url }}{{ api }}/subnet/calc -H 'Content-Type: application/json' -d '{"cidr":"10.0.0.0/22"}'</pre>
 </section>
-<section class="mt-10 card p-5">
-  <h2 class="text-lg font-bold mb-1 text-white">More free tools for India</h2>
-  <p class="text-sm text-slate-400 mb-4">Cost, sizing and latency calculators for Indian cloud servers, on bookmyhost.com.</p>
+<section class="mt-8 card p-5">
+  <h2 class="text-lg font-bold mb-1 text-ink">More free tools for India</h2>
+  <p class="text-sm text-mute mb-4">Cost, sizing and latency calculators for Indian cloud servers, on bookmyhost.com.</p>
   <ul class="grid gap-3 sm:grid-cols-2 text-sm">
-    <li><a href="https://bookmyhost.com/free-tools/cloud-cost-gst-calculator" class="font-semibold">Cloud cost and GST calculator</a><br><span class="text-slate-400">Monthly cost of a server with 18% GST and the TDS and wallet maths.</span></li>
-    <li><a href="https://bookmyhost.com/free-tools/vps-sizing-calculator" class="font-semibold">VPS sizing calculator</a><br><span class="text-slate-400">vCPU, RAM and disk for your workload, with a plan to match.</span></li>
-    <li><a href="https://bookmyhost.com/free-tools/noida-latency-test" class="font-semibold">Noida latency test</a><br><span class="text-slate-400">Measure round-trip time from your browser to our Noida data centre.</span></li>
-    <li><a href="https://bookmyhost.com/free-tools" class="font-semibold">All free tools</a><br><span class="text-slate-400">The full hub, plus the India cloud uptime and latency report.</span></li>
+    <li><a href="https://bookmyhost.com/free-tools/cloud-cost-gst-calculator" class="font-semibold">Cloud cost and GST calculator</a><br><span class="text-mute">Monthly cost of a server with 18% GST and the TDS and wallet maths.</span></li>
+    <li><a href="https://bookmyhost.com/free-tools/vps-sizing-calculator" class="font-semibold">VPS sizing calculator</a><br><span class="text-mute">vCPU, RAM and disk for your workload, with a plan to match.</span></li>
+    <li><a href="https://bookmyhost.com/free-tools/noida-latency-test" class="font-semibold">Noida latency test</a><br><span class="text-mute">Measure round-trip time from your browser to our Noida data centre.</span></li>
+    <li><a href="https://bookmyhost.com/free-tools" class="font-semibold">All free tools</a><br><span class="text-mute">The full hub, plus the India cloud uptime and latency report.</span></li>
   </ul>
 </section>
 {% endblock %}

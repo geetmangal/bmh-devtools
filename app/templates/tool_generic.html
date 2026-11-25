@@ -1,0 +1,33 @@
+{% extends layout %}
+{% from "_icons.html" import icon %}
+{# One template for the email / DNS / BGP suite. Copy and form labels come from app/pages.py (PAGES[slug]). #}
+{% block intro %}
+<h1 class="text-3xl font-bold mb-2">{{ page.h1 }}</h1>
+<p class="text-mute max-w-3xl mb-5 embed-lead">{{ page.intro }}</p>
+{% endblock %}
+{% block content %}
+{% if page.textarea %}
+<form id="tool-form" class="card p-4 space-y-3" action="{{ prefix }}/{{ tool.slug }}" method="get">
+  <label class="block text-sm">{{ page.label }}
+    <textarea id="tool-input" rows="10" required spellcheck="false" autocomplete="off" class="mt-1 mono text-xs" placeholder="{{ page.placeholder }}"></textarea></label>
+  <p class="text-sm flex items-start gap-2"><span class="st-ok mt-0.5">{{ icon("shield", "w-4 h-4") }}</span><span><strong>Nothing leaves your browser.</strong> The headers are read by JavaScript on this page and are never uploaded, logged or stored.</span></p>
+  <button class="btn" type="submit" id="tool-submit">{{ page.button }}</button>
+</form>
+{% else %}
+<form id="tool-form" class="card p-4 grid gap-3 items-end {% if page.selector %}sm:grid-cols-[1fr_200px_auto]{% elif page.port %}sm:grid-cols-[1fr_140px_auto]{% else %}sm:grid-cols-[1fr_auto]{% endif %}" action="{{ prefix }}/{{ tool.slug }}" method="get">
+  <label class="block text-sm">{{ page.label }}<input id="tool-input" name="q" type="text" placeholder="{{ page.placeholder }}" required autocomplete="off" class="mt-1 mono" spellcheck="false" autocapitalize="off"></label>
+  {% if page.selector %}<label class="block text-sm">DKIM selector (optional)<input id="tool-selector" name="selector" type="text" placeholder="google" autocomplete="off" class="mt-1 mono" spellcheck="false" autocapitalize="off"></label>{% endif %}
+  {% if page.port %}<label class="block text-sm">Port<select id="tool-port" name="port" class="mt-1"><option value="25">25 (server to server)</option><option value="587">587 (submission)</option><option value="2525">2525 (alternative)</option></select></label>{% endif %}
+  <button class="btn" type="submit" id="tool-submit">{{ page.button }}</button>
+</form>
+{% endif %}
+<div id="results" class="mt-5 space-y-4 gloss-scope" aria-live="polite" aria-busy="false"></div>
+{% endblock %}
+{% block about %}
+<section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
+  <h2 class="text-xl font-bold text-ink mb-2">About this tool</h2>
+  {% for para in page.about %}<p class="{{ 'mt-2' if not loop.first }}">{{ para }}</p>{% endfor %}
+  <p class="mt-2">BookMyHost provides <a href="https://bookmyhost.com">cloud servers and VPS in India</a>.</p>
+</section>
+{% endblock %}
+{% block scripts %}<script type="module" src="{{ static_url('js/tools/' ~ tool.slug ~ '.js') }}" nonce="{{ csp_nonce }}"></script>{% endblock %}

@@ -1,0 +1,48 @@
+{
+  "title": "SPF Record Checker & 10-Lookup Limit Test | BookMyHost",
+  "description": "Free SPF checker: validate your SPF record, follow every include, count the 10 DNS lookup limit, spot +all, duplicate records and void lookups, and fix them.",
+  "og_line": "Count the 10-lookup limit and fix a broken SPF record",
+  "answer": "An SPF record may trigger at most 10 DNS lookups (RFC 7208). Above that, receivers return permerror and SPF fails for the whole domain. This checker follows every include, counts the lookups and shows which part of the record is too permissive or broken.",
+  "inputs": "A domain name or an email address (the domain part is used).",
+  "outputs": "The published SPF record, the DNS lookup count against the limit of 10, the void lookup count against the limit of 2, the final all mechanism, an include tree and a list of findings with a corrected record.",
+  "curl": "curl -s -X POST @BASE@@API@/mail/spf -H 'Content-Type: application/json' -d '{\"domain\":\"example.com\"}'",
+  "sections": [
+    {"h": "What an SPF check looks at", "p": [
+      "SPF (Sender Policy Framework, RFC 7208) is a DNS TXT record that lists the servers allowed to send mail for a domain. A receiving server looks at the envelope sender, the address used in the SMTP MAIL FROM command, finds the SPF record of that domain and compares the connecting IP address with it. The result is pass, fail, softfail, neutral, none, temperror or permerror.",
+      "This tool reads the record that receivers would read, follows every include and redirect, and evaluates the mechanisms in order. It counts every DNS lookup the way a receiver does and reports the total, because the lookup count is the most common reason a record that looks right still fails."
+    ]},
+    {"h": "How to read the result", "p": [
+      "The lookup budget is the first number to check. The mechanisms include, a, mx, ptr and exists, and the redirect modifier, each cost one lookup, and so does every lookup made inside an included record. The ip4, ip6 and all mechanisms cost nothing. The limit is 10. A record that uses 11 returns permerror, which most receivers treat like a failure. Staying at 7 or less leaves room for the provider to add one more include later.",
+      "The void lookup count is the second number. A void lookup is a DNS query that returns no records or a non-existent domain. RFC 7208 says receivers should stop after two of them and return permerror. A stale include that points to a domain which no longer exists is the usual cause.",
+      "The ending of the record tells receivers what to do with everything that did not match. A dash before all (-all) asks for rejection, a tilde (~all) marks the message as suspicious but lets it through, a question mark (?all) states no opinion, and a plus (+all) authorises every server on the internet. A record ending in +all is worse than having no record, and the checker flags it as a failure.",
+      "The include tree shows where the lookups come from. If one marketing service pulls in five nested includes, you see it at once and can decide whether it is worth the cost."
+    ]},
+    {"h": "Common problems and how to fix them", "p": [
+      "Two SPF records on the same name. A domain must publish exactly one TXT record that starts with v=spf1. If two exist, receivers return permerror and ignore SPF. Merge them into one record and delete the other. This often happens when a second mail provider is added by copying its setup instructions.",
+      "More than 10 lookups. Remove includes for services you no longer use. Replace an include with ip4 or ip6 ranges when the sender has a fixed address you control. If you cannot reduce the count, send some mail from a subdomain that has its own SPF record, for example bulk.example.com, so that each record stays under the limit.",
+      "The ptr mechanism. RFC 7208 says it should not be used because it is slow and unreliable. Remove it.",
+      "Record too long. A single TXT string holds at most 255 characters, and the whole DNS answer should fit in a standard UDP response of 512 bytes to avoid problems with some resolvers. Long records are split into several quoted strings, which receivers join without spaces. If the record needs more than a few hundred characters, it is a sign that there are too many includes."
+    ]},
+    {"h": "What SPF does not do", "p": [
+      "SPF checks the hidden envelope sender, not the From address a person sees in the mail client. It also breaks when a message is forwarded, because the forwarding server is not in the original sender's record. For these reasons SPF should be combined with DKIM and a DMARC policy, which ties the result to the visible From domain and survives forwarding when DKIM is intact.",
+      "A pass result does not mean the message is wanted. It means the sending server was authorised by the domain owner. Spam filters still apply their own rules."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "After the SPF record is clean, check the DMARC policy that decides what receivers do with a failure, and the DKIM selector that signs your mail. If mail still lands in spam, run the blacklist check on the sending IP and the reverse DNS check, because receivers also look at the reputation and the PTR record of the server. For a single report that covers all of these at once, use the domain health report."
+    ]}
+  ],
+  "faq": [
+    ["What is the 10 DNS lookup limit in SPF?", "RFC 7208 allows at most 10 DNS lookups while evaluating an SPF record. The mechanisms include, a, mx, ptr and exists and the redirect modifier count, including those inside included records. Above 10, receivers return permerror and SPF fails."],
+    ["Why does a domain need exactly one SPF record?", "If a domain publishes two or more TXT records that start with v=spf1, receivers return permerror and ignore SPF. Merge all senders into a single record."],
+    ["What is the difference between -all, ~all and ?all?", "-all asks receivers to reject mail from servers you did not list, ~all marks it as a soft fail and ?all gives no opinion. +all allows every server and should never be used. Most domains use ~all while they build their sender list and -all once they are sure."],
+    ["What is a void lookup?", "A DNS query made during SPF evaluation that returns no data or a non-existent domain. RFC 7208 recommends stopping after two void lookups and returning permerror, so a stale include can break SPF."],
+    ["Does SPF stop spoofing of the From address?", "No. SPF checks the envelope sender, not the From address people see. Together with DKIM and a DMARC policy it protects the visible From domain."],
+    ["Why does SPF fail when mail is forwarded?", "The forwarding server is not listed in the original domain's record, so the SPF check fails at the final receiver. DKIM signatures usually survive forwarding, which is why DMARC accepts either one passing and aligned."]
+  ],
+  "related": [
+    {"slug": "dmarc-checker", "anchor": "Check the DMARC policy for the same domain"},
+    {"slug": "dkim-checker", "anchor": "Verify the DKIM key that signs your mail"},
+    {"slug": "domain-health", "anchor": "Run the full domain health report"},
+    {"slug": "blacklist-check", "anchor": "Check if your sending IP is on a blocklist"}
+  ]
+}

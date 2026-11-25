@@ -1,0 +1,47 @@
+{
+  "title": "Email Header Analyzer: Hops, Delays & Auth Results",
+  "description": "Paste an email's raw headers to see the route, delay at each hop, SPF, DKIM and DMARC results and spam scores. Runs in your browser; nothing is uploaded.",
+  "og_line": "Trace an email's route, delays and SPF/DKIM/DMARC results",
+  "answer": "Every mail server that handles a message adds a Received header at the top, so reading the headers from the bottom up shows the route and the time spent at each hop. The Authentication-Results header (RFC 8601) shows the SPF, DKIM and DMARC verdicts the receiving server reached. This analyzer reads both in your browser and uploads nothing.",
+  "inputs": "The full raw headers of one message, pasted as text. No API call is made.",
+  "outputs": "The list of hops from sender to recipient with the time at each one, the delay between hops, the SPF, DKIM and DMARC results found in the Authentication-Results header, the main message details (From, To, Return-Path and others), and the spam-filter and mail-client headers that are present. Delays above 60 seconds are flagged.",
+  "curl": null,
+  "sections": [
+    {"h": "Getting the headers", "p": [
+      "The headers are the technical lines above the message body. In Gmail open the message, use the three-dot menu and choose Show original, then copy the text. In Outlook for Windows open the message in its own window and use File, Properties and read the box called Internet headers. In Apple Mail use View, Message, All Headers. Paste everything up to the first blank line, and include all Received lines, because a partial set gives a partial route."
+    ]},
+    {"h": "Reading the route", "p": [
+      "Each server that touches a message adds one Received header above the older ones, so the newest hop is at the top and the oldest at the bottom. The analyzer reverses the list, so you read it from sender to recipient. For each hop it shows the sending host, the receiving host, the protocol and the time stamp, and it works out the delay between one hop and the next.",
+      "A delay of a few seconds is normal. Delays of minutes usually mean greylisting, where the receiver deliberately refuses the first attempt and accepts a retry, or a queue on a busy server, or a scanning step. Delays above one hour point to a server that was unreachable and a retry. Time zones are normalised, but if the clocks of two servers differ, the delay can look too large or show as zero. Treat tiny or odd values as clock error, not as a real effect. The analyzer flags every delay above 60 seconds.",
+      "A trusted route has hops through servers you recognise. Headers below the line added by your own mail server can be forged by the sender, because anyone can write a Received line. Trust the top hops that belong to your own provider and be careful with the rest."
+    ]},
+    {"h": "Reading the authentication results", "p": [
+      "The Authentication-Results header is added by the receiving server and is the best source. It lists spf=pass or fail, dkim=pass or fail and dmarc=pass or fail, each with the domain that was tested. For SPF the domain is the envelope sender, shown as smtp.mailfrom. For DKIM it is the signing domain, header.d. DMARC compares them with the visible From domain.",
+      "A pass of SPF or DKIM for a domain that is different from the From domain does not satisfy DMARC. Look at the details: spf=pass with smtp.mailfrom=bounce.sender.net and a From of yourdomain.com is not aligned.",
+      "Forwarded messages deserve extra care, because SPF alone often breaks when a message is forwarded. Mailing lists and forwarders may add ARC headers (RFC 8617) to preserve the original results, which you can read in the raw text, although this tool does not evaluate them.",
+      "Spam filters add their own headers, for example X-Spam-Status, X-Spam-Score or a vendor-specific header. A score by itself is only meaningful together with the threshold of that filter, and the analyzer lists the spam-filter and mail-client headers it finds so that you can read both."
+    ]},
+    {"h": "Spotting problems", "p": [
+      "Check three addresses. The From address is what the reader sees. The Return-Path is the envelope sender used for SPF and bounces. The Reply-To decides where a reply goes. When the Reply-To differs from the From and goes to a free mailbox, the message may be a phishing attempt. The Message-ID domain is another clue: legitimate mail carries the ID of the sending system.",
+      "If authentication results are missing, the receiving server did not add them or your provider does not show them. Try the headers as seen by a different mailbox, for instance send the same message to a Gmail account and read them there.",
+      "Privacy note: headers contain IP addresses, host names and sometimes internal names. This tool runs entirely in your browser, and the text is never sent anywhere. Still, remove anything you do not want to share before pasting headers into a public forum or a ticket."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "When the analyzer shows an SPF, DKIM or DMARC failure, open the SPF checker, DKIM checker or DMARC checker for the sending domain to see what is published in DNS today. The domain health report grades all of those together. If the first hop shows an unfamiliar sending IP, check it against blocklists and its reverse DNS."
+    ]}
+  ],
+  "faq": [
+    ["How do I get the full email headers?", "In Gmail open the message, use the three-dot menu and choose Show original. In Outlook use File, Properties and copy the Internet headers box. Copy everything above the message body."],
+    ["Does anything leave my browser?", "No. The page reads the text with JavaScript on your device and makes no network request with it."],
+    ["Why are the hops shown in reverse order?", "Each server adds its Received header on top, so the newest hop comes first in the raw text. The tool reverses the list to show the journey from sender to recipient."],
+    ["What does a long delay at one hop mean?", "The message waited there, for example for greylisting, a busy queue, a scan or a retry after a temporary error. Clock differences between servers can also show as odd or negative values."],
+    ["Can email headers be forged?", "Yes. Anyone can add Received lines below the one your own server added. Trust the top hops that belong to your provider and the Authentication-Results header they added."],
+    ["What do spf=pass and dmarc=fail mean together?", "The sending server was authorised for the envelope domain, but that domain does not match the visible From domain, so DMARC alignment failed. It is common with third-party senders that use their own bounce domain."]
+  ],
+  "related": [
+    {"slug": "spf-checker", "anchor": "Check the SPF record of the sending domain"},
+    {"slug": "dkim-checker", "anchor": "Check the DKIM key of the signing domain"},
+    {"slug": "dmarc-checker", "anchor": "Check the DMARC policy of the From domain"},
+    {"slug": "blacklist-check", "anchor": "Check the first hop's IP against blocklists"}
+  ]
+}

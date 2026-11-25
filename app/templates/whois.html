@@ -1,21 +1,20 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends layout %}
+{% block intro %}
 <h1 class="text-3xl font-bold mb-2">WHOIS &amp; RDAP Lookup</h1>
-<p class="text-slate-300 max-w-3xl mb-5">Look up who is behind a domain or an IP address: registrar, creation and expiry dates, status and nameservers for domains; network name, range, country and abuse role for IPv4 and IPv6. Data comes live from the registries over RDAP.</p>
-
+<p class="text-mute max-w-3xl mb-5">Look up who is behind a domain or an IP address: registrar, creation and expiry dates, status and nameservers for domains; network name, range, country and abuse role for IPv4 and IPv6. Data comes live from the registries over RDAP.</p>
+{% endblock %}
+{% block content %}
 <form id="whois-form" class="card p-4 grid gap-3 sm:grid-cols-[1fr_auto] items-end" method="post" action="{{ api }}/whois/lookup">
-  <label class="block text-sm">Domain or IP address<input id="whois-query" name="query" type="text" placeholder="example.com or 8.8.8.8" required autocomplete="off" class="mt-1"></label>
+  <label class="block text-sm">Domain or IP address<input id="whois-query" name="query" type="text" placeholder="example.com or 8.8.8.8" required autocomplete="off" class="mt-1 mono" spellcheck="false"></label>
   <button class="btn" type="submit" id="whois-submit">Look up</button>
 </form>
-
-<div id="whois-summary" class="mt-5 hidden"></div>
-<div id="whois-results" class="mt-3 hidden card overflow-x-auto"></div>
-<p id="whois-error" class="mt-3 st-bad text-sm hidden"></p>
-
-<section class="mt-10 prose prose-invert max-w-3xl text-slate-300 text-sm leading-relaxed">
-  <h2 class="text-xl font-bold text-white mb-2">Reading the result</h2>
+<div id="results" class="mt-5 space-y-4 gloss-scope" aria-live="polite" aria-busy="false"></div>
+{% endblock %}
+{% block about %}
+<section class="mt-12 max-w-3xl text-mute text-sm leading-relaxed gloss-scope">
+  <h2 class="text-xl font-bold text-ink mb-2">Reading the result</h2>
   <p>Status values such as <span class="mono">clientTransferProhibited</span> are registrar locks that protect a domain against unauthorised transfer. The expiry date tells you when to renew; the nameservers show where the DNS is hosted. Personal contact data is redacted by registries and never shown here.</p>
   <p class="mt-2">Moving a site? After you change nameservers, confirm the change with the <a href="{{ prefix }}/dns-propagation-checker">DNS propagation checker</a>, then host it on a <a href="https://bookmyhost.com">cloud server in India</a>. For an IP, also try the <a href="{{ prefix }}/reverse-dns-lookup">reverse DNS lookup</a>.</p>
 </section>
 {% endblock %}
-{% block scripts %}<script src="{{ static_url('js/whois.js') }}" nonce="{{ csp_nonce }}" defer></script>{% endblock %}
+{% block scripts %}<script type="module" src="{{ static_url('js/tools/whois-lookup.js') }}" nonce="{{ csp_nonce }}"></script>{% endblock %}

@@ -17,10 +17,12 @@ from typing import Literal
 from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, Field
 
+from app.core import hopenrich
 from app.core.cache import TTLCache
 from app.core.config import (LG_ASN, LG_BURST, LG_LOCATION, LG_PING_COUNT, LG_PING_TIMEOUT, LG_RATE_PER_MIN,
                              LG_TRACE_MAX_HOPS, LG_TRACE_TIMEOUT, MAX_CONCURRENT_LG, RIPESTAT_TIMEOUT, RIPESTAT_URL)
 from app.core.httpjson import FetchError, fetch_json
+from app.core.turnstile import require_pass
 from app.core.ratelimit import Gate, PerIpInflight, TokenBucket, client_ip, limiter
 from app.core.target import TargetError, resolve_target
 from app.core.validate import is_public_ip
@@ -142,7 +144,19 @@ def parse_traceroute(text: str) -> list[dict]:
     return hops
 
 
-@router.post("/run", dependencies=[Depends(_dep)])
+ENRICH_TIMEOUT = 10.0
+
+
+async def _enrich(hops: list[dict], loss_pct: float | None = None) -> dict | None:
+    """ASN / organisation / geo for each public hop (RIPEstat, cached, de-duplicated per /24). Private hops are
+    marked and never sent anywhere. A failure or timeout just means the plain hop list is shown."""
+    try:
+        return await asyncio.wait_for(hopenrich.analyse_path(hops, loss_pct=loss_pct), ENRICH_TIMEOUT)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+@router.post("/run", dependencies=[Depends(require_pass), Depends(_dep)])
 async def run(req: RunRequest, request: Request) -> dict:
     """Ping (4 packets) or traceroute (max 30 hops) from this server to a public target."""
     try:
@@ -163,6 +177,11 @@ async def run(req: RunRequest, request: Request) -> dict:
         res["hops"] = parse_traceroute(text)
         res["max_hops"] = LG_TRACE_MAX_HOPS
         res["reached"] = any(h["ip"] == ip for h in res["hops"])
+        an = await _enrich(res["hops"])
+        res["path_summary"] = an["summary"] if an else None
+        res["segments"] = an["segments"] if an else []
+        if an:
+            res["hops"] = an["hops"]
     return res
 
 
@@ -189,7 +208,7 @@ def summarise_bgp(ip: str, overview: dict, lg: dict | None) -> dict:
     }
 
 
-@router.post("/bgp", dependencies=[Depends(_dep)])
+@router.post("/bgp", dependencies=[Depends(require_pass), Depends(_dep)])
 async def bgp(req: BgpRequest, request: Request) -> dict:
     """BGP route for the target's prefix from public RIPEstat data (RIPE RIS collectors). Not our routers."""
     try:

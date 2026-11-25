@@ -1,0 +1,47 @@
+{
+  "title": "Open Port Checker: Is My Port Open? | BookMyHost",
+  "description": "Free open port checker: test whether common TCP ports (22, 80, 443, 3306, 3389 and more) or any port from 1 to 65535 are reachable on your own public IP.",
+  "og_line": "Is your port open? Test TCP ports on your own public IP",
+  "answer": "A port is open when something on your public IP address accepts a TCP connection, closed when the host answers that nothing is listening, and filtered when there is no answer, usually because a firewall drops the packets. This checker tests only your own public IP, as seen by our server, with a 3 second timeout per port.",
+  "inputs": "A port number from 1 to 65535, or the common-port set. The IP address is always your own and cannot be changed.",
+  "outputs": "For each port: open, closed or filtered, the usual service name for that port and the time taken. The page also shows the public IP address that was tested.",
+  "curl": "curl -s -X POST @BASE@@API@/ports/check -H 'Content-Type: application/json' -H 'X-Tools-Pass: <pass>' -d '{\"port\":443}'",
+  "sections": [
+    {"h": "What the three results mean", "p": [
+      "Open. Our server opened a TCP connection to your IP address and the port, and something accepted it. A service is listening and no firewall on the path blocked the traffic. Closed. The connection was refused with a reset. The host is reachable, but nothing listens on that port. Filtered. There was no answer for 3 seconds. A firewall, a security group or a router dropped the packets, or the host is not reachable at all.",
+      "Only your own IP address can be tested. The tool reads it from the connection, and any address you try to submit is ignored. This stops the checker from being used to scan other people's systems."
+    ]},
+    {"h": "Why a port you opened still shows as closed or filtered", "p": [
+      "Several layers must all allow the traffic, and the checker cannot tell you which one is wrong. Work through them from the inside out.",
+      "The service. Is the program running, and is it listening on the right port? On Linux, ss -ltnp lists listening sockets, and on Windows netstat -ano does. A service that listens only on 127.0.0.1 cannot be reached from outside. It must listen on 0.0.0.0 or the machine's public address.",
+      "The host firewall. ufw, firewalld, iptables or nftables on Linux, and Windows Defender Firewall on Windows, need a rule for the port.",
+      "The cloud firewall or security group. On a cloud server, a separate network firewall in front of the machine must allow the port as well.",
+      "The router. At home or in an office, the router has to forward the port to the device, and the device needs a fixed local address.",
+      "Your IP. If the page shows an address different from the one you expect, you may be behind a VPN, a proxy or carrier-grade NAT (CGNAT). Some mobile and fibre providers, including some in India, share one public IPv4 address between many customers, and then incoming connections cannot reach your device at all. Ask the provider for a public IP, or use an IPv6 address if you have one, or run the service on a cloud server instead."
+    ]},
+    {"h": "Common ports and what to open", "p": [
+      "22 is SSH, 80 and 443 are web traffic, 25 is mail between servers, 587 and 465 are mail submission, 143 and 993 are IMAP, 110 and 995 are POP3, 53 is DNS, 3306 is MySQL, 5432 is PostgreSQL and 3389 is Windows Remote Desktop. The common-port set tests these and a few more.",
+      "A port that is open is not always good. Database ports such as 3306 and 5432, and remote desktop on 3389, should not be reachable from the whole internet. Restrict them to your own address range or put them behind a VPN. If SSH is open, use keys instead of passwords and consider a different port or a rate limiter such as fail2ban to reduce the log noise. The result is a snapshot of the situation at the time of the test, not a security audit."
+    ]},
+    {"h": "Limits", "p": [
+      "The checker tests TCP only. UDP services such as DNS over UDP, WireGuard or game servers cannot be confirmed this way, because a UDP port that is open often gives no reply. Each IP can run a few checks per minute, and a check tests one port or the common-port set. The test has to come from outside your network: to see whether a port is reachable from inside, use the commands of your own operating system."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "If the port is open but the site or service is slow, use the TTFB and SSL checker for web servers, or run a ping and a traceroute from outside with the looking glass. If you are setting up a mail server and port 25 is not reachable, the SMTP test and the MX lookup show how senders see it. The subnet calculator helps when you must restrict a firewall rule to an address range."
+    ]}
+  ],
+  "faq": [
+    ["Which IP address is checked?", "Only your own public IP address, as seen by our server when you open the page. You cannot enter another address, so the tool cannot be used to scan other people's systems."],
+    ["What do open, closed and filtered mean?", "Open: something accepted the TCP connection. Closed: the host answered that nothing listens there. Filtered: no answer within 3 seconds, usually a firewall dropping the traffic."],
+    ["Why does a port I opened show as closed or filtered?", "Check that the service is running and listens on a public address, and that the server firewall, the cloud security group and your router (port forwarding) all allow the port. Behind CGNAT or a VPN, the IP shown is not your machine."],
+    ["Can I check UDP ports?", "No. The checker tests TCP only, because an open UDP port often sends no reply and cannot be told apart from a filtered one."],
+    ["Is it free and are there limits?", "Yes. A few checks per minute per IP, one port or the common-port set, with a 3 second timeout per port."],
+    ["Is it safe to leave 3306 or 3389 open?", "No. Database and remote desktop ports should not be open to the whole internet. Limit them to known addresses or use a VPN."]
+  ],
+  "related": [
+    {"slug": "looking-glass", "anchor": "Ping and trace your IP from outside your network"},
+    {"slug": "smtp-test", "anchor": "Test a mail server on port 25 or 587"},
+    {"slug": "subnet-calculator", "anchor": "Work out the CIDR range for a firewall rule"},
+    {"slug": "ttfb-ssl-checker", "anchor": "Test a web server on port 443"}
+  ]
+}

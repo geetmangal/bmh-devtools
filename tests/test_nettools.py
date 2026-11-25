@@ -45,6 +45,10 @@ def fresh_state(monkeypatch):
     monkeypatch.setattr(rdns, "_cache", rdns.TTLCache(120))
     monkeypatch.setattr(lookingglass, "_bgp_cache", lookingglass.TTLCache(300))
 
+    async def no_enrich(hops, loss_pct=None):
+        return None
+    monkeypatch.setattr(lookingglass, "_enrich", no_enrich)  # keep the old lg tests offline
+
 
 @pytest.fixture
 def no_exec(monkeypatch):
@@ -505,19 +509,19 @@ async def test_new_pages_meta(client, slug):
     path = f"/tools/{slug}"
     r = await client.get(path)
     assert r.status_code == 200
-    assert "<h1" in r.text and "FAQPage" in r.text and "SoftwareApplication" in r.text
+    assert "<h1" in r.text and "FAQPage" in r.text and "WebApplication" in r.text
     assert f'<link rel="canonical" href="https://bookmyhost.com{path}"' in r.text
     assert 'href="https://bookmyhost.com"' in r.text  # money-page link
     assert "noindex" not in r.text.lower() and "X-Robots-Tag" not in r.headers
     assert "script-src 'self' 'nonce-" in r.headers["content-security-policy"]
-    assert f"/js/{ {'looking-glass': 'lg', 'whois-lookup': 'whois', 'reverse-dns-lookup': 'rdns', 'port-checker': 'ports'}[slug] }.js" in r.text
+    assert f"/js/tools/{slug}.js" in r.text
 
 
 async def test_sitemap_index_and_api_docs_include_new_tools(client):
     s = (await client.get("/tools/sitemap.xml")).text
     for slug in NEW:
         assert f"<loc>https://bookmyhost.com/tools/{slug}</loc>" in s
-    assert s.count("<loc>") == 8
+    assert s.count("<loc>") == 19
     idx = (await client.get("/tools/")).text
     for slug in NEW:
         assert f'href="/tools/{slug}"' in idx

@@ -1,0 +1,2 @@
+# Build-time tools only (not installed in the runtime image): .venv/bin/pip install -r requirements-build.txt
+Pillow==13.0.0

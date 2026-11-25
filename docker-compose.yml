@@ -1,5 +1,7 @@
 services:
   devtools:
+    depends_on:
+      - unbound
     build:
       context: .
       network: host   # host nftables forward chain drops bridged container egress
@@ -22,7 +24,20 @@ services:
       BMH_TOOLS_PORT_RATE_PER_MIN: "8"
       # Set to "1" only once https://bookmyhost.com/blog/rdns-ptr-record-vps is published (shows the guide link).
       BMH_TOOLS_RDNS_GUIDE_PUBLISHED: "0"
+      # Turnstile for heavy tools (looking glass, port checker). Values come from the compose .env file, never the repo.
+      # Enabled only when all three are set; TURNSTILE_BYPASS_IPS is a comma list of CIDRs (office / monitoring).
+      TURNSTILE_SITEKEY: ${TURNSTILE_SITEKEY:-}
+      TURNSTILE_SECRET: ${TURNSTILE_SECRET:-}
+      TOOLS_PASS_SECRET: ${TOOLS_PASS_SECRET:-}
+      TURNSTILE_BYPASS_IPS: ${TURNSTILE_BYPASS_IPS:-}
       BMH_TOOLS_BLOCK_NETS: "160.22.109.1/32,160.22.109.2/32,160.22.109.9/32"
+      # DNSBL + mail checks resolve through the local unbound sidecar (own recursion, so blocklists answer).
+      BMH_TOOLS_DNSBL_RESOLVER: "127.0.0.1:5335"
+      BMH_TOOLS_MAILCHECK_RESOLVERS: "127.0.0.1:5335"
+      # Outbound TCP/25 is blocked on the production host, so the SMTP test stays off.
+      BMH_TOOLS_SMTP_ENABLED: "0"
+      SPAMHAUS_DQS_KEY: ${SPAMHAUS_DQS_KEY:-}
+      GLOBALPING_TOKEN: ${GLOBALPING_TOKEN:-}
     read_only: true
     tmpfs:
       - /tmp:size=16m
@@ -38,3 +53,26 @@ services:
       driver: journald
       options:
         tag: bmh-devtools
+
+  unbound:
+    build:
+      context: deploy/unbound
+      network: host
+    image: bmh-devtools-unbound:latest
+    container_name: bmh-devtools-unbound
+    restart: always
+    # Host networking, bound to 127.0.0.1:5335 only (see unbound.conf access-control).
+    network_mode: host
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 192m
+    memswap_limit: 192m
+    pids_limit: 64
+    cpus: 0.5
+    logging:
+      driver: journald
+      options:
+        tag: bmh-devtools-unbound

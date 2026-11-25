@@ -1,0 +1,46 @@
+{
+  "title": "DNS Lookup: All Records, SOA, CAA & DNSSEC | BookMyHost",
+  "description": "Free DNS lookup: A, AAAA, MX, NS, TXT, SOA, CAA and CNAME records with TTLs, nameserver health, SOA timers, allowed certificate authorities and DNSSEC state.",
+  "og_line": "All DNS records, nameserver health, CAA and DNSSEC in one view",
+  "answer": "A DNS lookup asks the domain name system for the records of a domain: A and AAAA for addresses, MX for mail, NS for nameservers, TXT for text such as SPF, SOA for zone timers and CAA for allowed certificate authorities. Each answer carries a TTL in seconds that tells resolvers how long they may cache it. This tool shows all of them together with a nameserver and DNSSEC check.",
+  "inputs": "A domain name or an email address (the domain part is used).",
+  "outputs": "Records by type with their TTLs, the nameservers, whether each one answers for the domain and whether they share a network block, the SOA serial and timers, the CAA policy, the DNSSEC state and findings with fixes.",
+  "curl": "curl -s -X POST @BASE@@API@/mail/dns -H 'Content-Type: application/json' -d '{\"domain\":\"example.com\"}'",
+  "sections": [
+    {"h": "What each record type tells you", "p": [
+      "An A record holds an IPv4 address and an AAAA record an IPv6 address. A CNAME makes one name an alias of another, and a name that has a CNAME cannot have other records, which is why a CNAME is not allowed at the root of a zone. MX records name the mail servers, and NS records name the servers that answer for the zone. TXT records hold free text and are used for SPF, domain verification and other policies. The SOA record describes the zone itself. The CAA record lists the certificate authorities that are allowed to issue certificates for the name.",
+      "The TTL is shown beside each record. It is the number of seconds a resolver may keep the answer before it asks again. A low TTL such as 300 makes changes show up quickly, and a high one such as 86400 reduces traffic to your nameservers."
+    ]},
+    {"h": "How to read the checks", "p": [
+      "Nameservers. A zone should have at least two nameservers (RFC 2182 recommends that they sit on different networks and in different places). The tool queries each one directly, and shows whether it has an address, whether it answers for the domain and whether all of them sit in the same network block. If they do, an outage or a routing problem takes the whole zone away. A nameserver that does not answer for the domain is called lame, and usually points to a mistake in the control panel or a delegation that was not updated.",
+      "SOA timers. The SOA lists the serial number, the refresh, retry and expire timers used between a primary and its secondaries, and the minimum field, which since RFC 2308 is the time for which resolvers cache a negative answer (a name that does not exist). A very large negative TTL means that a record you have just created may stay invisible to some users for hours.",
+      "CAA. If there is no CAA record, any public CA may issue a certificate for the domain. If there is one, only the listed CAs may. CAA is optional, but it is a cheap way to limit mis-issuance. Make sure the CA that you use is in the list before you publish it, or renewals will fail (RFC 8659).",
+      "DNSSEC. The domain is signed when a DS record exists in the parent zone and the zone publishes DNSKEY and RRSIG records. Validation then lets resolvers detect forged answers. The state is shown as signed, unsigned, or unverified when the resolver used here did not confirm the signature. A broken DNSSEC chain is worse than none: validating resolvers return SERVFAIL, and the domain becomes unreachable for many users. Remove the DS record at the registrar before you move DNS to a provider that does not support the same keys."
+    ]},
+    {"h": "Common problems and fixes", "p": [
+      "Only one nameserver, or two on the same IP block. Add a second one on another network. Many registrars and DNS providers offer secondary DNS.",
+      "A CNAME at the root of the domain. The zone apex needs an A or AAAA record or a provider-specific alias record, because a CNAME cannot coexist with the SOA and NS records.",
+      "Duplicate or conflicting TXT records, for example two SPF records. Merge them.",
+      "A changed record that still shows the old value. The old TTL has not expired yet. Wait, or query the authoritative nameserver directly to confirm that the new value is published.",
+      "Missing glue or lame delegation. The nameservers listed at the registrar are not the ones that actually answer for the zone. Check both places and make them match.",
+      "Domains under .in. The same checks apply. The nameservers are set at your registrar and published by the .IN registry, which operates under NIXI."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "To see how a change spreads to resolvers around the world, use the DNS propagation checker. For a detailed analysis of the mail-related records, open the SPF, DKIM and DMARC checkers. The WHOIS and RDAP lookup shows the registrar, dates and delegated nameservers recorded at the registry, which is the other half of the picture when a delegation looks wrong."
+    ]}
+  ],
+  "faq": [
+    ["What does the TTL mean?", "Time to live: how many seconds a resolver may cache the answer. A low TTL makes changes show up sooner, and a high TTL reduces the number of lookups."],
+    ["Why should nameservers be on different networks?", "If they all sit in one network block, a single outage or routing problem takes all of them down, and your website and email disappear."],
+    ["What is a CAA record?", "It lists the certificate authorities that may issue certificates for your domain. It is optional but blocks mis-issuance by any other CA."],
+    ["What does a DNSSEC state of unverified mean?", "The domain publishes DNSSEC keys, but the resolver used here did not confirm validation. Test with a validating resolver such as 1.1.1.1 to be sure."],
+    ["Can I have a CNAME at the root of my domain?", "No. A CNAME cannot exist next to the SOA and NS records that every zone apex has. Use an A or AAAA record, or an ALIAS or ANAME record if your DNS provider offers one."],
+    ["Why do I see different answers from different resolvers?", "Resolvers cache answers until the TTL runs out, so they may hold older values for a while after a change. The authoritative answer shown here is the source of truth."]
+  ],
+  "related": [
+    {"slug": "dns-propagation-checker", "anchor": "See how a DNS change spreads to global resolvers"},
+    {"slug": "whois-lookup", "anchor": "Check registrar and nameserver data with WHOIS and RDAP"},
+    {"slug": "spf-checker", "anchor": "Check the SPF TXT record in detail"},
+    {"slug": "mx-lookup", "anchor": "Look up the mail servers of the domain"}
+  ]
+}

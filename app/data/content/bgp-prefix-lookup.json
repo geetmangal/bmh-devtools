@@ -1,0 +1,45 @@
+{
+  "title": "BGP Prefix Lookup: Origin AS, RPKI & AS Paths",
+  "description": "Free BGP prefix lookup: origin AS, RPKI validity, route collector visibility on a world map, 30-day origin history, AS paths and related routes.",
+  "og_line": "Origin AS, RPKI status and global visibility of an IP prefix",
+  "answer": "A BGP prefix lookup shows which AS originates an IP block, whether RPKI route origin validation (RFC 6811) marks the announcement valid, invalid or not found, and how widely the route is seen around the world. IPv4 prefixes longer than /24 and IPv6 prefixes longer than /48 are normally filtered, so those are rarely visible.",
+  "inputs": "An IPv4 or IPv6 prefix such as 1.1.1.0/24, or a single IP address.",
+  "outputs": "The matching prefix, the origin AS or ASes, RPKI state with the ROAs that cover it, a world map of the RIPE RIS route collectors that see the prefix, the 30-day origin history, sample AS paths, and less and more specific prefixes.",
+  "curl": "curl -s @BASE@@API@/prefix/1.1.1.0/24 -H 'X-Tools-Pass: <pass>'",
+  "sections": [
+    {"h": "What the lookup answers", "p": [
+      "BGP, the Border Gateway Protocol (RFC 4271), is how networks tell each other which IP blocks they can reach. Each announcement says 'this prefix is reachable through me, and the path to it is this list of AS numbers'. The last AS in the path, the origin, is the network that claims the prefix. When you look up a prefix or an IP address, the tool finds the most specific announced route that covers it and shows who originates it and how the announcement looks from many places on the internet."
+    ]},
+    {"h": "Reading the result", "p": [
+      "Origin AS. This is normally one AS, your own or your provider's. If you see an AS you do not know, look it up in the ASN lookup. Seeing more than one origin is called MOAS (multiple origin AS). It is normal for anycast and for networks with several providers, but it also looks like a hijack, so confirm that every origin is expected and has a ROA.",
+      "RPKI. A ROA (RFC 6482) is a signed statement by the holder of an address block that names the AS allowed to originate it and the longest prefix length allowed (maxLength). The state is valid when a ROA matches the origin and the length, invalid when a ROA exists but the origin or length is wrong, and not found when no ROA covers the prefix. Networks that apply route origin validation drop the invalid announcements, so an invalid state can make part of the internet unable to reach you. Not found is not an error, but it leaves the prefix unprotected. Create a ROA with the registry that holds your block.",
+      "Visibility. RIPE RIS route collectors are passive BGP listeners in many cities. The map shows which of them see the prefix. If most do, it is widely propagated. If only a few do, some networks are filtering it, the prefix is very new, or the upstream is not passing it on. A prefix that is longer than /24 for IPv4 or /48 for IPv6 is usually filtered by most networks, so it will show as barely visible.",
+      "Origin history. The 30-day view shows when the origin changed and since when the prefix is announced. A recent change of origin should be something you did. A sudden new origin is a warning sign.",
+      "AS paths. Sample paths from collectors to the prefix. Short paths mean the network is well connected, and the second-to-last AS in a path is the upstream that carries the traffic. A path that goes through an unexpected network shows a leak or a different policy.",
+      "Less and more specific routes. A less specific prefix is a larger block that contains yours. A more specific one is a smaller block inside it. Traffic always follows the most specific route, so a more specific prefix announced by someone else can steal part of a range."
+    ]},
+    {"h": "Common problems and fixes", "p": [
+      "The prefix is not visible at all. It may not be announced, the upstream may filter it for missing registry data, or you announced it only to one neighbour. Check the announcement on your router and the filters at your upstream. Providers usually need a route object in an IRR database or a valid ROA, and a matching entry for the AS.",
+      "RPKI invalid. Update the ROA so that it includes your origin AS and the maximum length you really announce, or announce the length the ROA allows.",
+      "Only some places see it. Ask the networks that do not see it whether they filter by IRR or RPKI data, and check that your upstream announces it to its peers.",
+      "A prefix that is announced by someone else. Contact the network, and its upstream, and use their abuse contact from the WHOIS lookup. A ROA helps because networks that validate will discard the false announcement."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "Use the ASN lookup for the origin network, to see its neighbours, other prefixes and exchange presence. To test whether traffic really arrives, run a ping or traceroute in the looking glass. The subnet calculator shows the range and size of a prefix, and WHOIS shows who the registry says holds it."
+    ]}
+  ],
+  "faq": [
+    ["What does RPKI valid, invalid or not found mean?", "Valid: a signed ROA authorises this AS to announce the prefix. Invalid: a ROA exists but contradicts the announcement (wrong AS or too specific), and networks that filter will drop it. Not found: no ROA covers the prefix."],
+    ["What is visibility on route collectors?", "RIPE RIS collectors are passive BGP listeners in many cities. If most see the prefix, it is widely propagated. If few do, some networks are filtering it or it is very new."],
+    ["What is a more-specific route?", "A longer prefix inside the one you looked up, for example a /24 inside a /23. Traffic follows the most specific route, so a more-specific from another AS can redirect part of your range."],
+    ["Why do I see more than one origin AS?", "That is called MOAS. It is normal for anycast and multi-provider setups, but it is also how a hijack looks, so confirm that every origin is expected and has a ROA."],
+    ["Why is my /25 not visible on the internet?", "Most networks filter IPv4 prefixes longer than /24 and IPv6 prefixes longer than /48, so longer ones are not propagated. Announce at least a /24."],
+    ["Is there an API?", "Yes: GET @API@/prefix/1.1.1.0/24. It needs a pass obtained after a Turnstile check."]
+  ],
+  "related": [
+    {"slug": "asn-lookup", "anchor": "Look up the origin AS of the prefix"},
+    {"slug": "looking-glass", "anchor": "Test the route with ping and traceroute"},
+    {"slug": "subnet-calculator", "anchor": "Calculate the range and size of a prefix"},
+    {"slug": "whois-lookup", "anchor": "See who holds the address block in the registry"}
+  ]
+}

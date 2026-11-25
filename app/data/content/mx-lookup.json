@@ -1,0 +1,49 @@
+{
+  "title": "MX Lookup: Mail Servers, Priority & Reverse DNS",
+  "description": "Free MX lookup: list a domain's mail servers in priority order with IP addresses, reverse DNS (PTR) with a forward-confirmed check, and the mail provider.",
+  "og_line": "See which mail servers receive email for any domain",
+  "answer": "An MX record names the mail server that accepts email for a domain, and each one carries a priority number: senders try the lowest number first. If a domain has no MX record, senders fall back to its A or AAAA record (RFC 5321). This tool lists the mail servers in priority order with their IP addresses and reverse DNS.",
+  "inputs": "A domain name or an email address (the domain part is used).",
+  "outputs": "Each MX host with its priority, its IPv4 and IPv6 addresses, its PTR hostname and whether that hostname resolves back to the same address (FCrDNS), the mail provider recognised from the host name, and findings about problems.",
+  "curl": "curl -s -X POST @BASE@@API@/mail/mx -H 'Content-Type: application/json' -d '{\"domain\":\"example.com\"}'",
+  "sections": [
+    {"h": "What an MX lookup shows", "p": [
+      "When someone sends an email to name@example.com, their mail server asks DNS for the MX records of example.com. Each record has two parts: a preference number and a host name. The sender tries the host with the lowest number first. If it does not answer, the sender tries the next one, and so on. Several hosts with the same number share the load, and senders pick among them at random.",
+      "This tool does that query and goes one step further. It resolves each host name to its addresses, checks the reverse DNS of each address, and names the provider when the host name is recognisable, for example Google Workspace, Microsoft 365 or Zoho Mail. That way you can see in one place where your mail really goes."
+    ]},
+    {"h": "How to read the result", "p": [
+      "Order. The list is sorted by priority, the lowest number first. A single record with a high number is not wrong, but it means you have only one server and no backup. A backup MX at a lower priority number than your real server will receive most mail, so check that the numbers are in the order you intended.",
+      "Addresses. Every MX host must have an A or AAAA record of its own. An MX that points to an IP address, or to a name that is a CNAME, breaks the rules in RFC 2181 and RFC 5321, and some senders will refuse to deliver to it.",
+      "Reverse DNS. For each address the tool shows the PTR hostname and checks forward-confirmed reverse DNS (FCrDNS): the PTR name must resolve back to the same address. Receivers use this as a basic check on servers that send mail, and your inbound mail servers often send too, for bounces and replies. A mismatch is a common reason for rejected mail.",
+      "Provider. If the host names belong to one provider, mail is hosted there. If the list mixes several providers, an old setup may have been left behind after a migration, and some mail may be delivered to the old server."
+    ]},
+    {"h": "Special cases", "p": [
+      "No MX record. RFC 5321 tells senders to use the domain's own A or AAAA record in that case, which is called the implicit MX. That is usually a web server that does not accept mail, and the messages bounce slowly. Add explicit MX records.",
+      "Null MX. A domain that never receives mail can publish one MX record with priority 0 and the host name '.', defined in RFC 7505. Senders then fail immediately instead of retrying for days. The tool recognises it and reports it as intentional.",
+      "Domains with a very low or very high TTL. A low TTL is useful before a migration, because senders learn about the new server quickly. After the change, raise it again to reduce the load on your DNS."
+    ]},
+    {"h": "Common problems and fixes", "p": [
+      "Mail goes to the old provider after a move. Delete the old MX records instead of only adding new ones, and wait for the TTL of the old records to expire before you turn off the old server.",
+      "MX host without an address. The name in the MX has no A or AAAA record, often because of a typo or a missing trailing dot in a DNS panel. Fix the record or the name.",
+      "Missing reverse DNS on a self-hosted mail server. Ask the owner of the IP block, usually your hosting provider, to set a PTR record that matches the server name, and make sure that name resolves to the IP.",
+      "Port 25 blocked. DNS can be correct and mail still cannot arrive when a firewall or the provider blocks inbound port 25. Use the SMTP test to see whether the server answers."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "MX records say where mail goes in, while SPF, DKIM and DMARC control who may send as your domain, so check those next. If you run your own mail server, test its banner, STARTTLS and certificate with the SMTP test, and check each of its IP addresses against blocklists. The DNS lookup tool shows the same MX records next to all the other records of the domain."
+    ]}
+  ],
+  "faq": [
+    ["What is an MX record?", "A DNS record that tells other mail servers where to deliver email for your domain. Each MX has a priority number, and senders try the lowest number first and fall back to higher ones."],
+    ["What happens if a domain has no MX record?", "Senders fall back to the domain's A or AAAA record, as RFC 5321 says. That is usually a web server that does not accept mail, so add explicit MX records. A domain that should not receive mail can publish a null MX with priority 0 and the host name '.'."],
+    ["Can an MX record point to an IP address or a CNAME?", "No. An MX must name a host that has A or AAAA records directly. IP addresses and aliases are not allowed, and some senders will refuse to deliver."],
+    ["Why does reverse DNS matter for a mail server?", "Many receivers check that the connecting IP has a PTR record and that the name resolves back to the same IP. A mismatch is a common reason for mail going to spam or being rejected."],
+    ["What does the MX priority number mean?", "It is a preference, not a speed. The lowest number is tried first. Equal numbers share the load."],
+    ["How long does an MX change take to apply?", "As long as the TTL of the old records. Lower the TTL a day before the change, and leave the old server running until the old TTL has passed."]
+  ],
+  "related": [
+    {"slug": "spf-checker", "anchor": "Check which servers may send mail for the domain"},
+    {"slug": "smtp-test", "anchor": "Test the mail server's SMTP banner and TLS"},
+    {"slug": "reverse-dns-lookup", "anchor": "Look up the PTR record of a mail server IP"},
+    {"slug": "blacklist-check", "anchor": "Check a mail server IP against blocklists"}
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "title": "IPv4 & IPv6 Subnet Calculator (CIDR, Split, Supernet)",
+  "description": "Free IPv4 and IPv6 subnet calculator: network, broadcast, usable range, hosts, netmask, wildcard and binary. Split a CIDR into subnets or summarise many.",
+  "og_line": "CIDR maths for IPv4 and IPv6: ranges, masks, split and supernet",
+  "answer": "An IPv4 subnet of prefix length n has 2^(32-n) addresses, and 2^(32-n) minus 2 are usable hosts, because the first address is the network address and the last is the broadcast address. A /24 therefore has 254 usable hosts. The exceptions are /31 (RFC 3021) and /32. This calculator does the sums for IPv4 and IPv6, and runs in your browser.",
+  "inputs": "An IP address with a prefix length (CIDR, for example 192.168.10.0/24) or a netmask; optionally a longer prefix to split into, or several CIDRs to summarise.",
+  "outputs": "Network address, broadcast address, first and last usable host, number of addresses and hosts, netmask, wildcard mask, binary form, address class and the reverse DNS zone, a list of subnets when splitting and the smallest covering supernet when summarising.",
+  "curl": "curl -s -X POST @BASE@@API@/subnet/calc -H 'Content-Type: application/json' -d '{\"cidr\":\"10.0.0.0/22\"}'",
+  "sections": [
+    {"h": "How CIDR notation works", "p": [
+      "CIDR (RFC 4632) writes an address and the length of its network part, for example 192.168.10.0/24. The number after the slash says how many of the leading bits identify the network. The rest identify the host inside it. A /24 leaves 8 bits for hosts, so the subnet holds 256 addresses, and a /22 leaves 10 bits and holds 1024. A longer prefix means a smaller network.",
+      "The netmask shows the same thing in dotted form: /24 is 255.255.255.0 and /22 is 255.255.252.0. The wildcard mask is the inverse (0.0.3.255 for /22). Cisco access lists and OSPF network statements use it, which is why the calculator shows it next to the netmask."
+    ]},
+    {"h": "How to read the result", "p": [
+      "Network address. The first address of the block, with all host bits zero. It identifies the subnet and is not given to a host.",
+      "Broadcast address. The last address of the block, with all host bits one. In IPv4 it reaches every host in the subnet. It is also not given to a host.",
+      "Usable range. Everything between them. A /24 gives 254 hosts, a /25 gives 126, a /26 gives 62, a /27 gives 30 and a /30 gives 2. Two special cases exist: a /31 has two addresses and no broadcast and is allowed on point-to-point links by RFC 3021, and a /32 is a single host route, used for loopbacks.",
+      "Private ranges. The result flags whether the block is private (10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16 from RFC 1918, among others), loopback, link-local or multicast, and whether it is a global public range. Private blocks are not routed on the public internet. The shared address space 100.64.0.0/10, used by carriers for NAT, is neither private nor global, so treat it with care.",
+      "Reverse zone. The name of the in-addr.arpa zone that holds PTR records for the block. For blocks smaller than a /24 the delegation uses the classless method of RFC 2317."
+    ]},
+    {"h": "IPv6 is different", "p": [
+      "IPv6 has no broadcast address, and addresses are 128 bits long, so the numbers become very large. A single /64 holds 2^64 addresses, which is the standard size of one network segment: stateless address autoconfiguration needs exactly 64 host bits. A /127 is used on router links (RFC 6164). Sites commonly receive a /48 or a /56 so they can create many /64 networks (RFC 6177 describes the thinking). The calculator reserves only the subnet-router anycast address, the all-zeros host, in prefixes shorter than /127, instead of subtracting two."
+    ]},
+    {"h": "Splitting and summarising", "p": [
+      "To split a network, enter a CIDR and a longer prefix, and the calculator lists the subnets, up to 1024 at a time. This is variable length subnet masking: give a /26 to a department with 50 devices, a /27 to one with 25 and a /30 to a link between two routers, all from one /24, and keep the largest blocks first so that they stay aligned. Subnets must start on a multiple of their own size, which is why a /26 can only start at .0, .64, .128 or .192.",
+      "To summarise, paste several CIDRs and the tool merges neighbouring and overlapping blocks into the shortest list, gives the exact summary of the range from the lowest to the highest address, and finds the smallest single prefix that covers all of them, which may include addresses you did not list. Route summarisation keeps routing tables small. A sensible rule for the public internet is that most networks filter IPv4 prefixes longer than /24 and IPv6 prefixes longer than /48, so smaller announcements are not usually accepted."
+    ]},
+    {"h": "Common mistakes", "p": [
+      "Counting the network and broadcast addresses as hosts. Choosing a block that overlaps another one in the same VPC or office network, which makes routing ambiguous. In cloud networks, remember that some providers reserve a few extra addresses in every subnet for their own use, so the usable number can be lower than the plain formula."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "When the block is yours on the public internet, look up the prefix with the BGP prefix lookup to see which AS announces it, and the ASN lookup to learn about that network. WHOIS and RDAP show who the registry says holds the block."
+    ]}
+  ],
+  "faq": [
+    ["How many usable hosts are in a /24?", "254. A /24 has 256 addresses; the first is the network address and the last is the broadcast address. A /31 (RFC 3021) and a /32 have no such reservation."],
+    ["How is IPv6 different from IPv4 for subnetting?", "There is no broadcast address in IPv6. A /64 is the standard size of a network segment, and the calculator reserves only the subnet-router anycast address in prefixes shorter than /127."],
+    ["What is a wildcard mask?", "The bitwise inverse of the subnet mask, used in Cisco ACLs and OSPF network statements. For 255.255.252.0 the wildcard is 0.0.3.255."],
+    ["Can I split a network into subnets?", "Yes. Enter a CIDR and a longer prefix to list every subnet, up to 1024 at a time, or paste several CIDRs to summarise them into the smallest supernet."],
+    ["Does the calculator send my IP ranges to a server?", "Not unless you want to. The calculator runs entirely in your browser. The JSON API is optional for scripts and automation."],
+    ["What are the private IPv4 ranges?", "10.0.0.0/8, 172.16.0.0/12 and 192.168.0.0/16 (RFC 1918). The block 100.64.0.0/10 is shared address space for carrier-grade NAT and should not be used as ordinary private space."]
+  ],
+  "related": [
+    {"slug": "bgp-prefix-lookup", "anchor": "Look up which AS announces a prefix"},
+    {"slug": "asn-lookup", "anchor": "Find out who runs an AS number"},
+    {"slug": "whois-lookup", "anchor": "See who holds an IP block in the registry"},
+    {"slug": "reverse-dns-lookup", "anchor": "Check the PTR record of an address in the block"}
+  ]
+}

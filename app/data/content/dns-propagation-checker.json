@@ -1,0 +1,46 @@
+{
+  "title": "DNS Propagation Checker: 18 Resolvers, India + Global",
+  "description": "Check DNS propagation of A, AAAA, CNAME, MX, NS, TXT and SOA records on 18 public resolvers worldwide, including India, against the authoritative nameserver.",
+  "og_line": "See if your DNS change has reached resolvers worldwide",
+  "answer": "DNS propagation is not a push: resolvers around the world simply keep the old answer until its TTL runs out, so a change becomes visible everywhere after at most the old TTL (plus, for nameserver changes, the delegation TTL, often 48 hours). This tool asks 18 public resolvers, including ones in India, and compares each answer with the authoritative nameserver.",
+  "inputs": "A host name and a record type: A, AAAA, CNAME, MX, NS, TXT, SOA or PTR.",
+  "outputs": "One row per resolver with its location, the records it returned, the TTL it reports and whether it agrees with the authoritative nameserver. The summary reads 'propagated X of Y'. Resolvers that disagree are marked in amber.",
+  "curl": "curl -s -X POST @BASE@@API@/dns/propagation -H 'Content-Type: application/json' -d '{\"name\":\"example.com\",\"type\":\"A\"}'",
+  "sections": [
+    {"h": "What propagation really is", "p": [
+      "When you change a DNS record, you change it on your authoritative nameserver only, and that change is visible there at once. Everyone else sees it when their resolver asks again. A resolver that has the old answer in its cache keeps using it until the TTL, the time to live in seconds, has run out. A resolver that has never looked the name up asks the authoritative nameserver and gets the new answer immediately. This is why the same lookup can show the old value in one city and the new value in another for a while, and why there is no way to push a change out faster than the old TTL allows.",
+      "If the TTL of the old record was 3600, every resolver is up to date within one hour. If it was 86400, it can take a day. The advice for planned changes follows from that: lower the TTL to 300 seconds one full old TTL ahead of the change, make the change, and raise the TTL again afterwards."
+    ]},
+    {"h": "How to read the result", "p": [
+      "The tool queries 18 public resolvers: Google, Cloudflare, Quad9, OpenDNS, Level3, Comodo, CleanBrowsing, AdGuard, Yandex and Hurricane Electric, plus region-labelled anycast nodes for India, Singapore, Germany, Australia, Brazil, Japan and the USA. It also asks the authoritative nameserver of the zone, which is the reference. The summary 'propagated X of Y' means that X resolvers returned exactly the same record set as the authoritative nameserver.",
+      "A resolver that returns the old value is not broken. It holds a cached answer, and the TTL shown in its row tells you how long it will keep it. A resolver that returns nothing or an error for a record that exists on the authoritative server may be rate limiting or filtering, and the next check usually clears it. If all resolvers disagree with the authoritative server, the problem is not propagation: the authoritative answer itself may not be what you intended, for example because the change was made at a DNS provider that is not actually serving the zone."
+    ]},
+    {"h": "Nameserver changes take longer", "p": [
+      "Changing the nameservers of a domain is different from changing a record. The delegation is stored at the registry of the top-level domain, and resolvers cache it with the TTL set there. For many gTLDs such as .com the delegation TTL is 172800 seconds, which is 48 hours, and that is where the usual advice of 'up to 48 hours' comes from. During the move, keep the old DNS provider serving the same records as the new one, so that visitors get the right answer whichever nameserver they reach.",
+      "To check the delegation itself, use the NS record type. You can also compare it with the nameservers recorded at the registry using the WHOIS and RDAP lookup."
+    ]},
+    {"h": "Common problems and fixes", "p": [
+      "Everything is propagated but your own computer still shows the old site. Your device and browser keep their own caches. Flush the operating system cache (ipconfig /flushdns on Windows, sudo resolvectl flush-caches on most Linux systems, sudo dscacheutil -flushcache followed by sudo killall -HUP mDNSResponder on macOS) and restart the browser.",
+      "A new record is missing from some resolvers. They may hold a cached negative answer from before the record existed. The SOA minimum field sets how long that lasts, often between 5 minutes and a few hours.",
+      "A TXT record for verification is not found. Some control panels add the domain name twice, for example example.com.example.com, or add quotes. Look at the raw value in the result.",
+      "Your ISP's resolver in India shows an old record. Public anycast nodes labelled India give a hint, but your own ISP's resolver may cache longer than most. Switching your device to a public resolver for a test shows the true state."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "If the authoritative answer is not what you expect, open the DNS lookup to inspect the zone, its nameservers and its SOA values. For mail changes, the MX lookup and the SPF checker show how the new records are read. To confirm a new server is reachable once DNS has settled, use the looking glass to run a ping or traceroute from India, and the TTFB and SSL checker to test the site itself."
+    ]}
+  ],
+  "faq": [
+    ["How long does DNS propagation take?", "Usually minutes to a few hours, and at most as long as the old TTL. Nameserver changes can take up to 48 hours because the delegation is cached with a long TTL. Lower the TTL a day before you plan a change."],
+    ["Why do some resolvers show the old value?", "They still hold the previous record in cache until its TTL expires. Resolvers that never cached the record return the new value immediately."],
+    ["Which resolvers are checked?", "18 public resolvers: Google, Cloudflare, Quad9, OpenDNS, Level3, Comodo, CleanBrowsing, AdGuard, Yandex, Hurricane Electric, plus region-labelled anycast nodes for India, Singapore, Germany, Australia, Brazil, Japan and the USA, and the authoritative nameserver of the zone."],
+    ["What does 'propagated X of Y' mean?", "X of the Y resolvers returned exactly the same record set as the authoritative nameserver. A resolver that disagrees is shown in amber."],
+    ["Can I speed up propagation?", "Not after the change. You can only lower the TTL before it. Flushing your own computer's DNS cache helps you see the change, but it does not change what other resolvers hold."],
+    ["Is there an API?", "Yes: POST @API@/dns/propagation with JSON {\"name\": \"example.com\", \"type\": \"A\"}. The rate limit is @RATE@ requests per minute per IP."]
+  ],
+  "related": [
+    {"slug": "dns-lookup", "anchor": "Inspect all DNS records and nameservers of the domain"},
+    {"slug": "whois-lookup", "anchor": "Compare with the nameservers recorded at the registry"},
+    {"slug": "ttfb-ssl-checker", "anchor": "Test the website after the DNS change"},
+    {"slug": "looking-glass", "anchor": "Ping or trace the new server from India"}
+  ]
+}

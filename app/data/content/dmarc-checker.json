@@ -1,0 +1,49 @@
+{
+  "title": "DMARC Record Checker & Policy Rollout | BookMyHost",
+  "description": "Free DMARC checker: read your policy (none, quarantine, reject), pct, alignment and report addresses, find mistakes and plan the rollout to full enforcement.",
+  "og_line": "Read your DMARC policy and roll it out to reject, step by step",
+  "answer": "DMARC (RFC 7489) tells receivers what to do with mail that claims to be from your domain but fails SPF and DKIM alignment, and where to send reports. The policy lives in a TXT record at _dmarc.yourdomain, and p=none, p=quarantine and p=reject are the three policy levels. This checker explains your current policy and what to change next.",
+  "inputs": "A domain name or an email address (the domain part is used).",
+  "outputs": "The published DMARC record, the policy (p, sp, pct), alignment modes (adkim, aspf), report addresses (rua, ruf), external report authorisation and a list of findings with a suggested next step.",
+  "curl": "curl -s -X POST @BASE@@API@/mail/dmarc -H 'Content-Type: application/json' -d '{\"domain\":\"example.com\"}'",
+  "sections": [
+    {"h": "What DMARC adds to SPF and DKIM", "p": [
+      "SPF and DKIM each prove something about a message, but neither one looks at the From address that a person sees. DMARC closes that gap. A message passes DMARC when SPF or DKIM passes and the domain that passed matches the domain in the visible From header. That match is called alignment. If neither one aligns, the message fails DMARC and the domain owner's policy applies.",
+      "The policy is published as a TXT record at _dmarc.example.com, starting with v=DMARC1. If a sub-domain has no record of its own, receivers fall back to the record of the organisational domain."
+    ]},
+    {"h": "How to read the result", "p": [
+      "The p tag is the policy. p=none only monitors: nothing is blocked, but you receive reports. p=quarantine asks receivers to treat failing mail as suspicious, usually by putting it in spam. p=reject asks them to refuse it during the SMTP conversation. The sp tag sets a different policy for sub-domains, and if it is missing the p value applies to them as well.",
+      "The pct tag is the percentage of failing messages the policy applies to. With p=quarantine and pct=25, a quarter of failing messages are quarantined and the rest are handled as if the policy were one step weaker. Use it to ramp up slowly. When pct is missing it means 100.",
+      "Alignment is set by adkim and aspf. Relaxed alignment (r, the default) accepts any sub-domain of the same organisational domain, so mail.example.com aligns with example.com. Strict alignment (s) needs an exact match. Relaxed is right for almost every domain.",
+      "The rua tag lists addresses that receive aggregate reports, which are daily XML summaries from each receiver showing which IPs sent mail as your domain and how SPF, DKIM and DMARC came out. The ruf tag asks for per-message failure reports, but many receivers do not send them at all because of privacy concerns, so rely on rua. If a report address belongs to another domain, that domain must publish a TXT record at example.com._report._dmarc.otherdomain to accept them. The checker looks for it."
+    ]},
+    {"h": "A safe path from none to reject", "p": [
+      "Start with p=none and a working rua address. Read the reports for two to four weeks until you can name every legitimate sender: your mail provider, your website forms, newsletter tools, billing and ticket systems. Fix each one so that it passes SPF or DKIM with alignment, usually by adding it to SPF or by switching on DKIM signing with your own domain.",
+      "Then move to p=quarantine with a low pct, for example 10, and raise it to 100 over a few weeks while you watch the reports. When nothing legitimate fails any more, change to p=reject. Keep the rua address active afterwards, because new tools get added over time and a new sender that is not aligned will fail without any warning to you."
+    ]},
+    {"h": "Common problems", "p": [
+      "No record or the wrong name. The record must be a TXT record at _dmarc, not at the root of the domain, and there must be only one. A typo in v=DMARC1 or a missing semicolon makes receivers ignore the whole record.",
+      "A policy of none that stays forever. It gives no protection against spoofing. It is a starting point, not a destination.",
+      "Reports go nowhere. The rua value must be a mailto: address, and if it is on a different domain the authorisation record above must exist.",
+      "Legitimate mail fails after moving to reject. A sender that uses its own domain in the envelope and does not sign with your domain will pass SPF for the wrong domain and fail alignment. Ask the service for custom DKIM signing.",
+      "Large mailbox providers such as Gmail and Yahoo have required SPF, DKIM and at least a p=none DMARC policy from bulk senders since 2024, so a missing record also affects deliverability, not only spoofing."
+    ]},
+    {"h": "When to use the related tools", "p": [
+      "DMARC depends on the other two checks, so look at the SPF record and the DKIM selector for the same domain. The domain health report puts all three together with the mail server, DNS and blocklist checks and grades the result."
+    ]}
+  ],
+  "faq": [
+    ["What do p=none, quarantine and reject mean?", "none only monitors and sends reports, quarantine asks receivers to treat failing mail as suspicious (usually spam) and reject asks them to refuse it. The normal path is none, then quarantine, then reject."],
+    ["What does pct do in a DMARC record?", "pct is the percentage of failing messages the policy applies to. The rest are handled with the next weaker policy. It lets you roll out quarantine or reject gradually. If pct is missing it means 100."],
+    ["What is DMARC alignment?", "DMARC passes when SPF or DKIM passes and the domain it validated matches the visible From domain. Relaxed alignment accepts sub-domains of the same organisational domain, strict alignment needs an exact match."],
+    ["Why am I not getting DMARC reports?", "Check that rua= is present and is a valid mailto: address. If the address is on another domain, that domain must publish an authorisation TXT record. Receivers also send reports only after they have seen mail from your domain, and usually once a day."],
+    ["Do I need DMARC if I only send a few emails?", "Yes. Spoofing does not depend on your volume, and Gmail and Yahoo expect a DMARC record from bulk senders. A p=none record with a report address is a free first step."],
+    ["Can I set DMARC for sub-domains separately?", "Yes. The sp tag sets the policy for sub-domains, and a sub-domain can publish its own _dmarc record that overrides it."]
+  ],
+  "related": [
+    {"slug": "spf-checker", "anchor": "Check the SPF record that DMARC relies on"},
+    {"slug": "dkim-checker", "anchor": "Look up the DKIM selector and key strength"},
+    {"slug": "domain-health", "anchor": "Grade the whole domain with the health report"},
+    {"slug": "dns-lookup", "anchor": "See all DNS records of the domain"}
+  ]
+}
