@@ -1,0 +1,1562 @@
+{
+ "prefix": "160.22.108.0/24",
+ "family": 4,
+ "block": 0,
+ "blocks": 1,
+ "base": "160.22.108.0/24",
+ "delegations": [
+  {
+   "zone": "108.22.160.in-addr.arpa",
+   "ns": [
+    "ns1.blazingbullet.example",
+    "ns2.blazingbullet.example"
+   ],
+   "ds": false
+  }
+ ],
+ "rows": [
+  {
+   "ip": "160.22.108.0",
+   "ptr": "srv0.blazingbullet.example",
+   "fcrdns": false,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.1",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.2",
+   "ptr": "srv2.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.3",
+   "ptr": "srv3.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.4",
+   "ptr": "srv4.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.5",
+   "ptr": "srv5.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.6",
+   "ptr": "srv6.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.7",
+   "ptr": "srv7.blazingbullet.example",
+   "fcrdns": false,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.8",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.9",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.10",
+   "ptr": "srv10.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.11",
+   "ptr": "srv11.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.12",
+   "ptr": "srv12.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.13",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.14",
+   "ptr": "srv14.blazingbullet.example",
+   "fcrdns": false,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.15",
+   "ptr": "srv15.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.16",
+   "ptr": "srv16.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.17",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.18",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.19",
+   "ptr": "srv19.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.20",
+   "ptr": "srv20.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.21",
+   "ptr": "srv21.blazingbullet.example",
+   "fcrdns": false,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.22",
+   "ptr": "srv22.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.23",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.24",
+   "ptr": "srv24.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.25",
+   "ptr": "srv25.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.26",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.27",
+   "ptr": "srv27.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.28",
+   "ptr": "srv28.blazingbullet.example",
+   "fcrdns": false,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.29",
+   "ptr": "srv29.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.30",
+   "ptr": "srv30.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.31",
+   "ptr": "srv31.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.32",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.33",
+   "ptr": "srv33.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.34",
+   "ptr": "srv34.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.35",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.36",
+   "ptr": "srv36.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.37",
+   "ptr": "srv37.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.38",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.39",
+   "ptr": "srv39.blazingbullet.example",
+   "fcrdns": true,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.40",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.41",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.42",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.43",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.44",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.45",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.46",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.47",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.48",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.49",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.50",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.51",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.52",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.53",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.54",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.55",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.56",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.57",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.58",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.59",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.60",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.61",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.62",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.63",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.64",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.65",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.66",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.67",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.68",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.69",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.70",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.71",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.72",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.73",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.74",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.75",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.76",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.77",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.78",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.79",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.80",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.81",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.82",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.83",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.84",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.85",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.86",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.87",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.88",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.89",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.90",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.91",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.92",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.93",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.94",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.95",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.96",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.97",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.98",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.99",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.100",
+   "ptr": "160-22-108-100.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.101",
+   "ptr": "160-22-108-101.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.102",
+   "ptr": "160-22-108-102.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.103",
+   "ptr": "160-22-108-103.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.104",
+   "ptr": "160-22-108-104.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.105",
+   "ptr": "160-22-108-105.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.106",
+   "ptr": "160-22-108-106.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.107",
+   "ptr": "160-22-108-107.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.108",
+   "ptr": "160-22-108-108.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.109",
+   "ptr": "160-22-108-109.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.110",
+   "ptr": "160-22-108-110.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.111",
+   "ptr": "160-22-108-111.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.112",
+   "ptr": "160-22-108-112.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.113",
+   "ptr": "160-22-108-113.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.114",
+   "ptr": "160-22-108-114.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.115",
+   "ptr": "160-22-108-115.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.116",
+   "ptr": "160-22-108-116.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.117",
+   "ptr": "160-22-108-117.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.118",
+   "ptr": "160-22-108-118.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.119",
+   "ptr": "160-22-108-119.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.120",
+   "ptr": "160-22-108-120.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.121",
+   "ptr": "160-22-108-121.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.122",
+   "ptr": "160-22-108-122.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.123",
+   "ptr": "160-22-108-123.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.124",
+   "ptr": "160-22-108-124.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.125",
+   "ptr": "160-22-108-125.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.126",
+   "ptr": "160-22-108-126.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.127",
+   "ptr": "160-22-108-127.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.128",
+   "ptr": "160-22-108-128.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.129",
+   "ptr": "160-22-108-129.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.130",
+   "ptr": "160-22-108-130.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.131",
+   "ptr": "160-22-108-131.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.132",
+   "ptr": "160-22-108-132.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.133",
+   "ptr": "160-22-108-133.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.134",
+   "ptr": "160-22-108-134.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.135",
+   "ptr": "160-22-108-135.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.136",
+   "ptr": "160-22-108-136.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.137",
+   "ptr": "160-22-108-137.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.138",
+   "ptr": "160-22-108-138.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.139",
+   "ptr": "160-22-108-139.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.140",
+   "ptr": "160-22-108-140.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.141",
+   "ptr": "160-22-108-141.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.142",
+   "ptr": "160-22-108-142.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.143",
+   "ptr": "160-22-108-143.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.144",
+   "ptr": "160-22-108-144.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.145",
+   "ptr": "160-22-108-145.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.146",
+   "ptr": "160-22-108-146.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.147",
+   "ptr": "160-22-108-147.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.148",
+   "ptr": "160-22-108-148.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.149",
+   "ptr": "160-22-108-149.static.blazingbullet.example",
+   "fcrdns": true,
+   "auto": true
+  },
+  {
+   "ip": "160.22.108.150",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.151",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.152",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.153",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.154",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.155",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.156",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.157",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.158",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.159",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.160",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.161",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.162",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.163",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.164",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.165",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.166",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.167",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.168",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.169",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.170",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.171",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.172",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.173",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.174",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.175",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.176",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.177",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.178",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.179",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.180",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.181",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.182",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.183",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.184",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.185",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.186",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.187",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.188",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.189",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.190",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.191",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.192",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.193",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.194",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.195",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.196",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.197",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.198",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.199",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.200",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.201",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.202",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.203",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.204",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.205",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.206",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.207",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.208",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.209",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.210",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.211",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.212",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.213",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.214",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.215",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.216",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.217",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.218",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.219",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.220",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.221",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.222",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.223",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.224",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.225",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.226",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.227",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.228",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.229",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.230",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.231",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.232",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.233",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.234",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.235",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.236",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.237",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.238",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.239",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.240",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.241",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.242",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.243",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.244",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.245",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.246",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.247",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.248",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.249",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.250",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.251",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.252",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.253",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.254",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  },
+  {
+   "ip": "160.22.108.255",
+   "ptr": null,
+   "fcrdns": null,
+   "auto": false
+  }
+ ],
+ "stats": {
+  "scanned": 256,
+  "with_ptr": 79,
+  "fcrdns_ok": 74,
+  "auto_generated": 50
+ },
+ "note": null
+}

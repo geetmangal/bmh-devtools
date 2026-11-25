@@ -1,0 +1,285 @@
+{
+ "prefix": "160.22.108.0/24",
+ "queried": "160.22.108.0/24",
+ "is_ip": false,
+ "announced": true,
+ "status": "warn",
+ "summary": "160.22.108.0/24 is announced by AS152523 and is RPKI valid, but the APNIC route object names a different origin (AS151734).",
+ "origins": [
+  {
+   "asn": 152523,
+   "holder": "BLAZING BULLET PRIVATE LIMITED",
+   "name": "BLAZING",
+   "rpki": {
+    "state": "valid",
+    "reason": null,
+    "roas": [
+     {
+      "origin": 152523,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "valid"
+     }
+    ]
+   }
+  }
+ ],
+ "moas": false,
+ "visibility": {
+  "collectors": [
+   {
+    "name": "rrc00",
+    "city": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9,
+    "is_seen": true,
+    "seen": 8,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc01",
+    "city": "London",
+    "lat": 51.5,
+    "lon": -0.12,
+    "is_seen": true,
+    "seen": 4,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc03",
+    "city": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9,
+    "is_seen": true,
+    "seen": 7,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc04",
+    "city": "Geneva",
+    "lat": 46.2,
+    "lon": 6.14,
+    "is_seen": true,
+    "seen": 3,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc05",
+    "city": "Vienna",
+    "lat": 48.2,
+    "lon": 16.37,
+    "is_seen": true,
+    "seen": 4,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc06",
+    "city": "Otemachi",
+    "lat": 35.68,
+    "lon": 139.76,
+    "is_seen": false,
+    "seen": 0,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc07",
+    "city": "Stockholm",
+    "lat": 59.3,
+    "lon": 18.07,
+    "is_seen": true,
+    "seen": 7,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc10",
+    "city": "Milan",
+    "lat": 45.46,
+    "lon": 9.19,
+    "is_seen": true,
+    "seen": 5,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc11",
+    "city": "New York",
+    "lat": 40.7,
+    "lon": -74.0,
+    "is_seen": true,
+    "seen": 4,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc12",
+    "city": "Frankfurt",
+    "lat": 50.11,
+    "lon": 8.68,
+    "is_seen": true,
+    "seen": 8,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc13",
+    "city": "Moscow",
+    "lat": 55.75,
+    "lon": 37.6,
+    "is_seen": true,
+    "seen": 7,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc14",
+    "city": "Palo Alto",
+    "lat": 37.44,
+    "lon": -122.14,
+    "is_seen": false,
+    "seen": 0,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc15",
+    "city": "Sao Paulo",
+    "lat": -23.55,
+    "lon": -46.63,
+    "is_seen": true,
+    "seen": 3,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc16",
+    "city": "Miami",
+    "lat": 25.76,
+    "lon": -80.19,
+    "is_seen": true,
+    "seen": 9,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc18",
+    "city": "Barcelona",
+    "lat": 41.38,
+    "lon": 2.17,
+    "is_seen": true,
+    "seen": 7,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc19",
+    "city": "Johannesburg",
+    "lat": -26.2,
+    "lon": 28.04,
+    "is_seen": true,
+    "seen": 5,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc20",
+    "city": "Zurich",
+    "lat": 47.37,
+    "lon": 8.54,
+    "is_seen": true,
+    "seen": 8,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc21",
+    "city": "Paris",
+    "lat": 48.85,
+    "lon": 2.35,
+    "is_seen": false,
+    "seen": 0,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc22",
+    "city": "Bucharest",
+    "lat": 44.43,
+    "lon": 26.1,
+    "is_seen": true,
+    "seen": 9,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc23",
+    "city": "Singapore",
+    "lat": 1.35,
+    "lon": 103.82,
+    "is_seen": true,
+    "seen": 3,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc24",
+    "city": "Montevideo",
+    "lat": -34.9,
+    "lon": -56.16,
+    "is_seen": true,
+    "seen": 8,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc25",
+    "city": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9,
+    "is_seen": true,
+    "seen": 9,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc26",
+    "city": "Dubai",
+    "lat": 25.2,
+    "lon": 55.27,
+    "is_seen": true,
+    "seen": 5,
+    "total": 9,
+    "no_data": false
+   }
+  ],
+  "seen_collectors": 20,
+  "total_collectors": 23
+ },
+ "findings": [
+  {
+   "id": "visibility",
+   "status": "pass",
+   "title": "Seen by 20 of 23 route collectors",
+   "meaning": "Most vantage points see the route.",
+   "fix": null,
+   "details": {}
+  }
+ ],
+ "overview": null,
+ "connectivity": null,
+ "validation": null,
+ "less_specifics": null,
+ "more_specifics": null,
+ "missing": [
+  "overview",
+  "connectivity",
+  "validation"
+ ],
+ "partial": true
+}

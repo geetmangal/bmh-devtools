@@ -1,0 +1,1135 @@
+{
+ "prefix": "160.22.108.0/24",
+ "queried": "160.22.108.0/24",
+ "is_ip": false,
+ "announced": true,
+ "status": "warn",
+ "summary": "160.22.108.0/24 is announced by AS152523 and is RPKI valid, but the APNIC route object names a different origin (AS151734).",
+ "origins": [
+  {
+   "asn": 152523,
+   "holder": "BLAZING BULLET PRIVATE LIMITED",
+   "name": "BLAZING",
+   "rpki": {
+    "state": "valid",
+    "reason": null,
+    "roas": [
+     {
+      "origin": 152523,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "valid"
+     }
+    ]
+   }
+  }
+ ],
+ "moas": false,
+ "visibility": {
+  "collectors": [
+   {
+    "name": "rrc00",
+    "city": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9,
+    "is_seen": true,
+    "seen": 8,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc01",
+    "city": "London",
+    "lat": 51.5,
+    "lon": -0.12,
+    "is_seen": true,
+    "seen": 4,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc03",
+    "city": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9,
+    "is_seen": true,
+    "seen": 7,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc04",
+    "city": "Geneva",
+    "lat": 46.2,
+    "lon": 6.14,
+    "is_seen": true,
+    "seen": 3,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc05",
+    "city": "Vienna",
+    "lat": 48.2,
+    "lon": 16.37,
+    "is_seen": true,
+    "seen": 4,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc06",
+    "city": "Otemachi",
+    "lat": 35.68,
+    "lon": 139.76,
+    "is_seen": false,
+    "seen": 0,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc07",
+    "city": "Stockholm",
+    "lat": 59.3,
+    "lon": 18.07,
+    "is_seen": true,
+    "seen": 7,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc10",
+    "city": "Milan",
+    "lat": 45.46,
+    "lon": 9.19,
+    "is_seen": true,
+    "seen": 5,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc11",
+    "city": "New York",
+    "lat": 40.7,
+    "lon": -74.0,
+    "is_seen": true,
+    "seen": 4,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc12",
+    "city": "Frankfurt",
+    "lat": 50.11,
+    "lon": 8.68,
+    "is_seen": true,
+    "seen": 8,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc13",
+    "city": "Moscow",
+    "lat": 55.75,
+    "lon": 37.6,
+    "is_seen": true,
+    "seen": 7,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc14",
+    "city": "Palo Alto",
+    "lat": 37.44,
+    "lon": -122.14,
+    "is_seen": false,
+    "seen": 0,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc15",
+    "city": "Sao Paulo",
+    "lat": -23.55,
+    "lon": -46.63,
+    "is_seen": true,
+    "seen": 3,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc16",
+    "city": "Miami",
+    "lat": 25.76,
+    "lon": -80.19,
+    "is_seen": true,
+    "seen": 9,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc18",
+    "city": "Barcelona",
+    "lat": 41.38,
+    "lon": 2.17,
+    "is_seen": true,
+    "seen": 7,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc19",
+    "city": "Johannesburg",
+    "lat": -26.2,
+    "lon": 28.04,
+    "is_seen": true,
+    "seen": 5,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc20",
+    "city": "Zurich",
+    "lat": 47.37,
+    "lon": 8.54,
+    "is_seen": true,
+    "seen": 8,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc21",
+    "city": "Paris",
+    "lat": 48.85,
+    "lon": 2.35,
+    "is_seen": false,
+    "seen": 0,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc22",
+    "city": "Bucharest",
+    "lat": 44.43,
+    "lon": 26.1,
+    "is_seen": true,
+    "seen": 9,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc23",
+    "city": "Singapore",
+    "lat": 1.35,
+    "lon": 103.82,
+    "is_seen": true,
+    "seen": 3,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc24",
+    "city": "Montevideo",
+    "lat": -34.9,
+    "lon": -56.16,
+    "is_seen": true,
+    "seen": 8,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc25",
+    "city": "Amsterdam",
+    "lat": 52.37,
+    "lon": 4.9,
+    "is_seen": true,
+    "seen": 9,
+    "total": 9,
+    "no_data": false
+   },
+   {
+    "name": "rrc26",
+    "city": "Dubai",
+    "lat": 25.2,
+    "lon": 55.27,
+    "is_seen": true,
+    "seen": 5,
+    "total": 9,
+    "no_data": false
+   }
+  ],
+  "seen_collectors": 20,
+  "total_collectors": 23
+ },
+ "less_specifics": [
+  "160.22.108.0/23",
+  "160.22.0.0/16"
+ ],
+ "more_specifics": [],
+ "more_specifics_total": 0,
+ "first_seen": {
+  "time": "2024-06-12T08:00:00Z",
+  "origin": 152523
+ },
+ "last_seen": null,
+ "history": {
+  "days": 30,
+  "timeline": [
+   {
+    "prefix": "160.22.108.0/24",
+    "origin": 152523,
+    "start": "2026-10-26T00:00:00Z",
+    "end": "2026-11-25T00:00:00Z"
+   }
+  ]
+ },
+ "as_paths": [
+  {
+   "path": [
+    3333,
+    6453,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 1,
+   "prepended": false
+  },
+  {
+   "path": [
+    12654,
+    58682,
+    9498,
+    152523
+   ],
+   "origin": 152523,
+   "count": 1,
+   "prepended": false
+  },
+  {
+   "path": [
+    25091,
+    1299,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 1,
+   "prepended": false
+  },
+  {
+   "path": [
+    34224,
+    4755,
+    58682,
+    9498,
+    152523
+   ],
+   "origin": 152523,
+   "count": 1,
+   "prepended": false
+  },
+  {
+   "path": [
+    57976,
+    1273,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 1,
+   "prepended": false
+  },
+  {
+   "path": [
+    8607,
+    174,
+    55836,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 1,
+   "prepended": false
+  },
+  {
+   "path": [
+    20932,
+    1299,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 1,
+   "prepended": false
+  },
+  {
+   "path": [
+    15169,
+    1299,
+    13335,
+    152523
+   ],
+   "origin": 152523,
+   "count": 1,
+   "prepended": false
+  }
+ ],
+ "findings": [
+  {
+   "id": "visibility",
+   "status": "pass",
+   "title": "Seen by 20 of 23 route collectors",
+   "meaning": "Most vantage points see the route.",
+   "fix": null,
+   "details": {}
+  },
+  {
+   "id": "irr-mismatch",
+   "status": "warn",
+   "title": "IRR route object names a different origin",
+   "meaning": "The APNIC route object for 160.22.108.0/24 lists AS151734, but BGP shows AS152523. Providers that filter by IRR may reject the announcement.",
+   "fix": [
+    "Update the route object at APNIC so its origin is AS152523, or delete the stale one."
+   ],
+   "details": {}
+  },
+  {
+   "id": "roa-maxlength-loose",
+   "status": "info",
+   "title": "ROA max length is longer than needed",
+   "meaning": "A ROA that allows longer prefixes than you announce lets an attacker announce a more specific route that still validates.",
+   "fix": [
+    "Set the ROA max length to /24 only if you never announce longer prefixes."
+   ],
+   "details": {}
+  }
+ ],
+ "missing": [],
+ "errors": {},
+ "partial": false,
+ "elapsed_ms": 4210,
+ "overview": {
+  "rir": "APNIC",
+  "country": "IN",
+  "netname": "BLAZING",
+  "holder": "BLAZING BULLET PRIVATE LIMITED",
+  "inetnum": "160.22.108.0 - 160.22.109.255",
+  "reg_status": "ASSIGNED PORTABLE",
+  "reg_status_meaning": "The block belongs to the holder and can move between providers.",
+  "registered": "2024-06-10",
+  "age_days": 533,
+  "size": {
+   "addresses": 256,
+   "slash24s": 1,
+   "slash48s": null
+  },
+  "abuse_email": "abuse@blazingbullet.example"
+ },
+ "connectivity": {
+  "graph": {
+   "nodes": [
+    {
+     "id": "AS3333",
+     "asn": 3333,
+     "name": "Example Network 3333",
+     "role": "peer",
+     "tier1": false,
+     "depth": 4,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS6453",
+     "asn": 6453,
+     "name": "TATA Communications",
+     "role": "transit",
+     "tier1": true,
+     "depth": 3,
+     "paths": 6,
+     "share": 0.15
+    },
+    {
+     "id": "AS13335",
+     "asn": 13335,
+     "name": "Cloudflare, Inc.",
+     "role": "upstream",
+     "tier1": false,
+     "depth": 1,
+     "paths": 32,
+     "share": 0.8
+    },
+    {
+     "id": "AS152523",
+     "asn": 152523,
+     "name": "Example Network 152523",
+     "role": "origin",
+     "tier1": false,
+     "depth": 0,
+     "paths": 40,
+     "share": 1.0
+    },
+    {
+     "id": "AS12654",
+     "asn": 12654,
+     "name": "Example Network 12654",
+     "role": "peer",
+     "tier1": false,
+     "depth": 3,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS58682",
+     "asn": 58682,
+     "name": "Netplus Broadband",
+     "role": "transit",
+     "tier1": false,
+     "depth": 3,
+     "paths": 5,
+     "share": 0.12
+    },
+    {
+     "id": "AS9498",
+     "asn": 9498,
+     "name": "BHARTI Airtel",
+     "role": "upstream",
+     "tier1": false,
+     "depth": 3,
+     "paths": 10,
+     "share": 0.25
+    },
+    {
+     "id": "AS25091",
+     "asn": 25091,
+     "name": "Example Network 25091",
+     "role": "peer",
+     "tier1": false,
+     "depth": 4,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS1299",
+     "asn": 1299,
+     "name": "Arelion (Telia)",
+     "role": "transit",
+     "tier1": true,
+     "depth": 3,
+     "paths": 5,
+     "share": 0.12
+    },
+    {
+     "id": "AS34224",
+     "asn": 34224,
+     "name": "Example Network 34224",
+     "role": "peer",
+     "tier1": false,
+     "depth": 4,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS4755",
+     "asn": 4755,
+     "name": "TATA Comm. India",
+     "role": "transit",
+     "tier1": false,
+     "depth": 3,
+     "paths": 6,
+     "share": 0.15
+    },
+    {
+     "id": "AS57976",
+     "asn": 57976,
+     "name": "Example Network 57976",
+     "role": "peer",
+     "tier1": false,
+     "depth": 3,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS1273",
+     "asn": 1273,
+     "name": "Vodafone",
+     "role": "transit",
+     "tier1": false,
+     "depth": 3,
+     "paths": 9,
+     "share": 0.23
+    },
+    {
+     "id": "AS8607",
+     "asn": 8607,
+     "name": "Example Network 8607",
+     "role": "peer",
+     "tier1": false,
+     "depth": 4,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS174",
+     "asn": 174,
+     "name": "Cogent",
+     "role": "transit",
+     "tier1": true,
+     "depth": 4,
+     "paths": 4,
+     "share": 0.1
+    },
+    {
+     "id": "AS55836",
+     "asn": 55836,
+     "name": "Reliance Jio",
+     "role": "transit",
+     "tier1": false,
+     "depth": 4,
+     "paths": 4,
+     "share": 0.1
+    },
+    {
+     "id": "AS20932",
+     "asn": 20932,
+     "name": "Example Network 20932",
+     "role": "peer",
+     "tier1": false,
+     "depth": 3,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS15169",
+     "asn": 15169,
+     "name": "Example Network 15169",
+     "role": "peer",
+     "tier1": false,
+     "depth": 4,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS50300",
+     "asn": 50300,
+     "name": "Example Network 50300",
+     "role": "peer",
+     "tier1": false,
+     "depth": 4,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS6762",
+     "asn": 6762,
+     "name": "Telecom Italia Sparkle",
+     "role": "transit",
+     "tier1": true,
+     "depth": 3,
+     "paths": 3,
+     "share": 0.07
+    },
+    {
+     "id": "AS2914",
+     "asn": 2914,
+     "name": "NTT",
+     "role": "peer",
+     "tier1": true,
+     "depth": 3,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS3257",
+     "asn": 3257,
+     "name": "GTT",
+     "role": "transit",
+     "tier1": true,
+     "depth": 3,
+     "paths": 5,
+     "share": 0.12
+    },
+    {
+     "id": "AS3356",
+     "asn": 3356,
+     "name": "Lumen",
+     "role": "peer",
+     "tier1": true,
+     "depth": 4,
+     "paths": 6,
+     "share": 0.15
+    },
+    {
+     "id": "AS12956",
+     "asn": 12956,
+     "name": "Telefonica",
+     "role": "transit",
+     "tier1": true,
+     "depth": 4,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS8220",
+     "asn": 8220,
+     "name": "COLT",
+     "role": "transit",
+     "tier1": false,
+     "depth": 3,
+     "paths": 5,
+     "share": 0.12
+    },
+    {
+     "id": "AS7018",
+     "asn": 7018,
+     "name": "AT&T",
+     "role": "peer",
+     "tier1": true,
+     "depth": 4,
+     "paths": 2,
+     "share": 0.05
+    },
+    {
+     "id": "AS3320",
+     "asn": 3320,
+     "name": "Deutsche Telekom",
+     "role": "peer",
+     "tier1": true,
+     "depth": 3,
+     "paths": 1,
+     "share": 0.03
+    },
+    {
+     "id": "AS701",
+     "asn": 701,
+     "name": "Verizon",
+     "role": "peer",
+     "tier1": true,
+     "depth": 2,
+     "paths": 1,
+     "share": 0.03
+    }
+   ],
+   "edges": [
+    {
+     "from": "AS3333",
+     "to": "AS6453",
+     "count": 1
+    },
+    {
+     "from": "AS6453",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS13335",
+     "to": "AS152523",
+     "count": 32
+    },
+    {
+     "from": "AS12654",
+     "to": "AS58682",
+     "count": 1
+    },
+    {
+     "from": "AS58682",
+     "to": "AS9498",
+     "count": 2
+    },
+    {
+     "from": "AS9498",
+     "to": "AS152523",
+     "count": 8
+    },
+    {
+     "from": "AS25091",
+     "to": "AS1299",
+     "count": 1
+    },
+    {
+     "from": "AS1299",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS34224",
+     "to": "AS4755",
+     "count": 1
+    },
+    {
+     "from": "AS4755",
+     "to": "AS58682",
+     "count": 1
+    },
+    {
+     "from": "AS57976",
+     "to": "AS1273",
+     "count": 1
+    },
+    {
+     "from": "AS1273",
+     "to": "AS13335",
+     "count": 5
+    },
+    {
+     "from": "AS8607",
+     "to": "AS174",
+     "count": 1
+    },
+    {
+     "from": "AS174",
+     "to": "AS55836",
+     "count": 2
+    },
+    {
+     "from": "AS55836",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS20932",
+     "to": "AS1299",
+     "count": 1
+    },
+    {
+     "from": "AS15169",
+     "to": "AS1299",
+     "count": 1
+    },
+    {
+     "from": "AS50300",
+     "to": "AS6762",
+     "count": 1
+    },
+    {
+     "from": "AS6762",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS2914",
+     "to": "AS3257",
+     "count": 1
+    },
+    {
+     "from": "AS3257",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS3356",
+     "to": "AS1273",
+     "count": 2
+    },
+    {
+     "from": "AS174",
+     "to": "AS6453",
+     "count": 1
+    },
+    {
+     "from": "AS1299",
+     "to": "AS6762",
+     "count": 1
+    },
+    {
+     "from": "AS6453",
+     "to": "AS1273",
+     "count": 1
+    },
+    {
+     "from": "AS9498",
+     "to": "AS12956",
+     "count": 1
+    },
+    {
+     "from": "AS12956",
+     "to": "AS9498",
+     "count": 1
+    },
+    {
+     "from": "AS55836",
+     "to": "AS8220",
+     "count": 1
+    },
+    {
+     "from": "AS8220",
+     "to": "AS1273",
+     "count": 1
+    },
+    {
+     "from": "AS1273",
+     "to": "AS3257",
+     "count": 1
+    },
+    {
+     "from": "AS8220",
+     "to": "AS13335",
+     "count": 3
+    },
+    {
+     "from": "AS58682",
+     "to": "AS3356",
+     "count": 1
+    },
+    {
+     "from": "AS3356",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS6762",
+     "to": "AS8220",
+     "count": 1
+    },
+    {
+     "from": "AS3257",
+     "to": "AS8220",
+     "count": 1
+    },
+    {
+     "from": "AS8220",
+     "to": "AS9498",
+     "count": 1
+    },
+    {
+     "from": "AS7018",
+     "to": "AS1273",
+     "count": 1
+    },
+    {
+     "from": "AS1273",
+     "to": "AS58682",
+     "count": 2
+    },
+    {
+     "from": "AS58682",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS12956",
+     "to": "AS7018",
+     "count": 1
+    },
+    {
+     "from": "AS7018",
+     "to": "AS4755",
+     "count": 1
+    },
+    {
+     "from": "AS4755",
+     "to": "AS9498",
+     "count": 2
+    },
+    {
+     "from": "AS3320",
+     "to": "AS6453",
+     "count": 1
+    },
+    {
+     "from": "AS701",
+     "to": "AS9498",
+     "count": 1
+    },
+    {
+     "from": "AS4755",
+     "to": "AS13335",
+     "count": 2
+    },
+    {
+     "from": "AS3333",
+     "to": "AS174",
+     "count": 1
+    },
+    {
+     "from": "AS12654",
+     "to": "AS3356",
+     "count": 1
+    },
+    {
+     "from": "AS25091",
+     "to": "AS3356",
+     "count": 1
+    },
+    {
+     "from": "AS34224",
+     "to": "AS6453",
+     "count": 1
+    },
+    {
+     "from": "AS57976",
+     "to": "AS8220",
+     "count": 1
+    },
+    {
+     "from": "AS8607",
+     "to": "AS13335",
+     "count": 1
+    },
+    {
+     "from": "AS20932",
+     "to": "AS4755",
+     "count": 1
+    },
+    {
+     "from": "AS15169",
+     "to": "AS3356",
+     "count": 1
+    },
+    {
+     "from": "AS3356",
+     "to": "AS55836",
+     "count": 1
+    },
+    {
+     "from": "AS50300",
+     "to": "AS1273",
+     "count": 1
+    },
+    {
+     "from": "AS2914",
+     "to": "AS9498",
+     "count": 1
+    },
+    {
+     "from": "AS9498",
+     "to": "AS13335",
+     "count": 1
+    },
+    {
+     "from": "AS3356",
+     "to": "AS4755",
+     "count": 1
+    },
+    {
+     "from": "AS4755",
+     "to": "AS1273",
+     "count": 1
+    },
+    {
+     "from": "AS1273",
+     "to": "AS9498",
+     "count": 1
+    },
+    {
+     "from": "AS174",
+     "to": "AS3257",
+     "count": 1
+    },
+    {
+     "from": "AS3257",
+     "to": "AS4755",
+     "count": 1
+    },
+    {
+     "from": "AS1299",
+     "to": "AS3257",
+     "count": 1
+    }
+   ]
+  },
+  "upstreams": [
+   {
+    "asn": 13335,
+    "name": "Cloudflare, Inc.",
+    "paths": 32,
+    "share": 0.8,
+    "tier1": false
+   },
+   {
+    "asn": 9498,
+    "name": "BHARTI Airtel",
+    "paths": 10,
+    "share": 0.25,
+    "tier1": false
+   }
+  ],
+  "paths_total": 40,
+  "collector_peers": 26,
+  "path_length": {
+   "min": 3,
+   "median": 4,
+   "max": 5,
+   "hist": {
+    "4": 24,
+    "5": 11,
+    "3": 5
+   }
+  },
+  "prepending": [
+   {
+    "asn": 152523,
+    "max_repeat": 3,
+    "paths": 2
+   }
+  ]
+ },
+ "validation": {
+  "rpki": [
+   {
+    "asn": 152523,
+    "state": "valid",
+    "reason": null,
+    "roas": [
+     {
+      "origin": 152523,
+      "prefix": "160.22.108.0/23",
+      "max_length": 24,
+      "validity": "valid"
+     }
+    ],
+    "maxlength_loose": true
+   }
+  ],
+  "irr": {
+   "available": true,
+   "sources": [
+    "APNIC",
+    "RADB",
+    "RIPE"
+   ],
+   "objects": [
+    {
+     "source": "APNIC",
+     "prefix": "160.22.108.0/24",
+     "asn": 151734,
+     "rpki_status": "INVALID",
+     "exact": true,
+     "matches_bgp": false,
+     "rpsl": "route:          160.22.108.0/24\norigin:         AS151734\ndescr:          Blazing Bullet Private Limited\nmnt-by:         MAINT-IN-BLAZING\nchanged:        hm-changed@apnic.net 20240611\nsource:         APNIC"
+    },
+    {
+     "source": "RADB",
+     "prefix": "160.22.108.0/23",
+     "asn": 152523,
+     "rpki_status": "VALID",
+     "exact": false,
+     "matches_bgp": true,
+     "rpsl": "route:          160.22.108.0/23\norigin:         AS152523\ndescr:          Blazing Bullet Private Limited\nmnt-by:         MAINT-IN-BLAZING\nchanged:        hm-changed@apnic.net 20240611\nsource:         APNIC"
+    }
+   ],
+   "rpki_routes": [
+    {
+     "prefix": "160.22.108.0/23",
+     "asn": 152523,
+     "max_length": 24
+    }
+   ],
+   "messages": [
+    {
+     "category": "warning",
+     "text": "Route object for exact prefix is RPKI invalid, origin AS151734 does not match the ROA."
+    },
+    {
+     "category": "info",
+     "text": "No route object found in RIPE."
+    }
+   ],
+   "category": "warning"
+  },
+  "summary": {
+   "rpki": "valid",
+   "irr": "mismatch"
+  }
+ }
+}

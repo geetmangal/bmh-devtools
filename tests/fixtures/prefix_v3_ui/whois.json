@@ -1,0 +1,89 @@
+{
+ "prefix": "160.22.108.0/24",
+ "records": [
+  [
+   {
+    "key": "inetnum",
+    "value": "160.22.108.0 - 160.22.109.255",
+    "meaning": "The address range this record covers."
+   },
+   {
+    "key": "netname",
+    "value": "BLAZING",
+    "meaning": "Short name the holder gave the network."
+   },
+   {
+    "key": "descr",
+    "value": "Blazing Bullet Private Limited",
+    "meaning": null
+   },
+   {
+    "key": "country",
+    "value": "IN",
+    "meaning": "Country the holder registered the block in."
+   },
+   {
+    "key": "status",
+    "value": "ASSIGNED PORTABLE",
+    "meaning": "The block belongs to the holder and can move between providers."
+   },
+   {
+    "key": "mnt-by",
+    "value": "MAINT-IN-BLAZING",
+    "meaning": "Account allowed to change this record."
+   },
+   {
+    "key": "source",
+    "value": "APNIC",
+    "meaning": null
+   }
+  ],
+  [
+   {
+    "key": "role",
+    "value": "ABUSE BLAZING",
+    "meaning": null
+   },
+   {
+    "key": "abuse-mailbox",
+    "value": "abuse@blazingbullet.example",
+    "meaning": "Where to send abuse reports."
+   }
+  ]
+ ],
+ "irr_records": [
+  [
+   {
+    "key": "route",
+    "value": "160.22.108.0/24"
+   },
+   {
+    "key": "origin",
+    "value": "AS151734"
+   },
+   {
+    "key": "source",
+    "value": "APNIC"
+   }
+  ]
+ ],
+ "authorities": [
+  "apnic"
+ ],
+ "abuse_email": "abuse@blazingbullet.example",
+ "geofeed": {
+  "url": "https://geofeed.blazingbullet.example/geofeed.csv",
+  "rows": [
+   {
+    "prefix": "160.22.108.0/24",
+    "country": "IN",
+    "region": "IN-DL",
+    "city": "New Delhi",
+    "zip": ""
+   }
+  ],
+  "error": null
+ },
+ "raw": "inetnum: 160.22.108.0 - 160.22.109.255\nnetname: BLAZING\ncountry: IN\nstatus: ASSIGNED PORTABLE\nsource: APNIC\n",
+ "fetched_at": "2026-11-25T08:00:00Z"
+}

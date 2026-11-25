@@ -87,7 +87,7 @@ export function initTool({ form, results = '#results', run, render, state, prefi
       out.append(...nodes, h('div', { class: 'mt-2 space-y-3' }, rawJson(data), shareBar({ getJson: () => last, ...(shareExtra || {}) })));
       if (state && !document.documentElement.dataset.embed) {
         const q = new URLSearchParams(state(data));
-        try { history.replaceState(null, '', '?' + q.toString()); } catch { /* sandboxed frames */ }
+        try { history.replaceState(null, '', '?' + q.toString() + location.hash); } catch { /* sandboxed frames */ }
       }
     } catch (e) {
       if (my !== token) return;
