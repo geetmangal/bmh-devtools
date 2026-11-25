@@ -53,6 +53,7 @@ MAIL_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_MAIL_RATE_PER_MIN", "20"))        #
 HEAVY_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_HEAVY_RATE_PER_MIN", "6"))       # dnsbl / smtp / dkim probe per IP, burst 3
 HEALTH_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_HEALTH_RATE_PER_MIN", "4"))     # full domain health runs per IP, burst 2
 BGP_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_BGP_RATE_PER_MIN", "10"))          # ASN / prefix reports per IP, burst 5
+PREFIX_LIGHT_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_PREFIX_LIGHT_RATE_PER_MIN", "30"))  # prefix whois per IP, burst 10
 GLOBAL_LG_RATE_PER_MIN = int(os.getenv("BMH_TOOLS_GLOBAL_LG_RATE_PER_MIN", "4"))  # Globalping runs per IP, burst 2
 MAX_CONCURRENT_HEALTH = int(os.getenv("BMH_TOOLS_MAX_HEALTH", "3"))
 # One shared limiter per TARGET (domain / IP / ASN) across all clients and all heavy endpoints, so a single

@@ -340,6 +340,33 @@ async def whois_asn(asn: Any, fetch: Fetch | None = None) -> dict:
             "authorities": d.get("authorities") or [], "records": flat[:40]}
 
 
+async def whois_prefix(resource: str, fetch: Fetch | None = None) -> dict:
+    """Registry records of an IP/prefix: {'records': [[{key, value}]], 'irr_records': [...], 'authorities': [...]}."""
+    res = norm_resource(resource)
+    d = await call("whois", {"resource": res}, TTL_LONG, fetch)
+
+    def clean(groups: Any, cap: int) -> list[list[dict]]:
+        out = []
+        for rec in (groups or [])[:cap]:
+            rows = [{"key": str(kv["key"]).strip(), "value": str(kv.get("value", ""))[:500]}
+                    for kv in (rec if isinstance(rec, list) else [rec])
+                    if isinstance(kv, dict) and kv.get("key")][:60]
+            if rows:
+                out.append(rows)
+        return out
+
+    return {"resource": res, "records": clean(d.get("records"), 8), "irr_records": clean(d.get("irr_records"), 20),
+            "authorities": [str(a) for a in (d.get("authorities") or [])][:5]}
+
+
+async def abuse_contact(resource: str, fetch: Fetch | None = None) -> dict:
+    res = norm_resource(resource)
+    d = await call("abuse-contact-finder", {"resource": res}, TTL_LONG, fetch)
+    emails = [str(e) for e in (d.get("abuse_contacts") or []) if e]
+    return {"resource": res, "email": emails[0] if emails else None, "emails": emails[:5],
+            "rir": (str(d["authoritative_rir"]).upper() if d.get("authoritative_rir") else None)}
+
+
 async def rir_stats_country(resource: Any, fetch: Fetch | None = None) -> dict:
     """ASN/IP -> registered country; a 2-letter country code -> counts of its RIR resources."""
     s = str(resource).strip()

@@ -1,0 +1,77 @@
+[
+ {
+  "prefix": "160.22.108.0/23",
+  "rir": "APNIC",
+  "rpkiRoutes": [
+   {
+    "asn": 151734,
+    "rpslText": "route:          160.22.108.0/23\ndescr:          RPKI ROA for 160.22.108.0/23 / AS151734\nremarks:        This AS151734 route object represents routing data retrieved\n                from the RPKI. This route object is the result of an automated\n                RPKI-to-IRR conversion process performed by IRRd.\nmax-length:     24\norigin:         AS151734\nsource:         RPKI  # Trust Anchor: apnic\n",
+    "rpslPk": "160.22.108.0/23AS151734/ML24",
+    "rpkiStatus": "VALID",
+    "rpkiMaxLength": 24
+   },
+   {
+    "asn": 152523,
+    "rpslText": "route:          160.22.108.0/23\ndescr:          RPKI ROA for 160.22.108.0/23 / AS152523\nremarks:        This AS152523 route object represents routing data retrieved\n                from the RPKI. This route object is the result of an automated\n                RPKI-to-IRR conversion process performed by IRRd.\nmax-length:     24\norigin:         AS152523\nsource:         RPKI  # Trust Anchor: apnic\n",
+    "rpslPk": "160.22.108.0/23AS152523/ML24",
+    "rpkiStatus": "VALID",
+    "rpkiMaxLength": 24
+   }
+  ],
+  "bgpOrigins": [],
+  "irrRoutes": {
+   "APNIC": [
+    {
+     "asn": 151734,
+     "rpslText": "route:          160.22.108.0/23\ndescr:          Route Object\ncountry:        IN\norigin:         AS151734\nmnt-by:         MAINT-IN-BLAZING\nmnt-by:         MAINT-IN-IRINN\nmnt-routes:     MAINT-IN-IRINN\nlast-modified:  2025-12-14T22:25:08Z\nsource:         APNIC\n",
+     "rpslPk": "160.22.108.0/23AS151734",
+     "rpkiStatus": "VALID",
+     "rpkiMaxLength": null
+    }
+   ]
+  },
+  "messages": [
+   {
+    "category": "info",
+    "text": "Route objects exist, but prefix not seen in DFZ"
+   },
+   {
+    "category": "info",
+    "text": "RPKI ROA exists, but prefix not seen in DFZ"
+   }
+  ],
+  "categoryOverall": "info",
+  "goodnessOverall": 2,
+  "prefixSortKeyIpPrefix": "2685824000/23",
+  "prefixSortKeyReverseNetworklenIp": "105-2685824000"
+ },
+ {
+  "prefix": "160.22.108.0/24",
+  "rir": "APNIC",
+  "rpkiRoutes": [],
+  "bgpOrigins": [
+   152523
+  ],
+  "irrRoutes": {
+   "APNIC": [
+    {
+     "asn": 151734,
+     "rpslText": "route:          160.22.108.0/24\ndescr:          Route Object\ncountry:        IN\norigin:         AS151734\nmnt-by:         MAINT-IN-BLAZING\nmnt-by:         MAINT-IN-IRINN\nmnt-routes:     MAINT-IN-IRINN\nlast-modified:  2025-12-14T22:25:08Z\nsource:         APNIC\n",
+     "rpslPk": "160.22.108.0/24AS151734",
+     "rpkiStatus": "VALID",
+     "rpkiMaxLength": null
+    }
+   ]
+  },
+  "messages": [
+   {
+    "category": "warning",
+    "text": "Multiple route objects exist with different origins, but DFZ only has one"
+   }
+  ],
+  "categoryOverall": "warning",
+  "goodnessOverall": 1,
+  "prefixSortKeyIpPrefix": "2685824000/24",
+  "prefixSortKeyReverseNetworklenIp": "104-2685824000"
+ }
+]

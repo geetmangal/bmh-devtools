@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-from app.core import hopenrich, peeringdb, ripestat
+from app.core import hopenrich, irr, peeringdb, ripestat
 from app.core.httpjson import FetchError
 
 
@@ -19,6 +19,7 @@ def clean_bgp_state(monkeypatch):
     ripestat.clear_caches()
     peeringdb.clear_cache()
     hopenrich.clear_cache()
+    irr.clear_cache()
     for k in ("GLOBALPING_TOKEN", "PEERINGDB_API_KEY", "RIPESTAT_SOURCEAPP"):
         monkeypatch.delenv(k, raising=False)
     yield
@@ -77,8 +78,37 @@ def lg_peer(path: str, peer="5.57.80.113"):
             "latest_time": "2026-11-24T20:11:51"}
 
 
-def ripe_routes(*, prefix=PFX, origins=(13335,), more=(), less=(), rpki=None, announced=True, vis=None, lg=None, history=None):
+def kv(pairs):
+    return [{"key": k, "value": v, "details_link": None} for k, v in pairs]
+
+
+def whois_data(prefix=PFX, origin=13335):
+    """RIPEstat 'whois' data for an APNIC block (shape recorded from the live API)."""
+    return {"records": [kv([("inetnum", prefix), ("netname", "TESTNET"), ("descr", "TEST HOLDER PRIVATE LIMITED"), ("country", "IN"),
+                            ("admin-c", "AB1-AP"), ("tech-c", "CD2-AP"), ("mnt-by", "MAINT-IN-TEST"), ("status", "ASSIGNED PORTABLE"),
+                            ("last-modified", "2026-09-25T11:11:36Z"), ("geofeed", "https://geo.example.net/geofeed.csv"), ("source", "APNIC")])],
+            "irr_records": [kv([("route", prefix), ("descr", "Route Object"), ("origin", str(origin)), ("mnt-by", "MAINT-IN-TEST"), ("source", "APNIC")])],
+            "authorities": ["apnic"], "resource": prefix, "query_time": "2026-11-25T04:00:00"}
+
+
+def irr_entry(prefix, *, objects=(), rpki=(), bgp=(), rir="APNIC", category="info", messages=()):
+    """One IRR Explorer entry (shape recorded from irrexplorer.nlnog.net). objects = [(source, asn)], rpki = [(asn, max_length)]."""
+    def rpsl(src, asn):
+        return f"route:          {prefix}\ndescr:          Route Object\norigin:         AS{asn}\nsource:         {src}\n"
+    irr = {}
+    for src, asn in objects:
+        irr.setdefault(src, []).append({"asn": asn, "rpslText": rpsl(src, asn), "rpslPk": f"{prefix}AS{asn}", "rpkiStatus": "VALID", "rpkiMaxLength": None})
+    return {"prefix": prefix, "rir": rir, "rpkiRoutes": [{"asn": a, "rpslText": f"route: {prefix}\nmax-length: {m}\norigin: AS{a}\nsource: RPKI",
+                                                          "rpslPk": f"{prefix}AS{a}/ML{m}", "rpkiStatus": "VALID", "rpkiMaxLength": m} for a, m in rpki],
+            "bgpOrigins": list(bgp), "irrRoutes": irr, "messages": [{"category": c, "text": t} for c, t in messages],
+            "categoryOverall": category, "goodnessOverall": 1}
+
+
+def ripe_routes(*, prefix=PFX, origins=(13335,), more=(), less=(), rpki=None, announced=True, vis=None, lg=None, history=None,
+                whois=None, irr=None):
     rpki = rpki or {}
+    whois = whois if whois is not None else whois_data(prefix, origins[0] if origins else 0)
+    irr = irr if irr is not None else [irr_entry(prefix, objects=[("RIPE", o) for o in origins], bgp=origins)]
 
     def rpki_route(p):
         st = rpki.get((int(str(p["resource"]).lstrip("AS")), p["prefix"]), "valid")
@@ -110,6 +140,9 @@ def ripe_routes(*, prefix=PFX, origins=(13335,), more=(), less=(), rpki=None, an
         "routing-history/data.json": ok({"by_origin": history}),
         "rpki-validation/data.json": rpki_route,
         "network-info/data.json": ok({"asns": [str(o) for o in origins[:1]], "prefix": prefix}),
+        "whois/data.json": ok(whois),
+        "abuse-contact-finder/data.json": ok({"abuse_contacts": ["abuse@example.net"], "authoritative_rir": "apnic", "parameters": {"resource": prefix}}),
+        "/api/prefixes/prefix/" + prefix: irr,
     }
 
 
