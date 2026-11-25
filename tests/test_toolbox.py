@@ -296,9 +296,9 @@ def test_tool_config_fields():
         assert t["category"] == expect[t["slug"]] and t["category"] in cats
         assert t["icon"] and set(t["accepts"]) <= kinds and isinstance(t["heavy"], bool) and t["embeddable"] is True
     assert [c["url"] for c in CALCULATORS] == [
-        "https://www.bookmyhost.com/free-tools/cloud-cost-gst-calculator",
-        "https://www.bookmyhost.com/free-tools/vps-sizing-calculator",
-        "https://www.bookmyhost.com/free-tools/noida-latency-test"]
+        "https://bookmyhost.com/free-tools/cloud-cost-gst-calculator",
+        "https://bookmyhost.com/free-tools/vps-sizing-calculator",
+        "https://bookmyhost.com/free-tools/noida-latency-test"]
     assert [t["slug"] for t in TOOLS] == ["domain-health", "blacklist-check", "smtp-test", "email-header-analyzer", "mx-lookup", "spf-checker", "dmarc-checker", "dkim-checker", "dns-propagation-checker", "whois-lookup", "reverse-dns-lookup", "dns-lookup", "ttfb-ssl-checker", "subnet-calculator", "looking-glass", "port-checker", "asn-lookup", "bgp-prefix-lookup"]
 
 

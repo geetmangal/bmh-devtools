@@ -113,11 +113,11 @@ CATEGORIES = [
 ]
 # External calculators (bookmyhost.com/free-tools): shown under "Calculators", not part of the sitemap.
 CALCULATORS = [
-    {"name": "Cloud cost and GST calculator", "icon": "calc", "url": "https://www.bookmyhost.com/free-tools/cloud-cost-gst-calculator",
+    {"name": "Cloud cost and GST calculator", "icon": "calc", "url": "https://bookmyhost.com/free-tools/cloud-cost-gst-calculator",
      "short": "Monthly cost of a server with 18% GST and the TDS and wallet maths."},
-    {"name": "VPS sizing calculator", "icon": "calc", "url": "https://www.bookmyhost.com/free-tools/vps-sizing-calculator",
+    {"name": "VPS sizing calculator", "icon": "calc", "url": "https://bookmyhost.com/free-tools/vps-sizing-calculator",
      "short": "vCPU, RAM and disk for your workload, with a plan to match."},
-    {"name": "Noida latency test", "icon": "gauge", "url": "https://www.bookmyhost.com/free-tools/noida-latency-test",
+    {"name": "Noida latency test", "icon": "gauge", "url": "https://bookmyhost.com/free-tools/noida-latency-test",
      "short": "Measure round-trip time from your browser to our Noida data centre."},
 ]
 

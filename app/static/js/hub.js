@@ -45,7 +45,7 @@ const omniLink = $('#hub-empty-omni');
 if (omniLink) {
   omniLink.addEventListener('click', (e) => {
     e.preventDefault();
-    const o = $('#omnibox') || $('[data-omnibox]') || $('input[type="search"]:not(#hub-filter)');
+    const o = $('#cmd-input');
     if (o) o.focus();
   });
 }

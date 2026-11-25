@@ -65,7 +65,7 @@
   <h2 class="hub-h2">More from BookMyHost</h2>
   <div class="tool-grid">
   {% for it in g["items"] %}{% for c in calculators if c.name == it.name %}
-    <a href="{{ it.href|replace("://www.", "://") }}" rel="noopener" class="card tool-card">
+    <a href="{{ it.href }}" rel="noopener" class="card tool-card">
       <span class="tool-card-head"><span class="tool-card-icon">{{ icon(it.icon, "w-5 h-5") }}</span><span class="tool-card-name">{{ it.name }}</span>{{ icon("external", "w-3 h-3 opacity-60") }}</span>
       <span class="tool-card-short">{{ c.short }}</span>
     </a>
