@@ -147,11 +147,17 @@ async def test_smtp_enabled_needs_pass_and_validates(client, monkeypatch, ts_on)
     async def fake(host, port):
         return result("smtp", host, data={"host": host, "port": port, "steps": [{"step": "connect", "ok": True, "ms": 3, "detail": ""}]})
     monkeypatch.setattr(smtp_api.smtpcheck, "check", fake)
+
+    async def verify_ok(token, ip):
+        return token == "fresh"
+    from app.core import turnstile as ts_mod
+    monkeypatch.setattr(ts_mod, "verify", verify_ok)
     body = {"host": "93.184.215.14", "port": 587}
     assert (await client.post(f"{API}/smtp/check", json=body, headers=VISITOR)).status_code == 403
     assert (await client.post(f"{API}/smtp/check", json={**body, "port": 22}, headers=with_pass())).status_code == 422
     assert (await client.post(f"{API}/smtp/check", json={"host": "127.0.0.1", "port": 25}, headers=with_pass())).status_code == 422
-    r = await client.post(f"{API}/smtp/check", json=body, headers=with_pass())
+    assert (await client.post(f"{API}/smtp/check", json=body, headers=with_pass())).status_code == 403  # strict: needs a fresh token
+    r = await client.post(f"{API}/smtp/check", json=body, headers={**with_pass(), "X-Turnstile-Token": "fresh"})
     assert r.status_code == 200 and r.json()["data"]["port"] == 587
 
 
