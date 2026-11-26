@@ -76,6 +76,7 @@ async def _check_ns(r: Resolver, domain: str, hosts: list[str], res: CheckResult
         ips = list(dict.fromkeys(a.records + aaaa.records))
         item = {"host": h, "ips": ips, "cname": cname.records[0] if cname.ok else None, "answers": None, "authoritative": None}
         pub = [ip for ip in ips if is_public_ip(ip)]
+        item["ips_public"] = pub
         if pub:
             async with sem:
                 q = await r.query_at(pub[0], domain, "SOA")
@@ -113,6 +114,18 @@ async def _check_ns(r: Resolver, domain: str, hosts: list[str], res: CheckResult
     if n >= 2 and not any(f.id.startswith("ns_") for f in res.findings):
         res.add("ns_ok", "pass", f"{n} nameservers, all answering", "Your DNS has redundancy and every nameserver answered for the zone.")
     return {"count": n, "servers": items, "networks": sorted(groups)}
+
+
+async def _authoritative_ttls(r: Resolver, domain: str, ns_items: list[dict], rtypes: list[str]) -> dict[str, int]:
+    """TTLs as published by an authoritative nameserver.
+
+    Our own recursive resolver caps its cache (unbound cache-max-ttl), so the TTL it returns is the capped,
+    counting-down cache value, not the TTL the domain owner set. Ask one authoritative server directly instead."""
+    ip = next((i["ips_public"][0] for i in ns_items if i.get("authoritative") and i.get("ips_public")), None)
+    if not ip or not rtypes:
+        return {}
+    answers = await asyncio.gather(*(r.query_at(ip, domain, t) for t in rtypes))
+    return {t: a.ttl for t, a in zip(rtypes, answers) if a.ok and a.aa and a.ttl is not None}
 
 
 def _sub(findings, prefix: str) -> int:
@@ -169,6 +182,11 @@ async def check(domain: str, resolver: Resolver | None = None) -> CheckResult:
             res.data["ns"] = None
         else:
             res.data["ns"] = await _check_ns(r, domain, ns_hosts, res)
+            auth = await _authoritative_ttls(r, domain, res.data["ns"].get("servers") or [],
+                                             [t for t, a in by.items() if a.ok])
+            if auth:
+                res.data["ttl"].update(auth)
+                res.data["ttl_source"] = "authoritative"
     # --- SOA ---
     if soa_rec:
         fmt = serial_format(soa_rec["serial"])

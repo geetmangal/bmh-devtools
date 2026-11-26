@@ -154,6 +154,32 @@ async def test_dnsrec_collects_records_and_healthy_ns_soa():
     assert res.status in ("pass", "warn") and res.data["scores"]["ns"] == 100
 
 
+
+class _CappedTtlResolver(FakeResolver):
+    """Recursive answers carry a capped cache TTL (unbound cache-max-ttl 60); authoritative ones the real TTL."""
+
+    async def query(self, name, rtype, *, dnssec=False):
+        res = await super().query(name, rtype, dnssec=dnssec)
+        if res.ttl is not None:
+            res.ttl = 60
+        return res
+
+    async def query_at(self, server, name, rtype):
+        res = await super().query_at(server, name, rtype)
+        if res.ttl is not None:
+            res.ttl = 86400
+        return res
+
+
+async def test_dnsrec_ttl_from_authoritative():
+    res = await dnsrec.check("example.com", _CappedTtlResolver(dns_zone()))
+    assert res.data["ttl"]["A"] == 86400 and res.data["ttl"]["MX"] == 86400
+    assert res.data["ttl_source"] == "authoritative"
+    # every nameserver lame -> keep the resolver TTL rather than nothing
+    lame = await dnsrec.check("example.com", _CappedTtlResolver(dns_zone({"example.com/SOA@8.8.8.8": "TIMEOUT",
+                                                                          "example.com/SOA@9.9.9.9": "TIMEOUT"})))
+    assert lame.data["ttl"]["A"] == 60 and "ttl_source" not in lame.data
+
 async def test_dnsrec_ns_problems():
     one = await dnsrec.check("example.com", FakeResolver(dns_zone({"example.com/NS": ["ns1.example.net"]})))
     assert status_of(one, "ns_single") == "fail"
